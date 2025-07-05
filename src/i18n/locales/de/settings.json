@@ -1,0 +1,14 @@
+{
+	"sections": {
+		"models": "Modelle"
+	},
+	"models": {
+		"settings": "Modell-Einstellungen",
+		"settingsDescription": "Verfügbare Modelle anpassen",
+		"selectModel": "Modell auswählen",
+		"description": "Passen Sie an, welche Modelle im Modell-Auswahlmenü angezeigt werden. Sie können Modelle aktivieren/deaktivieren und ihre Details anzeigen.",
+		"frontierModels": "Frontier-Modelle",
+		"mainModels": "Hauptmodelle",
+		"addCustomModel": "Benutzerdefiniertes Modell hinzufügen"
+	}
+}

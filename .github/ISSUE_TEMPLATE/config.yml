@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+    - name: Feature Request
+      url: https://github.com/LaxBloxBoy2/qapt-coder/discussions/categories/feature-requests
+      about: Share and vote on feature requests for qapt coder
+    - name: Leave a Review
+      url: https://marketplace.visualstudio.com/items?itemName=qaptcoder.qapt-coder&ssr=false#review-details
+      about: Enjoying qapt coder? Leave a review here!

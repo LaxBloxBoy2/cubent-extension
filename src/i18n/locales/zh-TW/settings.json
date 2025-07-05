@@ -1,0 +1,14 @@
+{
+	"sections": {
+		"models": "Models"
+	},
+	"models": {
+		"settings": "Model Settings",
+		"settingsDescription": "Customize available models",
+		"selectModel": "Select Model",
+		"description": "Customize which models appear in the model selector dropdown. You can enable/disable models and view their details.",
+		"frontierModels": "Frontier Models",
+		"mainModels": "Main Models",
+		"addCustomModel": "Add Custom Model"
+	}
+}

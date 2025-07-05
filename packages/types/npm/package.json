@@ -1,0 +1,40 @@
+{
+	"name": "@cubent/types",
+	"version": "1.24.0",
+	"description": "TypeScript type definitions for cubent.",
+	"publishConfig": {
+		"access": "public",
+		"name": "@cubent/types"
+	},
+	"author": "cubent Team",
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/LaxBloxBoy2/cubent.git"
+	},
+	"bugs": {
+		"url": "https://github.com/LaxBloxBoy2/cubent/issues"
+	},
+	"homepage": "https://github.com/LaxBloxBoy2/cubent/tree/main/packages/types",
+	"keywords": [
+		"cubent",
+		"cubent.dev",
+		"ai"
+	],
+	"main": "./dist/index.cjs",
+	"module": "./dist/index.js",
+	"types": "./dist/index.d.ts",
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"import": "./dist/index.js",
+			"require": {
+				"types": "./dist/index.d.cts",
+				"default": "./dist/index.cjs"
+			}
+		}
+	},
+	"files": [
+		"dist"
+	]
+}

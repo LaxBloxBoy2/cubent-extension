@@ -1,0 +1,14 @@
+{
+	"sections": {
+		"models": "Modèles"
+	},
+	"models": {
+		"settings": "Paramètres des modèles",
+		"settingsDescription": "Personnaliser les modèles disponibles",
+		"selectModel": "Sélectionner un modèle",
+		"description": "Personnalisez quels modèles apparaissent dans le menu déroulant de sélection de modèle. Vous pouvez activer/désactiver les modèles et voir leurs détails.",
+		"frontierModels": "Modèles Frontier",
+		"mainModels": "Modèles principaux",
+		"addCustomModel": "Ajouter un modèle personnalisé"
+	}
+}

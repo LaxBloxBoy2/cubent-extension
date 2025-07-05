@@ -1,0 +1,42 @@
+{
+	"$schema": "https://turbo.build/schema.json",
+	"tasks": {
+		"lint": {},
+		"check-types": {},
+		"test": {
+			"dependsOn": ["@cubent/types#build"]
+		},
+		"format": {},
+		"clean": {
+			"cache": false
+		},
+		"build": {
+			"outputs": ["dist/**"],
+			"inputs": ["src/**", "package.json", "tsconfig.json", "tsup.config.ts"]
+		},
+		"build:nightly": {},
+		"bundle": {
+			"dependsOn": ["^build"],
+			"cache": false
+		},
+		"bundle:nightly": {
+			"dependsOn": ["^build"],
+			"cache": false
+		},
+		"vsix": {
+			"dependsOn": ["bundle", "@cubent/vscode-webview#build"],
+			"cache": false
+		},
+		"vsix:nightly": {
+			"dependsOn": ["bundle:nightly", "@cubent/vscode-webview#build:nightly"],
+			"cache": false
+		},
+		"watch:bundle": {
+			"dependsOn": ["@cubent/build#build", "@cubent/types#build"],
+			"cache": false
+		},
+		"watch:tsc": {
+			"cache": false
+		}
+	}
+}

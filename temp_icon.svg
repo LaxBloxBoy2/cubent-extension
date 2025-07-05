@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <defs>
+    <clipPath id="qapt-logo-clip">
+      <path d="M 16 16 L 112 16 L 112 112 L 16 112 Z M 16 16 "/>
+    </clipPath>
+  </defs>
+  <!-- Background circle -->
+  <circle cx="64" cy="64" r="58" fill="#404040"/>
+  <!-- Qapt Coder Logo -->
+  <g clipPath="url(#qapt-logo-clip)" transform="translate(64, 64) scale(0.12) translate(-405, -405)">
+    <path fill="#FFFFFF" d="M 616.070312 641.121094 L 113.9375 351.453125 L 113.9375 259.980469 L 210.632812 204.164062 L 695.828125 484.03125 L 695.828125 595.082031 Z M 113.9375 407.566406 L 113.9375 549.898438 L 365.058594 694.867188 L 487.871094 623.96875 Z M 616.167969 382.730469 L 616.167969 259.980469 L 365.058594 115.007812 L 259.179688 176.128906 Z M 616.167969 382.730469"/>
+  </g>
+</svg>
