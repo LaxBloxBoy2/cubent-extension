@@ -18,9 +18,9 @@
 	},
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/LaxBloxBoy2/cubent.git"
+		"url": "https://github.com/LaxBloxBoy2/cubent-extension.git"
 	},
-	"homepage": "https://github.com/LaxBloxBoy2/cubent",
+	"homepage": "https://github.com/LaxBloxBoy2/cubent-extension",
 	"categories": [
 		"AI",
 		"Chat",
