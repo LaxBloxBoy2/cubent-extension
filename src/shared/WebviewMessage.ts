@@ -143,6 +143,8 @@ export interface WebviewMessage {
 		| "accountButtonClicked"
 		| "rooCloudSignIn"
 		| "rooCloudSignOut"
+		| "deviceOAuthSignIn"
+		| "openExternal"
 		| "condenseTaskContextRequest"
 		| "requestIndexingStatus"
 		| "startIndexing"
@@ -201,6 +203,7 @@ export interface WebviewMessage {
 	pinned?: boolean
 	preferences?: any
 	alertId?: string
+	url?: string
 }
 
 export const checkoutDiffPayloadSchema = z.object({

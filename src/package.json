@@ -98,8 +98,7 @@
 			{
 				"command": "cubent.accountButtonClicked",
 				"title": "Account",
-				"icon": "$(account)",
-				"when": "config.cubent.cubentCloudEnabled"
+				"icon": "$(account)"
 			},
 			{
 				"command": "cubent.settingsButtonClicked",
@@ -237,7 +236,7 @@
 				{
 					"command": "cubent.accountButtonClicked",
 					"group": "navigation@6",
-					"when": "view == cubent.SidebarProvider && config.cubent.cubentCloudEnabled"
+					"when": "view == cubent.SidebarProvider"
 				},
 				{
 					"command": "cubent.settingsButtonClicked",
@@ -269,7 +268,7 @@
 				{
 					"command": "cubent.accountButtonClicked",
 					"group": "navigation@6",
-					"when": "activeWebviewPanelId == cubent.TabPanelProvider && config.cubent.cubentCloudEnabled"
+					"when": "activeWebviewPanelId == cubent.TabPanelProvider"
 				},
 				{
 					"command": "cubent.settingsButtonClicked",
@@ -329,6 +328,66 @@
 					"type": "boolean",
 					"default": false,
 					"description": "%settings.cubentCoderCloudEnabled.description%"
+				},
+				"cubent.database.neon.url": {
+					"type": "string",
+					"default": "",
+					"description": "Neon database connection URL"
+				},
+				"cubent.database.supabase.url": {
+					"type": "string",
+					"default": "",
+					"description": "Supabase project URL"
+				},
+				"cubent.database.supabase.anonkey": {
+					"type": "string",
+					"default": "",
+					"description": "Supabase anonymous key"
+				},
+				"cubent.analytics.posthog.apikey": {
+					"type": "string",
+					"default": "",
+					"description": "PostHog API key for analytics"
+				},
+				"cubent.analytics.posthog.host": {
+					"type": "string",
+					"default": "https://app.posthog.com",
+					"description": "PostHog host URL"
+				},
+				"cubent.auth.oauth.clientid": {
+					"type": "string",
+					"default": "",
+					"description": "OAuth client ID for authentication"
+				},
+				"cubent.auth.device.baseurl": {
+					"type": "string",
+					"default": "https://app.cubent.dev",
+					"description": "Device authentication base URL"
+				},
+				"cubent.features.usage.tracking": {
+					"type": "boolean",
+					"default": true,
+					"description": "Enable usage tracking"
+				},
+				"cubent.features.trial.management": {
+					"type": "boolean",
+					"default": true,
+					"description": "Enable trial management"
+				},
+				"cubent.features.cubent.units.limit": {
+					"type": "number",
+					"default": 50,
+					"description": "Default Cubent Units limit"
+				},
+				"cubent.authState": {
+					"type": "object",
+					"default": null,
+					"description": "Stored authentication state (internal use)"
+				},
+				"cubent.session": {
+					"type": "string",
+					"default": "",
+					"description": "Stored user session data (internal use)"
 				}
 			}
 		}
@@ -353,13 +412,17 @@
 		"@anthropic-ai/vertex-sdk": "^0.7.0",
 		"@aws-sdk/client-bedrock-runtime": "^3.779.0",
 		"@aws-sdk/credential-providers": "^3.806.0",
-		"@google/genai": "^0.13.0",
-		"@mistralai/mistralai": "^1.3.6",
-		"@modelcontextprotocol/sdk": "^1.9.0",
 		"@cubent/cloud": "workspace:^",
 		"@cubent/telemetry": "workspace:^",
 		"@cubent/types": "workspace:^",
+		"@google/genai": "^0.13.0",
+		"@mistralai/mistralai": "^1.3.6",
+		"@modelcontextprotocol/sdk": "^1.9.0",
+		"@neondatabase/serverless": "^0.6.0",
+		"@prisma/adapter-neon": "^6.11.1",
+		"@prisma/client": "^6.11.1",
 		"@qdrant/js-client-rest": "^1.14.0",
+		"@supabase/supabase-js": "^2.38.0",
 		"@types/lodash.debounce": "^4.0.9",
 		"@vscode/codicons": "^0.0.36",
 		"async-mutex": "^0.5.0",
@@ -367,6 +430,7 @@
 		"cheerio": "^1.0.0",
 		"chokidar": "^4.0.1",
 		"clone-deep": "^4.0.1",
+		"date-fns": "^2.30.0",
 		"default-shell": "^2.2.0",
 		"delay": "^6.0.0",
 		"diff": "^5.2.0",
@@ -391,7 +455,9 @@
 		"p-wait-for": "^5.0.2",
 		"pdf-parse": "^1.1.1",
 		"pkce-challenge": "^4.1.0",
+		"posthog-node": "^3.1.0",
 		"pretty-bytes": "^6.1.1",
+		"prisma": "^6.11.1",
 		"ps-tree": "^1.2.0",
 		"puppeteer-chromium-resolver": "^23.0.0",
 		"puppeteer-core": "^23.4.0",
@@ -416,10 +482,10 @@
 		"zod": "^3.24.2"
 	},
 	"devDependencies": {
-		"@jest/globals": "^29.7.0",
 		"@cubent/build": "workspace:^",
 		"@cubent/config-eslint": "workspace:^",
 		"@cubent/config-typescript": "workspace:^",
+		"@jest/globals": "^29.7.0",
 		"@types/clone-deep": "^4.0.4",
 		"@types/debug": "^4.1.12",
 		"@types/diff": "^5.2.1",
@@ -434,6 +500,7 @@
 		"@types/string-similarity": "^4.0.2",
 		"@types/tmp": "^0.2.6",
 		"@types/turndown": "^5.0.5",
+		"@types/uuid": "^9.0.0",
 		"@types/vscode": "^1.84.0",
 		"@vscode/test-electron": "^2.5.2",
 		"@vscode/vsce": "3.3.2",

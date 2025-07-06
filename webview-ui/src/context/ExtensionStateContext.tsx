@@ -35,6 +35,9 @@ export interface ExtensionStateContextType extends ExtensionState {
 	filePaths: string[]
 	openedTabs: Array<{ label: string; isActive: boolean; path?: string }>
 	organizationAllowList: OrganizationAllowList
+	// Authentication state
+	isAuthenticated?: boolean
+	currentUser?: any
 	maxConcurrentFileReads?: number
 	condensingApiConfigId?: string
 	setCondensingApiConfigId: (value: string) => void
@@ -200,6 +203,9 @@ export const ExtensionStateContextProvider: React.FC<{ children: React.ReactNode
 		historyPreviewCollapsed: false, // Initialize the new state (default to expanded)
 		cloudUserInfo: null,
 		organizationAllowList: ORGANIZATION_ALLOW_ALL,
+		// Authentication state
+		isAuthenticated: false,
+		currentUser: null,
 		autoCondenseContext: true,
 		autoCondenseContextPercent: 100,
 		codebaseIndexConfig: {
@@ -243,7 +249,8 @@ export const ExtensionStateContextProvider: React.FC<{ children: React.ReactNode
 				case "state": {
 					const newState = message.state!
 					setState((prevState) => mergeExtensionState(prevState, newState))
-					setShowWelcome(!checkExistKey(newState.apiConfiguration))
+					// Only show welcome screen if user is not authenticated AND no API config exists
+					setShowWelcome(!newState.isAuthenticated && !checkExistKey(newState.apiConfiguration))
 					setDidHydrateState(true)
 					break
 				}

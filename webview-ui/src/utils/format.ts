@@ -1,6 +1,11 @@
 import i18next from "i18next"
 
 export function formatLargeNumber(num: number): string {
+	// Handle undefined, null, or NaN values
+	if (num == null || isNaN(num)) {
+		return "0"
+	}
+
 	if (num >= 1e9) {
 		return (num / 1e9).toFixed(1) + i18next.t("common:number_format.billion_suffix")
 	}

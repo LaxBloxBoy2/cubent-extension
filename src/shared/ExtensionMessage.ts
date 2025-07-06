@@ -68,6 +68,10 @@ export interface ExtensionMessage {
 		| "commandExecutionStatus"
 		| "vsCodeSetting"
 		| "authenticatedUser"
+		| "cloudUserInfo"
+		| "authStateChanged"
+		| "authError"
+		| "authStarted"
 		| "condenseTaskContextResponse"
 		| "singleRouterModelFetchResponse"
 		| "indexingStatusUpdate"
@@ -123,6 +127,10 @@ export interface ExtensionMessage {
 	data?: any
 	startLine?: number
 	endLine?: number
+	// Authentication state properties
+	isAuthenticated?: boolean
+	hasActiveSession?: boolean
+	url?: string
 }
 
 export type ExtensionState = Pick<
@@ -232,6 +240,10 @@ export type ExtensionState = Pick<
 
 	autoCondenseContext: boolean
 	autoCondenseContextPercent: number
+
+	// Authentication state
+	isAuthenticated?: boolean
+	currentUser?: any
 }
 
 export interface ClineSayTool {

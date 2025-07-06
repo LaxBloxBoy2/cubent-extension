@@ -16,6 +16,8 @@ import McpView from "./components/mcp/McpView"
 import ModesView from "./components/modes/ModesView"
 import { HumanRelayDialog } from "./components/human-relay/HumanRelayDialog"
 import { AccountView } from "./components/account/AccountView"
+import { AuthenticationRequired } from "./components/auth/AuthenticationRequired"
+import { AuthProvider } from "./context/AuthContext"
 
 type Tab = "settings" | "history" | "mcp" | "modes" | "chat" | "account"
 
@@ -37,6 +39,8 @@ const App = () => {
 		telemetryKey,
 		machineId,
 		cloudUserInfo,
+		isAuthenticated,
+		currentUser,
 	} = useExtensionState()
 
 	const [showAnnouncement, setShowAnnouncement] = useState(false)
@@ -129,6 +133,11 @@ const App = () => {
 		return null
 	}
 
+	// Check if user is authenticated - if not, show authentication screen
+	if (!isAuthenticated || !currentUser) {
+		return <AuthenticationRequired />
+	}
+
 	// Do not conditionally load ChatView, it's expensive and there's state we
 	// don't want to lose (user input, disableInput, askResponse promise, etc.)
 	return showWelcome ? (
@@ -164,11 +173,13 @@ const queryClient = new QueryClient()
 
 const AppWithProviders = () => (
 	<ExtensionStateContextProvider>
-		<TranslationProvider>
-			<QueryClientProvider client={queryClient}>
-				<App />
-			</QueryClientProvider>
-		</TranslationProvider>
+		<AuthProvider>
+			<TranslationProvider>
+				<QueryClientProvider client={queryClient}>
+					<App />
+				</QueryClientProvider>
+			</TranslationProvider>
+		</AuthProvider>
 	</ExtensionStateContextProvider>
 )
 

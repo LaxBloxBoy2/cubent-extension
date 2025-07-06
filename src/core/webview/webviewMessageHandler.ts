@@ -56,7 +56,7 @@ export const webviewMessageHandler = async (provider: ClineProvider, message: We
 	const updateGlobalStateWithBroadcast = async <K extends keyof GlobalState>(key: K, value: GlobalState[K]) => {
 		await updateGlobalState(key, value)
 		// Broadcast settings changes to other instances
-		ClineProvider.broadcastStateChange(provider, 'settings')
+		ClineProvider.broadcastStateChange(provider, "settings")
 	}
 
 	switch (message.type) {
@@ -429,11 +429,17 @@ export const webviewMessageHandler = async (provider: ClineProvider, message: We
 			break
 		case "openFile":
 			// Handle both single line and line range for selected text
-			const openFileOptions = message.values as { create?: boolean; content?: string; line?: number; startLine?: number; endLine?: number }
+			const openFileOptions = message.values as {
+				create?: boolean
+				content?: string
+				line?: number
+				startLine?: number
+				endLine?: number
+			}
 			const lineToOpen = openFileOptions?.startLine || openFileOptions?.line
 			openFile(message.text!, {
 				...openFileOptions,
-				line: lineToOpen
+				line: lineToOpen,
 			})
 			break
 		case "showDiff":
@@ -469,7 +475,7 @@ export const webviewMessageHandler = async (provider: ClineProvider, message: We
 					// Apply the diff to get the final content
 					const diffResult = await currentTask.diffStrategy.applyDiff(
 						originalContent,
-						diffOptions.diffContent
+						diffOptions.diffContent,
 					)
 
 					if (diffResult.success && diffResult.content) {
@@ -493,11 +499,11 @@ export const webviewMessageHandler = async (provider: ClineProvider, message: We
 						const diffUri = vscode.Uri.file(tempDiffPath)
 						await vscode.window.showTextDocument(diffUri, {
 							preview: false,
-							viewColumn: vscode.ViewColumn.Beside
+							viewColumn: vscode.ViewColumn.Beside,
 						})
 
 						// Set the language to diff for syntax highlighting
-						const doc = vscode.workspace.textDocuments.find(doc => doc.uri.fsPath === tempDiffPath)
+						const doc = vscode.workspace.textDocuments.find((doc) => doc.uri.fsPath === tempDiffPath)
 						if (doc) {
 							await vscode.languages.setTextDocumentLanguage(doc, "diff")
 						}
@@ -888,7 +894,7 @@ export const webviewMessageHandler = async (provider: ClineProvider, message: We
 		case "mode":
 			await provider.handleModeSwitch(message.text as Mode)
 			// Broadcast mode change to other instances (like settings)
-			ClineProvider.broadcastStateChange(provider, 'settings')
+			ClineProvider.broadcastStateChange(provider, "settings")
 			break
 		case "updateSupportPrompt":
 			try {
@@ -1256,7 +1262,7 @@ export const webviewMessageHandler = async (provider: ClineProvider, message: We
 			if (message.text && message.apiConfiguration) {
 				await provider.upsertProviderProfile(message.text, message.apiConfiguration)
 				// Broadcast the change to other instances
-				ClineProvider.broadcastStateChange(provider, 'configProfile')
+				ClineProvider.broadcastStateChange(provider, "configProfile")
 			}
 			break
 		case "renameApiConfiguration":
@@ -1281,7 +1287,7 @@ export const webviewMessageHandler = async (provider: ClineProvider, message: We
 					// currently activated provider profile.
 					await provider.activateProviderProfile({ name: newName })
 					// Broadcast the change to other instances
-					ClineProvider.broadcastStateChange(provider, 'configProfile')
+					ClineProvider.broadcastStateChange(provider, "configProfile")
 				} catch (error) {
 					provider.log(
 						`Error rename api configuration: ${JSON.stringify(error, Object.getOwnPropertyNames(error), 2)}`,
@@ -1296,7 +1302,7 @@ export const webviewMessageHandler = async (provider: ClineProvider, message: We
 				try {
 					await provider.activateProviderProfile({ name: message.text })
 					// Broadcast the change to other instances
-					ClineProvider.broadcastStateChange(provider, 'configProfile')
+					ClineProvider.broadcastStateChange(provider, "configProfile")
 				} catch (error) {
 					provider.log(
 						`Error load api configuration: ${JSON.stringify(error, Object.getOwnPropertyNames(error), 2)}`,
@@ -1310,7 +1316,7 @@ export const webviewMessageHandler = async (provider: ClineProvider, message: We
 				try {
 					await provider.activateProviderProfile({ id: message.text })
 					// Broadcast the change to other instances
-					ClineProvider.broadcastStateChange(provider, 'configProfile')
+					ClineProvider.broadcastStateChange(provider, "configProfile")
 				} catch (error) {
 					provider.log(
 						`Error load api configuration by ID: ${JSON.stringify(error, Object.getOwnPropertyNames(error), 2)}`,
@@ -1346,7 +1352,7 @@ export const webviewMessageHandler = async (provider: ClineProvider, message: We
 					await provider.providerSettingsManager.deleteConfig(oldName)
 					await provider.activateProviderProfile({ name: newName })
 					// Broadcast the change to other instances
-					ClineProvider.broadcastStateChange(provider, 'configProfile')
+					ClineProvider.broadcastStateChange(provider, "configProfile")
 				} catch (error) {
 					provider.log(
 						`Error delete api configuration: ${JSON.stringify(error, Object.getOwnPropertyNames(error), 2)}`,
@@ -1469,7 +1475,7 @@ export const webviewMessageHandler = async (provider: ClineProvider, message: We
 					type: message.feedbackType,
 					timestamp: message.messageTs,
 					feedback: message.feedback,
-					messagePreview: message.messageText.substring(0, 100) + "..."
+					messagePreview: message.messageText.substring(0, 100) + "...",
 				})
 
 				// You could also send this to telemetry service if needed
@@ -1495,14 +1501,14 @@ export const webviewMessageHandler = async (provider: ClineProvider, message: We
 						type: "usageStats",
 						data: {
 							currentMonthTokens: 45000,
-							currentMonthCost: 4.50,
+							currentMonthCost: 4.5,
 							monthlyTokenLimit: 100000,
-							monthlyCostLimit: 10.00,
+							monthlyCostLimit: 10.0,
 							tokenPercentage: 45,
 							costPercentage: 45,
 							subscriptionTier: "free_trial",
-							trialDaysLeft: 7
-						}
+							trialDaysLeft: 7,
+						},
 					})
 				}
 			} catch (error) {
@@ -1530,8 +1536,8 @@ export const webviewMessageHandler = async (provider: ClineProvider, message: We
 							isInTrial: true,
 							daysRemaining: 7,
 							canExtend: true,
-							extensionsUsed: 0
-						}
+							extensionsUsed: 0,
+						},
 					})
 				}
 			} catch (error) {
@@ -1570,12 +1576,12 @@ export const webviewMessageHandler = async (provider: ClineProvider, message: We
 								costAlertsEnabled: true,
 								costAlertThreshold: 80,
 								autoUpgradeEnabled: false,
-								preferredUpgradeTier: "basic"
+								preferredUpgradeTier: "basic",
 							},
 							createdAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
 							updatedAt: new Date().toISOString(),
-							lastActiveAt: new Date().toISOString()
-						}
+							lastActiveAt: new Date().toISOString(),
+						},
 					})
 				}
 			} catch (error) {
@@ -1663,12 +1669,44 @@ export const webviewMessageHandler = async (provider: ClineProvider, message: We
 		}
 		case "rooCloudSignOut": {
 			try {
+				// Use both old and new authentication services for compatibility
 				await CloudService.instance.logout()
+
+				// Also sign out from our new authentication service
+				const { default: AuthenticationService } = await import("../../services/AuthenticationService")
+				const authService = AuthenticationService.getInstance()
+				await authService.signOut()
+
 				await provider.postStateToWebview()
 				provider.postMessageToWebview({ type: "authenticatedUser", userInfo: undefined })
 			} catch (error) {
 				provider.log(`AuthService#logout failed: ${error}`)
 				vscode.window.showErrorMessage("Sign out failed.")
+			}
+
+			break
+		}
+		case "deviceOAuthSignIn": {
+			try {
+				TelemetryService.instance.captureEvent(TelemetryEventName.AUTHENTICATION_INITIATED)
+
+				// Generate device ID and state directly without complex service initialization
+				const { v4: uuidv4 } = await import("uuid")
+				const deviceId = uuidv4()
+				const state = uuidv4()
+
+				// Construct the correct authentication URL for app.cubent.dev
+				const authUrl = `https://app.cubent.dev/login?device_id=${deviceId}&state=${state}`
+				await vscode.env.openExternal(vscode.Uri.parse(authUrl))
+
+				// Show message to user
+				vscode.window.showInformationMessage(
+					"Please complete authentication in your browser. The extension will automatically detect when you're signed in.",
+					"OK",
+				)
+			} catch (error) {
+				provider.log(`AuthService#deviceOAuthSignIn failed: ${error}`)
+				vscode.window.showErrorMessage("Device OAuth sign in failed.")
 			}
 
 			break
@@ -1751,7 +1789,9 @@ export const webviewMessageHandler = async (provider: ClineProvider, message: We
 			if (currentCline) {
 				try {
 					// Get the most recent checkpoint
-					const checkpointMessages = currentCline.clineMessages.filter(msg => msg.say === "checkpoint_saved")
+					const checkpointMessages = currentCline.clineMessages.filter(
+						(msg) => msg.say === "checkpoint_saved",
+					)
 
 					if (checkpointMessages.length > 0) {
 						// Try to restore from checkpoint
@@ -1762,7 +1802,9 @@ export const webviewMessageHandler = async (provider: ClineProvider, message: We
 
 							// Wait for task to be ready
 							try {
-								await pWaitFor(() => provider.getCurrentCline()?.isInitialized === true, { timeout: 3_000 })
+								await pWaitFor(() => provider.getCurrentCline()?.isInitialized === true, {
+									timeout: 3_000,
+								})
 							} catch (error) {
 								vscode.window.showErrorMessage("Timeout waiting for task to initialize")
 								break
@@ -1772,9 +1814,11 @@ export const webviewMessageHandler = async (provider: ClineProvider, message: We
 							await provider.getCurrentCline()?.checkpointRestore({
 								ts: lastCheckpoint.ts,
 								commitHash: lastCheckpoint.text,
-								mode: "restore"
+								mode: "restore",
 							})
-							vscode.window.showInformationMessage("✅ Successfully discarded all changes and restored to last checkpoint.")
+							vscode.window.showInformationMessage(
+								"✅ Successfully discarded all changes and restored to last checkpoint.",
+							)
 						} else {
 							throw new Error("Invalid checkpoint data found")
 						}
@@ -1789,7 +1833,7 @@ export const webviewMessageHandler = async (provider: ClineProvider, message: We
 								"No checkpoints found. Would you like to discard all changes using git reset? This will reset all files to the last git commit.",
 								{ modal: true },
 								"Reset to Git HEAD",
-								"Cancel"
+								"Cancel",
 							)
 
 							if (choice === "Reset to Git HEAD") {
@@ -1800,11 +1844,15 @@ export const webviewMessageHandler = async (provider: ClineProvider, message: We
 								const execAsync = promisify(exec)
 
 								try {
-									await execAsync('git reset --hard HEAD', { cwd: workspaceRoot })
-									await execAsync('git clean -fd', { cwd: workspaceRoot })
-									vscode.window.showInformationMessage("✅ Successfully discarded all changes using git reset.")
+									await execAsync("git reset --hard HEAD", { cwd: workspaceRoot })
+									await execAsync("git clean -fd", { cwd: workspaceRoot })
+									vscode.window.showInformationMessage(
+										"✅ Successfully discarded all changes using git reset.",
+									)
 								} catch (gitError) {
-									throw new Error(`Git reset failed: ${gitError instanceof Error ? gitError.message : String(gitError)}`)
+									throw new Error(
+										`Git reset failed: ${gitError instanceof Error ? gitError.message : String(gitError)}`,
+									)
 								}
 							}
 						} else {
@@ -1812,7 +1860,9 @@ export const webviewMessageHandler = async (provider: ClineProvider, message: We
 						}
 					}
 				} catch (error) {
-					vscode.window.showErrorMessage("❌ Failed to discard changes: " + (error instanceof Error ? error.message : String(error)))
+					vscode.window.showErrorMessage(
+						"❌ Failed to discard changes: " + (error instanceof Error ? error.message : String(error)),
+					)
 				}
 			}
 			break
@@ -1827,7 +1877,9 @@ export const webviewMessageHandler = async (provider: ClineProvider, message: We
 					// Always show success message since we forced the save
 					vscode.window.showInformationMessage("✅ Checkpoint created successfully!")
 				} catch (error) {
-					vscode.window.showErrorMessage("❌ Failed to create checkpoint: " + (error instanceof Error ? error.message : String(error)))
+					vscode.window.showErrorMessage(
+						"❌ Failed to create checkpoint: " + (error instanceof Error ? error.message : String(error)),
+					)
 				}
 			}
 			break
@@ -1835,10 +1887,34 @@ export const webviewMessageHandler = async (provider: ClineProvider, message: We
 
 		// User Management Cases
 		case "getUserProfile": {
-			const userManagement = getUserManagementIntegration()
-			if (userManagement) {
-				const userProfile = userManagement.getServices().userManagement.getUserProfile()
-				provider.postMessageToWebview({ type: "userProfile", data: userProfile })
+			try {
+				// Use CubentWebApiService to get user profile from API
+				const { default: CubentWebApiService } = await import("../../services/CubentWebApiService")
+				const { default: AuthenticationService } = await import("../../services/AuthenticationService")
+
+				const authService = AuthenticationService.getInstance()
+				const apiService = CubentWebApiService.getInstance()
+
+				if (authService.isAuthenticated && authService.authToken) {
+					apiService.setAuthToken(authService.authToken)
+					const userProfile = await apiService.getUserProfile()
+
+					provider.postMessageToWebview({
+						type: "userProfile",
+						data: userProfile,
+					})
+				} else {
+					provider.postMessageToWebview({
+						type: "userProfile",
+						data: null,
+					})
+				}
+			} catch (error) {
+				console.error("Error getting user profile:", error)
+				provider.postMessageToWebview({
+					type: "userProfile",
+					data: null,
+				})
 			}
 			break
 		}
@@ -1851,10 +1927,34 @@ export const webviewMessageHandler = async (provider: ClineProvider, message: We
 			break
 		}
 		case "getUserUsageStats": {
-			const userManagement = getUserManagementIntegration()
-			if (userManagement) {
-				const usageStats = userManagement.getServices().usageTracking.getUsageStats()
-				provider.postMessageToWebview({ type: "usageStats", data: usageStats })
+			try {
+				// Use CubentWebApiService to get usage stats from API
+				const { default: CubentWebApiService } = await import("../../services/CubentWebApiService")
+				const { default: AuthenticationService } = await import("../../services/AuthenticationService")
+
+				const authService = AuthenticationService.getInstance()
+				const apiService = CubentWebApiService.getInstance()
+
+				if (authService.isAuthenticated && authService.authToken) {
+					apiService.setAuthToken(authService.authToken)
+					const usageStats = await apiService.getUserUsageStats()
+
+					provider.postMessageToWebview({
+						type: "usageStats",
+						data: usageStats,
+					})
+				} else {
+					provider.postMessageToWebview({
+						type: "usageStats",
+						data: null,
+					})
+				}
+			} catch (error) {
+				console.error("Error getting user usage stats:", error)
+				provider.postMessageToWebview({
+					type: "usageStats",
+					data: null,
+				})
 			}
 			break
 		}
@@ -1865,7 +1965,9 @@ export const webviewMessageHandler = async (provider: ClineProvider, message: We
 					await userManagement.getServices().userManagement.updatePreferences(message.preferences)
 					vscode.window.showInformationMessage("Preferences updated successfully")
 				} catch (error) {
-					vscode.window.showErrorMessage("Failed to update preferences: " + (error instanceof Error ? error.message : String(error)))
+					vscode.window.showErrorMessage(
+						"Failed to update preferences: " + (error instanceof Error ? error.message : String(error)),
+					)
 				}
 			}
 			break
@@ -1876,7 +1978,9 @@ export const webviewMessageHandler = async (provider: ClineProvider, message: We
 				try {
 					await userManagement.getServices().trialManagement.extendTrial()
 				} catch (error) {
-					vscode.window.showErrorMessage("Failed to extend trial: " + (error instanceof Error ? error.message : String(error)))
+					vscode.window.showErrorMessage(
+						"Failed to extend trial: " + (error instanceof Error ? error.message : String(error)),
+					)
 				}
 			}
 			break
@@ -1894,7 +1998,9 @@ export const webviewMessageHandler = async (provider: ClineProvider, message: We
 				try {
 					await userManagement.getServices().usageTracking.acknowledgeAlert(message.alertId)
 				} catch (error) {
-					vscode.window.showErrorMessage("Failed to acknowledge alert: " + (error instanceof Error ? error.message : String(error)))
+					vscode.window.showErrorMessage(
+						"Failed to acknowledge alert: " + (error instanceof Error ? error.message : String(error)),
+					)
 				}
 			}
 			break

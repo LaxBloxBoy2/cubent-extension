@@ -41,6 +41,33 @@ export const handleUri = async (uri: vscode.Uri) => {
 			await CloudService.instance.handleAuthCallback(code, state)
 			break
 		}
+		case "/auth/callback": {
+			const token = query.get("token")
+			const state = query.get("state")
+			if (token && state) {
+				// Import our new AuthenticationService
+				const { default: AuthenticationService } = await import("../services/AuthenticationService")
+				const authService = AuthenticationService.getInstance()
+				await authService.initialize()
+
+				// Handle the authentication callback with the token
+				const result = await authService.handleTokenCallback(token, state)
+
+				if (result.success) {
+					vscode.window.showInformationMessage("Successfully authenticated with Cubent!")
+					// Refresh the webview to show authenticated state
+					if (visibleProvider) {
+						visibleProvider.postMessageToWebview({
+							type: "authenticationSuccess",
+							user: result.user,
+						})
+					}
+				} else {
+					vscode.window.showErrorMessage(`Authentication failed: ${result.error}`)
+				}
+			}
+			break
+		}
 		default:
 			break
 	}

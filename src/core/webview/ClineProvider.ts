@@ -66,6 +66,7 @@ import { WebviewMessage } from "../../shared/WebviewMessage"
 import { EMBEDDING_MODEL_PROFILES } from "../../shared/embeddingModels"
 import { ProfileValidator } from "../../shared/ProfileValidator"
 import { UserManagementIntegration } from "../user/UserManagementIntegration"
+import AuthenticationService from "../../services/AuthenticationService"
 
 /**
  * https://github.com/microsoft/vscode-webview-ui-toolkit-samples/blob/main/default/weather-webview/src/providers/WeatherViewProvider.ts
@@ -102,6 +103,7 @@ export class ClineProvider
 	}
 	protected mcpHub?: McpHub // Change from private to protected
 	private userManagement?: UserManagementIntegration
+	private authenticationService: AuthenticationService
 
 	public isViewLaunched = false
 	public settingsImportedAt?: number
@@ -152,6 +154,14 @@ export class ClineProvider
 			.catch((error) => {
 				this.log(`Failed to initialize MCP Hub: ${error}`)
 			})
+
+		// Initialize Authentication Service
+		this.authenticationService = AuthenticationService.getInstance()
+
+		// Listen for authentication state changes
+		this.authenticationService.onAuthStateChange((session) => {
+			this.postStateToWebview()
+		})
 
 		// Initialize User Management (optional - only if environment variables are set)
 		try {
@@ -278,7 +288,7 @@ export class ClineProvider
 	/**
 	 * Broadcasts state changes to all active instances except the sender
 	 */
-	public static broadcastStateChange(sender: ClineProvider, changeType: 'configProfile' | 'settings', data?: any) {
+	public static broadcastStateChange(sender: ClineProvider, changeType: "configProfile" | "settings", data?: any) {
 		for (const instance of this.activeInstances) {
 			if (instance !== sender) {
 				instance.handleCrossInstanceStateChange(changeType, data)
@@ -316,15 +326,15 @@ export class ClineProvider
 	/**
 	 * Handles state changes from other instances
 	 */
-	private async handleCrossInstanceStateChange(changeType: 'configProfile' | 'settings', data?: any) {
+	private async handleCrossInstanceStateChange(changeType: "configProfile" | "settings", data?: any) {
 		try {
 			switch (changeType) {
-				case 'configProfile':
+				case "configProfile":
 					// Refresh the context proxy cache and update webview
 					await this.contextProxy.refreshCache()
 					await this.postStateToWebview()
 					break
-				case 'settings':
+				case "settings":
 					// Refresh all cached state and update webview
 					await this.contextProxy.refreshCache()
 					await this.postStateToWebview()
@@ -837,7 +847,7 @@ export class ClineProvider
 				window.IMAGES_BASE_URI = "${imagesUri}"
 				window.AUDIO_BASE_URI = "${audioUri}"
 				window.MATERIAL_ICONS_BASE_URI = "${materialIconsUri}"
-				window.INITIAL_TAB = "${settingsOnly ? "settings" : (this.initialTab || "")}"
+				window.INITIAL_TAB = "${settingsOnly ? "settings" : this.initialTab || ""}"
 			</script>
             <title>cubent coder</title>
           </head>
@@ -1347,7 +1357,7 @@ export class ClineProvider
 		if (taskIndex !== -1) {
 			taskHistory[taskIndex] = {
 				...taskHistory[taskIndex],
-				title: newTitle
+				title: newTitle,
 			}
 			await this.updateGlobalState("taskHistory", taskHistory)
 			await this.postStateToWebview()
@@ -1361,7 +1371,7 @@ export class ClineProvider
 		if (taskIndex !== -1) {
 			taskHistory[taskIndex] = {
 				...taskHistory[taskIndex],
-				pinned: pinned
+				pinned: pinned,
 			}
 			await this.updateGlobalState("taskHistory", taskHistory)
 			await this.postStateToWebview()
@@ -1554,6 +1564,9 @@ export class ClineProvider
 				codebaseIndexEmbedderBaseUrl: "",
 				codebaseIndexEmbedderModelId: "",
 			},
+			// Authentication state
+			isAuthenticated: this.authenticationService.isAuthenticated,
+			currentUser: this.authenticationService.currentUser,
 		}
 	}
 
