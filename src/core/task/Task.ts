@@ -45,6 +45,9 @@ import { BrowserSession } from "../../services/browser/BrowserSession"
 import { McpHub } from "../../services/mcp/McpHub"
 import { McpServerManager } from "../../services/mcp/McpServerManager"
 import { RepoPerTaskCheckpointService } from "../../services/checkpoints"
+import UsageTrackingService from "../../services/UsageTrackingService"
+import { getUserManagementIntegration } from "../../extension"
+import CubentWebApiService from "../../services/CubentWebApiService"
 
 // integrations
 import { DiffViewProvider } from "../../integrations/editor/DiffViewProvider"
@@ -1382,6 +1385,59 @@ export class Task extends EventEmitter<ClineEvents> {
 					cacheReadTokens,
 					cost: totalCost,
 				})
+
+				// Track usage directly to Neon database via CubentWebApiService
+				// Only track usage for initial user requests, not for tool follow-ups
+				const isToolFollowUp =
+					this.userMessageContent.length > 0 &&
+					this.userMessageContent.some(
+						(content) =>
+							content.type === "text" &&
+							(content.text.includes("Result:") || content.text.includes("Tool call repetition")),
+					)
+
+				if (!isToolFollowUp) {
+					try {
+						const modelInfo = this.api.getModel()
+						const cubentWebApiService = CubentWebApiService.getInstance()
+
+						// Add debug logging to track duplicate calls
+						console.log(
+							`🔍 Tracking usage for task ${this.taskId}, model: ${modelInfo.id}, tokens: ${inputTokens + outputTokens}`,
+						)
+
+						// Calculate Cubent Units using fixed per-request pricing from documentation
+						const cubentUnits = this.getCubentUnitsForModel(modelInfo.id)
+
+						const usageEntry = {
+							modelId: modelInfo.id,
+							cubentUnitsUsed: cubentUnits,
+							tokensUsed: inputTokens + outputTokens,
+							inputTokens,
+							outputTokens,
+							costAccrued: totalCost || 0,
+							requestsMade: 1,
+							sessionId: this.taskId,
+							metadata: {
+								provider: this.apiConfiguration?.apiProvider || "unknown",
+								configName: this.apiConfiguration?.apiConfigName,
+								cacheReadTokens,
+								cacheWriteTokens,
+								feature: "task-execution",
+								timestamp: Date.now(),
+							},
+						}
+
+						await cubentWebApiService.trackUsage(usageEntry)
+						console.log(
+							`✅ Usage tracked: ${cubentUnits} Cubent Units, ${inputTokens + outputTokens} tokens for ${modelInfo.id}`,
+						)
+					} catch (error) {
+						console.warn("Failed to track usage:", error)
+					}
+				} else {
+					console.log(`⏭️ Skipping usage tracking for tool follow-up in task ${this.taskId}`)
+				}
 			}
 
 			// Need to call here in case the stream was aborted.
@@ -1621,11 +1677,12 @@ export class Task extends EventEmitter<ClineEvents> {
 
 		// Also check if this is a simple acknowledgment that should not use tools
 		const lastUserMessage = this.apiConversationHistory[this.apiConversationHistory.length - 1]
-		const userMessageText = typeof lastUserMessage?.content === 'string'
-			? lastUserMessage.content
-			: Array.isArray(lastUserMessage?.content)
-				? lastUserMessage.content.find(c => c.type === 'text')?.text || ''
-				: ''
+		const userMessageText =
+			typeof lastUserMessage?.content === "string"
+				? lastUserMessage.content
+				: Array.isArray(lastUserMessage?.content)
+					? lastUserMessage.content.find((c) => c.type === "text")?.text || ""
+					: ""
 
 		const isSimpleAcknowledgment = this.isSimpleAcknowledgment(userMessageText)
 
@@ -1687,9 +1744,10 @@ export class Task extends EventEmitter<ClineEvents> {
 		// Limit to last 8 messages to reduce token costs dramatically
 		const limitedMessages = messagesSinceLastSummary.slice(-8)
 
-		const cleanConversationHistory = maybeRemoveImageBlocks(limitedMessages, this.api).map(
-			({ role, content }) => ({ role, content }),
-		)
+		const cleanConversationHistory = maybeRemoveImageBlocks(limitedMessages, this.api).map(({ role, content }) => ({
+			role,
+			content,
+		}))
 
 		// Check if we've reached the maximum number of auto-approved requests
 		const maxRequests = state?.allowedMaxRequests || Infinity
@@ -1779,7 +1837,7 @@ export class Task extends EventEmitter<ClineEvents> {
 				// Add error message to chat conversation
 				await this.say(
 					"error",
-					`Operation failed: ${error.message ?? JSON.stringify(serializeError(error), null, 2)}\n\n[try operation again](command:retry)`
+					`Operation failed: ${error.message ?? JSON.stringify(serializeError(error), null, 2)}\n\n[try operation again](command:retry)`,
 				)
 
 				const { response } = await this.ask(
@@ -1828,6 +1886,67 @@ export class Task extends EventEmitter<ClineEvents> {
 
 	// Metrics
 
+	private getCubentUnitsForModel(modelId: string): number {
+		// Fixed Cubent Units per request based on official documentation
+		// https://docs.cubent.dev/models-and-pricing
+
+		const modelUnits: Record<string, number> = {
+			// Anthropic Claude Models
+			"claude-3.7-sonnet": 1.1,
+			"claude-3.7-sonnet-thinking": 1.35,
+			"claude-3.5-sonnet": 0.95,
+			"claude-3.5-haiku": 0.55,
+			"claude-3-haiku": 0.45,
+
+			// OpenAI Models
+			"gpt-4o": 1.1,
+			"gpt-4.5-preview": 1.2,
+			"gpt-4o-mini": 0.65,
+			"o3-mini": 1.0,
+			"o3-mini-high-reasoning": 1.1,
+			"o3-mini-low-reasoning": 0.75,
+
+			// DeepSeek Models
+			"deepseek-chat": 0.35,
+			"deepseek-reasoner": 0.7,
+
+			// Google Gemini Models
+			"gemini-2.5-flash": 0.3,
+			"gemini-2.5-flash-preview": 0.3,
+			"gemini-2.5-flash-preview-05-20": 0.3, // Specific version
+			"gemini-2.5-flash-thinking": 0.4,
+			"gemini-2.5-pro": 0.85,
+			"gemini-2.0-flash": 0.45,
+			"gemini-2.0-pro": 0.7,
+			"gemini-1.5-flash": 0.4,
+			"gemini-1.5-pro": 0.65,
+
+			// xAI Grok Models
+			"grok-3": 1.1,
+			"grok-3-mini": 0.3,
+			"grok-2-vision": 0.7,
+		}
+
+		// Normalize model ID for lookup - handle various formats
+		const normalizedModelId = modelId.toLowerCase().replace(/[_\s]/g, "-")
+
+		// Check for exact match first
+		if (modelUnits[normalizedModelId]) {
+			return modelUnits[normalizedModelId]
+		}
+
+		// Check for partial matches for models with version suffixes
+		for (const [key, value] of Object.entries(modelUnits)) {
+			if (normalizedModelId.includes(key) || key.includes(normalizedModelId.split("-").slice(0, -1).join("-"))) {
+				console.log(`✅ Matched model "${modelId}" to "${key}" = ${value} units`)
+				return value
+			}
+		}
+
+		console.warn(`⚠️ Unknown model "${modelId}", using fallback 1.0 units`)
+		return 1.0
+	}
+
 	public combineMessages(messages: ClineMessage[]) {
 		return combineApiRequests(combineCommandSequences(messages))
 	}
@@ -1865,10 +1984,35 @@ export class Task extends EventEmitter<ClineEvents> {
 
 		// Exact matches
 		const exactMatches = [
-			'thanks', 'thank you', 'ty', 'thx', 'great', 'good', 'nice', 'perfect',
-			'awesome', 'cool', 'ok', 'okay', 'alright', 'sure', 'yes', 'yeah',
-			'yep', 'no', 'nope', 'hi', 'hello', 'hey', 'bye', 'goodbye', 'see you',
-			'great thanks', 'thanks great', 'perfect thanks', 'thank you great'
+			"thanks",
+			"thank you",
+			"ty",
+			"thx",
+			"great",
+			"good",
+			"nice",
+			"perfect",
+			"awesome",
+			"cool",
+			"ok",
+			"okay",
+			"alright",
+			"sure",
+			"yes",
+			"yeah",
+			"yep",
+			"no",
+			"nope",
+			"hi",
+			"hello",
+			"hey",
+			"bye",
+			"goodbye",
+			"see you",
+			"great thanks",
+			"thanks great",
+			"perfect thanks",
+			"thank you great",
 		]
 
 		// Check exact matches

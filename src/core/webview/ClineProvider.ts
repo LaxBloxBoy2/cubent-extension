@@ -160,6 +160,7 @@ export class ClineProvider
 
 		// Listen for authentication state changes
 		this.authenticationService.onAuthStateChange((session) => {
+			console.log("[ClineProvider] Authentication state changed, session:", session ? "present" : "null")
 			this.postStateToWebview()
 		})
 
@@ -1501,8 +1502,7 @@ export class ClineProvider
 			ttsSpeed: ttsSpeed ?? 1.0,
 			diffEnabled: diffEnabled ?? true,
 			enableCheckpoints: enableCheckpoints ?? true,
-			shouldShowAnnouncement:
-				telemetrySetting !== "unset" && lastShownAnnouncementId !== this.latestAnnouncementId,
+			shouldShowAnnouncement: false,
 			allowedCommands,
 			soundVolume: soundVolume ?? 0.5,
 			browserViewportSize: browserViewportSize ?? "900x600",
@@ -1565,7 +1565,7 @@ export class ClineProvider
 				codebaseIndexEmbedderModelId: "",
 			},
 			// Authentication state
-			isAuthenticated: this.authenticationService.isAuthenticated,
+			isAuthenticated: this.authenticationService.isAuthenticated(),
 			currentUser: this.authenticationService.currentUser,
 		}
 	}
@@ -1675,7 +1675,7 @@ export class ClineProvider
 			maxWorkspaceFiles: stateValues.maxWorkspaceFiles ?? 200,
 			openRouterUseMiddleOutTransform: stateValues.openRouterUseMiddleOutTransform ?? true,
 			browserToolEnabled: stateValues.browserToolEnabled ?? true,
-			telemetrySetting: stateValues.telemetrySetting || "unset",
+			telemetrySetting: stateValues.telemetrySetting || "disabled",
 			showRooIgnoredFiles: stateValues.showRooIgnoredFiles ?? true,
 			maxReadFileLine: stateValues.maxReadFileLine ?? -1,
 			maxConcurrentFileReads: experiments.isEnabled(

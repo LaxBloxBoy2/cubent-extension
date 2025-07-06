@@ -123,7 +123,7 @@ class UsageTrackingService {
 				const authService = AuthenticationService.getInstance()
 				const apiService = CubentWebApiService.getInstance()
 
-				if (authService.isAuthenticated && authService.authToken) {
+				if (authService.isAuthenticated() && authService.authToken) {
 					apiService.setAuthToken(authService.authToken)
 
 					await apiService.trackUsage({

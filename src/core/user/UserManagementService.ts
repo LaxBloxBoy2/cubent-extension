@@ -10,7 +10,7 @@ import {
 	UsageMetrics,
 	UserPreferences,
 	SUBSCRIPTION_PLANS,
-	userProfileSchema
+	userProfileSchema,
 } from "@cubent/types"
 
 import { AuthService } from "../../packages/cloud/src/AuthService"
@@ -38,6 +38,41 @@ export class UserManagementService extends EventEmitter<UserManagementEvents> {
 		// Listen to auth events
 		this.authService.on("user-info", this.handleUserInfoUpdate.bind(this))
 		this.authService.on("logged-out", this.handleLogout.bind(this))
+
+		// Also listen to standalone authentication service events
+		this.setupStandaloneAuthListener()
+	}
+
+	/**
+	 * Setup listener for standalone authentication service
+	 */
+	private async setupStandaloneAuthListener(): Promise<void> {
+		try {
+			// Import and listen to standalone authentication service
+			const { default: AuthenticationService } = await import("../../services/AuthenticationService")
+			const standaloneAuthService = AuthenticationService.getInstance()
+
+			// Listen for authentication state changes
+			standaloneAuthService.onAuthStateChange((session) => {
+				if (session && session.userId && session.email) {
+					// Create user info from session data
+					const userInfo = {
+						id: session.userId,
+						email: session.email,
+						name: session.name || session.email,
+						picture: session.pictureUrl,
+					}
+
+					// Handle as if it came from CloudService
+					this.handleUserInfoUpdate({ userInfo })
+				} else if (!session) {
+					// Handle logout
+					this.handleLogout({ previousState: "active-session" })
+				}
+			})
+		} catch (error) {
+			console.warn("[UserManagement] Failed to setup standalone auth listener:", error)
+		}
 	}
 
 	/**
@@ -89,7 +124,7 @@ export class UserManagementService extends EventEmitter<UserManagementEvents> {
 	 */
 	public canUseModel(modelId: string): boolean {
 		const quotas = this.getUsageQuotas()
-		
+
 		// Enterprise tier can use all models
 		if (this.getSubscriptionTier() === SubscriptionTier.ENTERPRISE) {
 			return true
@@ -115,7 +150,7 @@ export class UserManagementService extends EventEmitter<UserManagementEvents> {
 			return {
 				canMakeRequest: false,
 				limitReached: "monthly_tokens",
-				remainingTokens: 0
+				remainingTokens: 0,
 			}
 		}
 
@@ -124,7 +159,7 @@ export class UserManagementService extends EventEmitter<UserManagementEvents> {
 			return {
 				canMakeRequest: false,
 				limitReached: "monthly_cost",
-				remainingCost: 0
+				remainingCost: 0,
 			}
 		}
 
@@ -132,7 +167,7 @@ export class UserManagementService extends EventEmitter<UserManagementEvents> {
 		if (usage.currentHourRequests >= quotas.hourlyRequestLimit) {
 			return {
 				canMakeRequest: false,
-				limitReached: "hourly_requests"
+				limitReached: "hourly_requests",
 			}
 		}
 
@@ -140,14 +175,14 @@ export class UserManagementService extends EventEmitter<UserManagementEvents> {
 		if (usage.currentDayRequests >= quotas.dailyRequestLimit) {
 			return {
 				canMakeRequest: false,
-				limitReached: "daily_requests"
+				limitReached: "daily_requests",
 			}
 		}
 
 		return {
 			canMakeRequest: true,
 			remainingTokens: quotas.monthlyTokenLimit - usage.currentMonthTokens,
-			remainingCost: quotas.monthlyCostLimit - usage.currentMonthCost
+			remainingCost: quotas.monthlyCostLimit - usage.currentMonthCost,
 		}
 	}
 
@@ -160,7 +195,7 @@ export class UserManagementService extends EventEmitter<UserManagementEvents> {
 		}
 
 		const oldTier = this.userProfile.subscriptionTier
-		
+
 		// Update profile
 		this.userProfile.subscriptionTier = newTier
 		this.userProfile.quotas = SUBSCRIPTION_PLANS[newTier]
@@ -174,7 +209,7 @@ export class UserManagementService extends EventEmitter<UserManagementEvents> {
 		}
 
 		await this.saveUserProfile()
-		
+
 		this.emit("subscription-changed", { oldTier, newTier })
 		this.emit("user-profile-updated", { userProfile: this.userProfile })
 	}
@@ -198,10 +233,10 @@ export class UserManagementService extends EventEmitter<UserManagementEvents> {
 		this.userProfile.updatedAt = now
 
 		await this.saveUserProfile()
-		
-		this.emit("trial-status-changed", { 
-			isInTrial: true, 
-			daysRemaining: 14 
+
+		this.emit("trial-status-changed", {
+			isInTrial: true,
+			daysRemaining: 14,
 		})
 		this.emit("user-profile-updated", { userProfile: this.userProfile })
 	}
@@ -216,7 +251,7 @@ export class UserManagementService extends EventEmitter<UserManagementEvents> {
 
 		this.userProfile.preferences = {
 			...this.userProfile.preferences,
-			...preferences
+			...preferences,
 		}
 		this.userProfile.updatedAt = new Date()
 
@@ -242,7 +277,7 @@ export class UserManagementService extends EventEmitter<UserManagementEvents> {
 			this.userProfile.picture = userInfo.picture
 			this.userProfile.lastActiveAt = new Date()
 			this.userProfile.updatedAt = new Date()
-			
+
 			await this.saveUserProfile()
 			this.emit("user-profile-updated", { userProfile: this.userProfile })
 		}
@@ -282,14 +317,14 @@ export class UserManagementService extends EventEmitter<UserManagementEvents> {
 			preferences: this.createDefaultPreferences(),
 			createdAt: now,
 			updatedAt: now,
-			lastActiveAt: now
+			lastActiveAt: now,
 		}
 
 		await this.saveUserProfile()
-		
-		this.emit("trial-status-changed", { 
-			isInTrial: true, 
-			daysRemaining: 14 
+
+		this.emit("trial-status-changed", {
+			isInTrial: true,
+			daysRemaining: 14,
 		})
 		this.emit("user-profile-updated", { userProfile: this.userProfile })
 	}
@@ -310,7 +345,7 @@ export class UserManagementService extends EventEmitter<UserManagementEvents> {
 			lastMonthlyReset: now,
 			lastHourlyReset: now,
 			lastDailyReset: now,
-			modelUsage: {}
+			modelUsage: {},
 		}
 	}
 
@@ -325,7 +360,7 @@ export class UserManagementService extends EventEmitter<UserManagementEvents> {
 			costAlertsEnabled: true,
 			costAlertThreshold: 80, // 80% of limit
 			autoUpgradeEnabled: false,
-			preferredUpgradeTier: SubscriptionTier.BASIC
+			preferredUpgradeTier: SubscriptionTier.BASIC,
 		}
 	}
 
@@ -376,8 +411,8 @@ export class UserManagementService extends EventEmitter<UserManagementEvents> {
 				...profile.usage,
 				lastMonthlyReset: profile.usage.lastMonthlyReset.toISOString(),
 				lastHourlyReset: profile.usage.lastHourlyReset.toISOString(),
-				lastDailyReset: profile.usage.lastDailyReset.toISOString()
-			}
+				lastDailyReset: profile.usage.lastDailyReset.toISOString(),
+			},
 		}
 	}
 
@@ -398,8 +433,8 @@ export class UserManagementService extends EventEmitter<UserManagementEvents> {
 				...data.usage,
 				lastMonthlyReset: new Date(data.usage.lastMonthlyReset),
 				lastHourlyReset: new Date(data.usage.lastHourlyReset),
-				lastDailyReset: new Date(data.usage.lastDailyReset)
-			}
+				lastDailyReset: new Date(data.usage.lastDailyReset),
+			},
 		}
 	}
 }

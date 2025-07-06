@@ -43,6 +43,10 @@ class AuthenticationService {
 	private currentSession: UserSession | null = null
 	private authStateChangeListeners: Array<(session: UserSession | null) => void> = []
 
+	// Authentication state properties
+	public authToken: string | null = null
+	public currentUser: CubentUser | null = null
+
 	static getInstance(): AuthenticationService {
 		if (!AuthenticationService.instance) {
 			AuthenticationService.instance = new AuthenticationService()
@@ -79,7 +83,6 @@ class AuthenticationService {
 
 					// Restore authentication state
 					this.authToken = authState.token
-					this.isAuthenticated = true
 					this.currentUser = {
 						id: validationResult.user.id,
 						clerkId: validationResult.userId,
@@ -94,6 +97,22 @@ class AuthenticationService {
 						termsAccepted: validationResult.user.termsAccepted || true,
 						createdAt: new Date(),
 						updatedAt: new Date(),
+					}
+
+					// Create a session for compatibility with isAuthenticated() method
+					this.currentSession = {
+						userId: validationResult.user.id,
+						email: validationResult.user.email,
+						name: validationResult.user.name,
+						pictureUrl: validationResult.user.picture,
+						tokens: {
+							accessToken: authState.token,
+							expiresAt: new Date(authState.expiresAt),
+							tokenType: "Bearer",
+						},
+						sessionId: uuidv4(),
+						createdAt: new Date(),
+						lastActivity: new Date(),
 					}
 
 					this.notifyAuthStateChange()
@@ -184,8 +203,22 @@ class AuthenticationService {
 
 			// Store authentication state
 			this.currentUser = userProfile
-			this.isAuthenticated = true
 			this.authToken = token
+
+			// Create a session for compatibility with isAuthenticated() method
+			this.currentSession = {
+				userId: userProfile.id,
+				email: userProfile.email,
+				name: userProfile.name,
+				pictureUrl: userProfile.picture,
+				tokens: {
+					accessToken: token,
+					expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours
+					tokenType: "Bearer",
+				},
+				createdAt: new Date(),
+				updatedAt: new Date(),
+			}
 
 			// Store in VSCode settings for persistence
 			await this.storeAuthState({
@@ -441,7 +474,6 @@ class AuthenticationService {
 		await this.clearAuthState()
 		this.currentSession = null
 		this.currentUser = null
-		this.isAuthenticated = false
 		this.authToken = null
 
 		// Notify listeners

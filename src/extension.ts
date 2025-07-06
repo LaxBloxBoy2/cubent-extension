@@ -28,6 +28,8 @@ import { CodeIndexManager } from "./services/code-index/manager"
 import { migrateSettings } from "./utils/migrateSettings"
 import { API } from "./extension/api"
 import { UserManagementIntegration } from "./core/user/UserManagementIntegration"
+import UsageTrackingService from "./services/UsageTrackingService"
+import AuthenticationService from "./services/AuthenticationService"
 
 import {
 	handleUri,
@@ -75,12 +77,26 @@ export async function activate(context: vscode.ExtensionContext) {
 		stateChanged: () => ClineProvider.getVisibleInstance()?.postStateToWebview(),
 	})
 
-	// Initialize user management integration (temporarily disabled)
-	// if (CloudService.hasInstance()) {
-	// 	const cloudService = CloudService.getInstance()
-	// 	userManagementIntegration = new UserManagementIntegration(context, cloudService.getAuthService())
-	// 	await userManagementIntegration.initialize()
-	// }
+	// Initialize user management integration
+	if (CloudService.hasInstance()) {
+		const cloudService = CloudService.getInstance()
+		userManagementIntegration = new UserManagementIntegration(context, cloudService.getAuthService())
+		await userManagementIntegration.initialize()
+	}
+
+	// Initialize standalone authentication and usage tracking services as fallback
+	try {
+		const authService = AuthenticationService.getInstance()
+		await authService.initialize()
+
+		// Note: UsageTrackingService disabled - using direct CubentWebApiService tracking in Task.ts
+		// const usageTrackingService = UsageTrackingService.getInstance()
+		// await usageTrackingService.initialize()
+
+		console.log("Standalone authentication and usage tracking services initialized")
+	} catch (error) {
+		console.warn("Failed to initialize standalone services:", error)
+	}
 
 	// Initialize i18n for internationalization support
 	initializeI18n(context.globalState.get("language") ?? formatLanguage(vscode.env.language))
@@ -175,15 +191,15 @@ export async function activate(context: vscode.ExtensionContext) {
 					text: selectedText,
 					filePath,
 					startLine,
-					endLine
+					endLine,
 				})
 			} else {
 				// Clear selection when nothing is selected
 				provider.postMessageToWebview({
-					type: "textSelectionCleared"
+					type: "textSelectionCleared",
 				})
 			}
-		})
+		}),
 	)
 
 	registerCodeActions(context)
@@ -230,7 +246,7 @@ export async function activate(context: vscode.ExtensionContext) {
  * Get the user management integration instance
  */
 export function getUserManagementIntegration(): UserManagementIntegration | undefined {
-	return undefined // userManagementIntegration (temporarily disabled)
+	return userManagementIntegration
 }
 
 // This method is called when your extension is deactivated.

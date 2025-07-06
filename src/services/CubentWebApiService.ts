@@ -66,9 +66,23 @@ class CubentWebApiService {
 	private async makeRequest(endpoint: string, options: RequestInit = {}): Promise<any> {
 		const url = `${this.getApiUrl()}${endpoint}`
 
+		// Get auth token from AuthenticationService if not set
+		let authToken = this.authToken
+		if (!authToken) {
+			try {
+				const { default: AuthenticationService } = await import("./AuthenticationService")
+				const authService = AuthenticationService.getInstance()
+				if (authService.authToken) {
+					authToken = authService.authToken
+				}
+			} catch (error) {
+				console.warn("Could not get auth token from AuthenticationService:", error)
+			}
+		}
+
 		const headers = {
 			"Content-Type": "application/json",
-			...(this.authToken && { Authorization: `Bearer ${this.authToken}` }),
+			...(authToken && { Authorization: `Bearer ${authToken}` }),
 			...options.headers,
 		}
 

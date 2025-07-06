@@ -90,6 +90,14 @@ export class CloudService {
 		return this.authService!.getState()
 	}
 
+	public getAuthService(): AuthService {
+		this.ensureInitialized()
+		if (!this.authService) {
+			throw new Error("AuthService not initialized")
+		}
+		return this.authService
+	}
+
 	public async handleAuthCallback(code: string | null, state: string | null): Promise<void> {
 		this.ensureInitialized()
 		return this.authService!.handleCallback(code, state)
@@ -153,6 +161,13 @@ export class CloudService {
 
 	static hasInstance(): boolean {
 		return this._instance !== null && this._instance.isInitialized
+	}
+
+	static getInstance(): CloudService {
+		if (!this._instance) {
+			throw new Error("CloudService not initialized")
+		}
+		return this._instance
 	}
 
 	static resetInstance(): void {

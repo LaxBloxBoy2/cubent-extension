@@ -1048,9 +1048,6 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 
 		// Bottom placeholder text removed for cleaner interface
 
-		// Determine if we're in an active task or on the main page
-		const isInActiveTask = !!currentTaskItem
-
 		return (
 			<div
 				className={cn(
@@ -1064,22 +1061,7 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 					"box-border",
 					"focus-within:outline-none",
 					"focus-within:border-0",
-					// Conditional positioning based on task state
-					isInActiveTask
-						? [
-								// In active task: position at bottom
-								"m-2 mt-1",
-								"w-[calc(100%-16px)]",
-								"ml-auto",
-								"mr-auto",
-							]
-						: [
-								// On main page: centered with max width
-								"mx-auto",
-								"mb-2",
-								"max-w-4xl",
-								"w-[calc(100%-32px)]",
-							],
+					"w-full",
 				)}
 				style={{
 					outline: "none !important",

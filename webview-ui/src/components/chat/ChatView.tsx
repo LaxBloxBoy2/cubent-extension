@@ -537,7 +537,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 		vscode.postMessage({
 			type: "loadApiConfiguration",
 			text: "settingsButtonClicked",
-			values: { section: "models" }
+			values: { section: "models" },
 		})
 	}, [])
 
@@ -1210,12 +1210,24 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 					onSuggestionClick={handleSuggestionClickInRow} // This was already stabilized
 					onBatchFileResponse={handleBatchFileResponse}
 					// Command button props
-					showCommandButtons={messageOrGroup.ask === "command" && clineAsk === "command" && index === groupedMessages.length - 1}
+					showCommandButtons={
+						messageOrGroup.ask === "command" &&
+						clineAsk === "command" &&
+						index === groupedMessages.length - 1
+					}
 					enableCommandButtons={enableButtons}
 					onRunCommand={() => handlePrimaryButtonClick(inputValue, selectedImages)}
 					onRejectCommand={() => handleSecondaryButtonClick(inputValue, selectedImages)}
 					// Approval button props
-					showApprovalButtons={!isAutoApproved(messageOrGroup) && ((messageOrGroup.ask === "tool" && clineAsk === "tool" && index === groupedMessages.length - 1) || (messageOrGroup.ask === "use_mcp_server" && clineAsk === "use_mcp_server" && index === groupedMessages.length - 1))}
+					showApprovalButtons={
+						!isAutoApproved(messageOrGroup) &&
+						((messageOrGroup.ask === "tool" &&
+							clineAsk === "tool" &&
+							index === groupedMessages.length - 1) ||
+							(messageOrGroup.ask === "use_mcp_server" &&
+								clineAsk === "use_mcp_server" &&
+								index === groupedMessages.length - 1))
+					}
 					enableApprovalButtons={enableButtons}
 					primaryButtonText={primaryButtonText}
 					secondaryButtonText={secondaryButtonText}
@@ -1407,6 +1419,49 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 							/>
 						</p>
 						<RooTips cycle={false} />
+
+						{/* Chat input centered with welcome content when no active task */}
+						<div className="max-w-4xl w-full mx-auto">
+							<ChatTextArea
+								ref={textAreaRef}
+								inputValue={inputValue}
+								setInputValue={setInputValue}
+								sendingDisabled={sendingDisabled || isProfileDisabled}
+								selectApiConfigDisabled={sendingDisabled && clineAsk !== "api_req_failed"}
+								placeholderText={placeholderText}
+								selectedImages={selectedImages}
+								setSelectedImages={setSelectedImages}
+								onSend={(text) => handleSendMessage(text || inputValue, selectedImages)}
+								onSelectImages={selectImages}
+								shouldDisableImages={shouldDisableImages}
+								onHeightChange={() => {
+									if (isAtBottom) {
+										scrollToBottomAuto()
+									}
+								}}
+								mode={mode}
+								setMode={setMode}
+								modeShortcutText={modeShortcutText}
+								isStreaming={isStreaming}
+								onCancel={() => {
+									vscode.postMessage({ type: "cancelTask" })
+									setDidClickCancel(true)
+								}}
+								showResumeTask={clineAsk === "resume_task"}
+								onResumeTask={() => handlePrimaryButtonClick(inputValue, selectedImages)}
+								onTerminateTask={() => {
+									vscode.postMessage({ type: "terminateTask" })
+									setSendingDisabled(true)
+									setClineAsk(undefined)
+									setEnableButtons(false)
+								}}
+								showRetry={clineAsk === "api_req_failed"}
+								onRetry={() => handlePrimaryButtonClick(inputValue, selectedImages)}
+								selectedModel={selectedModel}
+								onModelChange={handleModelChange}
+								onModelSettingsClick={handleModelSettingsClick}
+							/>
+						</div>
 					</div>
 				</div>
 			)}
@@ -1426,7 +1481,6 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 			//    This ensures it takes its natural height when there's space
 			//    but becomes scrollable when the viewport is too small
 			*/}
-
 
 			{task && (
 				<>
@@ -1468,51 +1522,53 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 							</div>
 						)}
 					</div>
-
 				</>
 			)}
 
 			<DiffSummaryBar messages={messages} />
 
-			<ChatTextArea
-				ref={textAreaRef}
-				inputValue={inputValue}
-				setInputValue={setInputValue}
-				sendingDisabled={sendingDisabled || isProfileDisabled}
-				selectApiConfigDisabled={sendingDisabled && clineAsk !== "api_req_failed"}
-				placeholderText={placeholderText}
-				selectedImages={selectedImages}
-				setSelectedImages={setSelectedImages}
-				onSend={(text) => handleSendMessage(text || inputValue, selectedImages)}
-				onSelectImages={selectImages}
-				shouldDisableImages={shouldDisableImages}
-				onHeightChange={() => {
-					if (isAtBottom) {
-						scrollToBottomAuto()
-					}
-				}}
-				mode={mode}
-				setMode={setMode}
-				modeShortcutText={modeShortcutText}
-				isStreaming={isStreaming}
-				onCancel={() => {
-					vscode.postMessage({ type: "cancelTask" })
-					setDidClickCancel(true)
-				}}
-				showResumeTask={clineAsk === "resume_task"}
-				onResumeTask={() => handlePrimaryButtonClick(inputValue, selectedImages)}
-				onTerminateTask={() => {
-					vscode.postMessage({ type: "terminateTask" })
-					setSendingDisabled(true)
-					setClineAsk(undefined)
-					setEnableButtons(false)
-				}}
-				showRetry={clineAsk === "api_req_failed"}
-				onRetry={() => handlePrimaryButtonClick(inputValue, selectedImages)}
-				selectedModel={selectedModel}
-				onModelChange={handleModelChange}
-				onModelSettingsClick={handleModelSettingsClick}
-			/>
+			{/* Chat input at bottom only when there's an active task */}
+			{task && (
+				<ChatTextArea
+					ref={textAreaRef}
+					inputValue={inputValue}
+					setInputValue={setInputValue}
+					sendingDisabled={sendingDisabled || isProfileDisabled}
+					selectApiConfigDisabled={sendingDisabled && clineAsk !== "api_req_failed"}
+					placeholderText={placeholderText}
+					selectedImages={selectedImages}
+					setSelectedImages={setSelectedImages}
+					onSend={(text) => handleSendMessage(text || inputValue, selectedImages)}
+					onSelectImages={selectImages}
+					shouldDisableImages={shouldDisableImages}
+					onHeightChange={() => {
+						if (isAtBottom) {
+							scrollToBottomAuto()
+						}
+					}}
+					mode={mode}
+					setMode={setMode}
+					modeShortcutText={modeShortcutText}
+					isStreaming={isStreaming}
+					onCancel={() => {
+						vscode.postMessage({ type: "cancelTask" })
+						setDidClickCancel(true)
+					}}
+					showResumeTask={clineAsk === "resume_task"}
+					onResumeTask={() => handlePrimaryButtonClick(inputValue, selectedImages)}
+					onTerminateTask={() => {
+						vscode.postMessage({ type: "terminateTask" })
+						setSendingDisabled(true)
+						setClineAsk(undefined)
+						setEnableButtons(false)
+					}}
+					showRetry={clineAsk === "api_req_failed"}
+					onRetry={() => handlePrimaryButtonClick(inputValue, selectedImages)}
+					selectedModel={selectedModel}
+					onModelChange={handleModelChange}
+					onModelSettingsClick={handleModelSettingsClick}
+				/>
+			)}
 
 			{isProfileDisabled && (
 				<div className="px-3">
