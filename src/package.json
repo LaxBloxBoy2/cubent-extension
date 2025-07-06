@@ -421,7 +421,7 @@
 		"@neondatabase/serverless": "^0.6.0",
 		"@prisma/adapter-neon": "^6.11.1",
 		"@prisma/client": "^6.11.1",
-		"@qdrant/js-client-rest": "^1.14.0",
+		"@qdrant/js-client-rest": "^1.14.1",
 		"@supabase/supabase-js": "^2.38.0",
 		"@types/lodash.debounce": "^4.0.9",
 		"@vscode/codicons": "^0.0.36",
