@@ -94,6 +94,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 		historyPreviewCollapsed, // Added historyPreviewCollapsed
 		soundEnabled,
 		soundVolume,
+		currentUser,
 	} = useExtensionState()
 
 	const messagesRef = useRef(messages)
@@ -1401,24 +1402,26 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 						</div>
 					)}
 					<div
-						className={` w-full flex flex-col gap-4 m-auto ${isExpanded && chats.length > 0 ? "mt-0" : ""} px-3.5 min-[370px]:px-10 pt-5 transition-all duration-300`}>
+						className={` w-full flex flex-col gap-4 m-auto ${isExpanded && chats.length > 0 ? "mt-0" : ""} px-3.5 min-[370px]:px-10 transition-all duration-300`}>
 						<QaptHero />
 						{telemetrySetting === "unset" && <TelemetryBanner />}
-						{/* Show the task history preview if expanded and tasks exist */}
-						{taskHistory.length > 0 && isExpanded && <HistoryPreview />}
-						<p className="text-vscode-editor-foreground leading-tight font-vscode-font-family text-center text-balance max-w-[380px] mx-auto">
-							<Trans
-								i18nKey="chat:about"
-								components={{
-									DocsLink: (
-										<a href={buildDocLink("", "welcome")} target="_blank" rel="noopener noreferrer">
-											the docs
-										</a>
-									),
-								}}
-							/>
-						</p>
-						<RooTips cycle={false} />
+
+						{/* Welcome message above chat input */}
+						<div className="text-center space-y-3 max-w-[500px] mx-auto -mt-8">
+							<h2 className="text-xl font-medium text-vscode-foreground">
+								Welcome back{currentUser?.name ? ` ${currentUser.name.split(" ")[0]}` : ""}
+							</h2>
+							<p className="text-vscode-descriptionForeground text-sm leading-relaxed">
+								Ready to pick up where you left off or launch something new with your AI coding
+								assistant?
+							</p>
+							<p className="text-vscode-descriptionForeground text-xs opacity-75">
+								Just exploring?{" "}
+								<span className="text-orange-500 cursor-pointer hover:text-orange-400 transition-colors">
+									Start in a temporary chat
+								</span>
+							</p>
+						</div>
 
 						{/* Chat input centered with welcome content when no active task */}
 						<div className="max-w-4xl w-full mx-auto">
@@ -1462,6 +1465,9 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 								onModelSettingsClick={handleModelSettingsClick}
 							/>
 						</div>
+
+						{/* Show the task history preview if expanded and chats exist - moved below chat input */}
+						{chats.length > 0 && isExpanded && <HistoryPreview />}
 					</div>
 				</div>
 			)}
@@ -1573,6 +1579,24 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 			{isProfileDisabled && (
 				<div className="px-3">
 					<ProfileViolationWarning />
+				</div>
+			)}
+
+			{/* Description text at the very bottom - only show when no active task */}
+			{!task && (
+				<div className="px-3.5 min-[370px]:px-10 pb-4">
+					<p className="text-vscode-editor-foreground leading-tight font-vscode-font-family text-center text-balance max-w-[380px] mx-auto text-xs opacity-60">
+						<Trans
+							i18nKey="chat:about"
+							components={{
+								DocsLink: (
+									<a href={buildDocLink("", "welcome")} target="_blank" rel="noopener noreferrer">
+										the docs
+									</a>
+								),
+							}}
+						/>
+					</p>
 				</div>
 			)}
 

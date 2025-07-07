@@ -244,10 +244,7 @@ const HistoryView = ({ onDone }: HistoryViewProps) => {
 								)}
 
 								<div className="flex-1">
-									<div className="flex justify-between items-center">
-										<span className="text-vscode-descriptionForeground font-medium text-sm uppercase">
-											{formatDate(item.ts)}
-										</span>
+									<div className="flex justify-end items-center">
 										<div className="flex flex-row">
 											{!isSelectionMode && (
 												<Button
@@ -347,12 +344,17 @@ const HistoryView = ({ onDone }: HistoryViewProps) => {
 													{formatLargeNumber(item.tokensOut || 0)}
 												</span>
 											</div>
-											{!item.totalCost && !isSelectionMode && (
-												<div className="flex flex-row gap-1">
-													<CopyButton itemTask={item.task} />
-													<ExportButton itemId={item.id} />
-												</div>
-											)}
+											<div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+												<span className="text-vscode-descriptionForeground font-medium text-sm uppercase">
+													{formatDate(item.ts)}
+												</span>
+												{!item.totalCost && !isSelectionMode && (
+													<div className="flex flex-row gap-1">
+														<CopyButton itemTask={item.task} />
+														<ExportButton itemId={item.id} />
+													</div>
+												)}
+											</div>
 										</div>
 
 										{!!item.cacheWrites && (
@@ -430,12 +432,17 @@ const HistoryView = ({ onDone }: HistoryViewProps) => {
 														${item.totalCost?.toFixed(4)}
 													</span>
 												</div>
-												{!isSelectionMode && (
-													<div className="flex flex-row gap-1">
-														<CopyButton itemTask={item.task} />
-														<ExportButton itemId={item.id} />
-													</div>
-												)}
+												<div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+													<span className="text-vscode-descriptionForeground font-medium text-sm uppercase">
+														{formatDate(item.ts)}
+													</span>
+													{!isSelectionMode && (
+														<div className="flex flex-row gap-1">
+															<CopyButton itemTask={item.task} />
+															<ExportButton itemId={item.id} />
+														</div>
+													)}
+												</div>
 											</div>
 										)}
 

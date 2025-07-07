@@ -1294,11 +1294,11 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 									"py-1.5 px-2",
 									isDraggingOver ? "border-2 border-dashed border-vscode-focusBorder" : "border-0",
 									isDraggingOver
-										? "bg-[color-mix(in_srgb,var(--vscode-input-background)_95%,var(--vscode-focusBorder))]"
-										: "bg-vscode-input-background",
+										? "bg-[color-mix(in_srgb,var(--vscode-input-background)_85%,var(--vscode-focusBorder))]"
+										: "bg-[color-mix(in_srgb,var(--vscode-input-background)_85%,#000000)]",
 									"transition-background-color duration-150 ease-in-out",
 									"will-change-background-color",
-									"min-h-[70px]",
+									"min-h-[60px]",
 									"box-border",
 									"resize-none",
 									"overflow-x-hidden",
@@ -1340,7 +1340,7 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 				{/* Images now show in context bar instead of thumbnails */}
 
 				<div
-					className={cn("flex", "justify-between", "items-center", "mt-auto", "p-1.5")}
+					className={cn("flex", "justify-between", "items-center", "mt-auto", "p-1")}
 					style={{ backgroundColor: "color-mix(in srgb, var(--vscode-input-background) 85%, black)" }}>
 					<div className={cn("flex", "items-center", "gap-1", "min-w-0")}>
 						{/* Mode selector - fixed width */}
@@ -1672,6 +1672,10 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 								title={t("chat:sendMessage")}
 								disabled={sendingDisabled}
 								onClick={handleSendClick}
+								style={{
+									color: "#ffffff",
+									transform: "rotate(-90deg)",
+								}}
 							/>
 						)}
 					</div>
