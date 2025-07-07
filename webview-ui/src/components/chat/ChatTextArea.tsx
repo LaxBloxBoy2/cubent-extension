@@ -1567,7 +1567,7 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 						</div>
 					</div>
 
-					<div className={cn("flex", "items-center", "gap-0.5", "shrink-0")}>
+					<div className={cn("flex", "items-center", "gap-0", "shrink-0")}>
 						<IconButton
 							iconClass=""
 							title="Add context (@)"
@@ -1672,9 +1672,11 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 								title={t("chat:sendMessage")}
 								disabled={sendingDisabled}
 								onClick={handleSendClick}
+								className="bg-[rgba(255,255,255,0.08)] hover:bg-[rgba(255,255,255,0.12)]"
 								style={{
 									color: "#ffffff",
 									transform: "rotate(-90deg)",
+									fontSize: 16.5,
 								}}
 							/>
 						)}

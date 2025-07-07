@@ -22,8 +22,8 @@ export const IconButton: React.FC<IconButtonProps> = ({
 }) => {
 	const buttonClasses = cn(
 		"relative inline-flex items-center justify-center",
-		"bg-transparent border-none p-1.5",
-		"rounded-md min-w-[28px] min-h-[28px]",
+		"bg-transparent border-none p-1",
+		"rounded-md min-w-[24px] min-h-[24px]",
 		"text-vscode-foreground opacity-85",
 		"transition-all duration-150",
 		"hover:opacity-100 hover:bg-[rgba(255,255,255,0.03)] hover:border-[rgba(255,255,255,0.15)]",
@@ -43,7 +43,7 @@ export const IconButton: React.FC<IconButtonProps> = ({
 			title={title}
 			className={buttonClasses}
 			onClick={!disabled ? onClick : undefined}
-			style={{ fontSize: 16.5, ...style }}
+			style={{ fontSize: 14, ...style }}
 			{...props}>
 			{children ? children : <span className={iconClasses} />}
 		</button>

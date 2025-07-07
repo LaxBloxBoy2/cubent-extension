@@ -1402,7 +1402,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 						</div>
 					)}
 					<div
-						className={` w-full flex flex-col gap-4 m-auto ${isExpanded && chats.length > 0 ? "mt-0" : ""} px-3.5 min-[370px]:px-10 transition-all duration-300`}>
+						className={` w-full flex flex-col gap-4 m-auto ${isExpanded && chats.length > 0 ? "mt-0" : chats.length > 0 ? "mt-4" : ""} px-3.5 min-[370px]:px-10 transition-all duration-300`}>
 						<QaptHero />
 						{telemetrySetting === "unset" && <TelemetryBanner />}
 
