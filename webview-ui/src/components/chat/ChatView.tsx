@@ -91,7 +91,6 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 		customModes,
 		telemetrySetting,
 		hasSystemPromptOverride,
-		historyPreviewCollapsed, // Added historyPreviewCollapsed
 		soundEnabled,
 		soundVolume,
 		currentUser,
@@ -103,18 +102,6 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 	}, [messages])
 
 	const { chats } = useChatSearch()
-
-	// Initialize expanded state based on the persisted setting (default to expanded if undefined)
-	const [isExpanded, setIsExpanded] = useState(
-		historyPreviewCollapsed === undefined ? true : !historyPreviewCollapsed,
-	)
-
-	const toggleExpanded = useCallback(() => {
-		const newState = !isExpanded
-		setIsExpanded(newState)
-		// Send message to extension to persist the new collapsed state
-		vscode.postMessage({ type: "setHistoryPreviewCollapsed", bool: !newState })
-	}, [isExpanded])
 
 	// Leaving this less safe version here since if the first message is not a
 	// task, then the extension is in a bad state and needs to be debugged (see
@@ -1388,21 +1375,8 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 				</>
 			) : (
 				<div className="flex-1 min-h-0 overflow-y-auto flex flex-col gap-4">
-					{/* Moved Chat Bar Header Here */}
-					{chats.length !== 0 && (
-						<div className="flex text-vscode-descriptionForeground w-full mx-auto px-5 pt-3">
-							<div className="flex items-center gap-1 cursor-pointer" onClick={toggleExpanded}>
-								{chats.length < 10 && (
-									<span className={`font-medium text-xs `}>{t("history:recentTasks")}</span>
-								)}
-								<span
-									className={`codicon  ${isExpanded ? "codicon-eye" : "codicon-eye-closed"} scale-90`}
-								/>
-							</div>
-						</div>
-					)}
 					<div
-						className={` w-full flex flex-col gap-4 m-auto ${isExpanded && chats.length > 0 ? "mt-0" : chats.length > 0 ? "mt-4" : ""} px-3.5 min-[370px]:px-10 transition-all duration-300`}>
+						className={` w-full flex flex-col gap-4 m-auto ${chats.length > 0 ? "mt-16" : ""} px-3.5 min-[370px]:px-10 transition-all duration-300`}>
 						<QaptHero />
 						{telemetrySetting === "unset" && <TelemetryBanner />}
 
@@ -1423,7 +1397,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 							</p>
 						</div>
 
-						{/* Chat input centered with welcome content when no active task */}
+						{/* Chat input centered with welcome content when no active task - px-2 for closer to borders */}
 						<div className="max-w-4xl w-full mx-auto">
 							<ChatTextArea
 								ref={textAreaRef}
@@ -1466,8 +1440,8 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 							/>
 						</div>
 
-						{/* Show the task history preview if expanded and chats exist - moved below chat input */}
-						{chats.length > 0 && isExpanded && <HistoryPreview />}
+						{/* Show the task history preview if chats exist - moved below chat input */}
+						{chats.length > 0 && <HistoryPreview />}
 					</div>
 				</div>
 			)}
@@ -1585,7 +1559,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 			{/* Description text at the very bottom - only show when no active task */}
 			{!task && (
 				<div className="px-3.5 min-[370px]:px-10 pb-4">
-					<p className="text-vscode-editor-foreground leading-tight font-vscode-font-family text-center text-balance max-w-[380px] mx-auto text-xs opacity-60">
+					<p className="text-vscode-editor-foreground leading-tight font-vscode-font-family text-center text-balance max-w-[380px] mx-auto text-[10px] opacity-60">
 						<Trans
 							i18nKey="chat:about"
 							components={{

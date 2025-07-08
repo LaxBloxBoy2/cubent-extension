@@ -11,6 +11,7 @@ import { formatLargeNumber, formatDate } from "@/utils/format"
 import { cn } from "@/lib/utils"
 import { Button, Checkbox } from "@/components/ui"
 import { useAppTranslation } from "@/i18n/TranslationContext"
+import { UsageStatsButton } from "./UsageStatsButton"
 
 import { Tab, TabContent, TabHeader } from "../common/Tab"
 import { useChatSearch } from "./useChatSearch"
@@ -214,7 +215,6 @@ const HistoryView = ({ onDone }: HistoryViewProps) => {
 							data-testid={`chat-item-${item.id}`}
 							key={item.id}
 							className={cn("cursor-pointer", {
-								"border-b border-vscode-panel-border": index < chats.length - 1,
 								"bg-vscode-list-activeSelectionBackground":
 									isSelectionMode && selectedChatIds.includes(item.id),
 							})}
@@ -225,7 +225,7 @@ const HistoryView = ({ onDone }: HistoryViewProps) => {
 									vscode.postMessage({ type: "showChatWithId", text: item.id })
 								}
 							}}>
-							<div className="flex items-start p-3 gap-2 ml-2">
+							<div className="flex items-start p-1.5 gap-2 ml-2">
 								{/* Show checkbox in selection mode */}
 								{isSelectionMode && (
 									<div
@@ -293,124 +293,26 @@ const HistoryView = ({ onDone }: HistoryViewProps) => {
 												justifyContent: "space-between",
 												alignItems: "center",
 											}}>
-											<div
-												style={{
-													display: "flex",
-													alignItems: "center",
-													gap: "4px",
-													flexWrap: "wrap",
-												}}>
-												<span
-													style={{
-														fontWeight: 500,
-														color: "var(--vscode-descriptionForeground)",
-													}}>
-													{t("history:tokensLabel")}
-												</span>
-												<span
-													data-testid="tokens-in"
-													style={{
-														display: "flex",
-														alignItems: "center",
-														gap: "3px",
-														color: "var(--vscode-descriptionForeground)",
-													}}>
-													<i
-														className="codicon codicon-arrow-up"
-														style={{
-															fontSize: "12px",
-															fontWeight: "bold",
-															marginBottom: "-2px",
-														}}
-													/>
-													{formatLargeNumber(item.tokensIn || 0)}
-												</span>
-												<span
-													data-testid="tokens-out"
-													style={{
-														display: "flex",
-														alignItems: "center",
-														gap: "3px",
-														color: "var(--vscode-descriptionForeground)",
-													}}>
-													<i
-														className="codicon codicon-arrow-down"
-														style={{
-															fontSize: "12px",
-															fontWeight: "bold",
-															marginBottom: "-2px",
-														}}
-													/>
-													{formatLargeNumber(item.tokensOut || 0)}
-												</span>
-											</div>
 											<div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-												<span className="text-vscode-descriptionForeground font-medium text-sm uppercase">
+												<span className="text-vscode-descriptionForeground text-sm">
 													{formatDate(item.ts)}
 												</span>
 												{!item.totalCost && !isSelectionMode && (
-													<div className="flex flex-row gap-1">
-														<CopyButton itemTask={item.task} />
-														<ExportButton itemId={item.id} />
-													</div>
+													<UsageStatsButton
+														tokensIn={item.tokensIn || 0}
+														tokensOut={item.tokensOut || 0}
+														cacheWrites={item.cacheWrites}
+														cacheReads={item.cacheReads}
+													/>
 												)}
 											</div>
+											{!item.totalCost && !isSelectionMode && (
+												<div className="flex flex-row gap-1">
+													<CopyButton itemTask={item.task} />
+													<ExportButton itemId={item.id} />
+												</div>
+											)}
 										</div>
-
-										{!!item.cacheWrites && (
-											<div
-												data-testid="cache-container"
-												style={{
-													display: "flex",
-													alignItems: "center",
-													gap: "4px",
-													flexWrap: "wrap",
-												}}>
-												<span
-													style={{
-														fontWeight: 500,
-														color: "var(--vscode-descriptionForeground)",
-													}}>
-													{t("history:cacheLabel")}
-												</span>
-												<span
-													data-testid="cache-writes"
-													style={{
-														display: "flex",
-														alignItems: "center",
-														gap: "3px",
-														color: "var(--vscode-descriptionForeground)",
-													}}>
-													<i
-														className="codicon codicon-database"
-														style={{
-															fontSize: "12px",
-															fontWeight: "bold",
-															marginBottom: "-1px",
-														}}
-													/>
-													+{formatLargeNumber(item.cacheWrites || 0)}
-												</span>
-												<span
-													data-testid="cache-reads"
-													style={{
-														display: "flex",
-														alignItems: "center",
-														gap: "3px",
-														color: "var(--vscode-descriptionForeground)",
-													}}>
-													<i
-														className="codicon codicon-arrow-right"
-														style={{
-															fontSize: "12px",
-															fontWeight: "bold",
-															marginBottom: 0,
-														}}
-													/>
-													{formatLargeNumber(item.cacheReads || 0)}
-												</span>
-											</div>
-										)}
 
 										{!!item.totalCost && (
 											<div
@@ -420,29 +322,26 @@ const HistoryView = ({ onDone }: HistoryViewProps) => {
 													alignItems: "center",
 													marginTop: -2,
 												}}>
-												<div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-													<span
-														style={{
-															fontWeight: 500,
-															color: "var(--vscode-descriptionForeground)",
-														}}>
-														{t("history:apiCostLabel")}
-													</span>
-													<span style={{ color: "var(--vscode-descriptionForeground)" }}>
-														${item.totalCost?.toFixed(4)}
-													</span>
-												</div>
 												<div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-													<span className="text-vscode-descriptionForeground font-medium text-sm uppercase">
+													<span className="text-vscode-descriptionForeground text-sm">
 														{formatDate(item.ts)}
 													</span>
 													{!isSelectionMode && (
-														<div className="flex flex-row gap-1">
-															<CopyButton itemTask={item.task} />
-															<ExportButton itemId={item.id} />
-														</div>
+														<UsageStatsButton
+															tokensIn={item.tokensIn || 0}
+															tokensOut={item.tokensOut || 0}
+															totalCost={item.totalCost}
+															cacheWrites={item.cacheWrites}
+															cacheReads={item.cacheReads}
+														/>
 													)}
 												</div>
+												{!isSelectionMode && (
+													<div className="flex flex-row gap-1">
+														<CopyButton itemTask={item.task} />
+														<ExportButton itemId={item.id} />
+													</div>
+												)}
 											</div>
 										)}
 

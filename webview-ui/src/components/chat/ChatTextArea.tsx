@@ -1626,12 +1626,14 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 							disabled={sendingDisabled}
 							isLoading={isEnhancingPrompt}
 							onClick={handleEnhancePrompt}
+							style={{ fontSize: 12 }}
 						/>
 						<IconButton
 							iconClass="codicon-file"
 							title={t("chat:addImages")}
 							disabled={shouldDisableImages}
 							onClick={onSelectImages}
+							style={{ fontSize: 12 }}
 						/>
 						{showRetry && (
 							<IconButton
@@ -1639,6 +1641,7 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 								title={t("chat:retry.tooltip")}
 								disabled={false}
 								onClick={onRetry}
+								style={{ fontSize: 12 }}
 							/>
 						)}
 						{isStreaming ? (
