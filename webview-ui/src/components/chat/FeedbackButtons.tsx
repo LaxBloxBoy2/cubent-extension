@@ -7,6 +7,7 @@ interface FeedbackButtonsProps {
 	messageText: string
 }
 
+// FeedbackButtons component - handles like/dislike/copy actions for chat messages
 export const FeedbackButtons: React.FC<FeedbackButtonsProps> = ({
 	messageTs,
 	messageText,
