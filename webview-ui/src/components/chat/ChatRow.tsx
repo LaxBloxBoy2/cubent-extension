@@ -643,10 +643,10 @@ export const ChatRowContent = ({
 						<CodeAccordian
 							path={tool.path}
 							code={tool.content}
-							language="shell-session"
+							language="shellsession"
 							isExpanded={isExpanded}
 							onToggleExpand={handleToggleExpand}
-							customHeaderText="View directory top files"
+							customHeaderText="Read directory top files"
 							customHeaderIcon="folder"
 							customSubText={tool.path}
 							showApprovalButtons={showApprovalButtons && message.type === "ask"}
@@ -661,53 +661,21 @@ export const ChatRowContent = ({
 			case "listFilesRecursive":
 				return (
 					<>
-						<ToolUseBlock>
-							<ToolUseBlockHeader>
-								<div className="flex items-center flex-1 min-w-0">
-									<span className="codicon codicon-folder-opened mr-1.5" />
-									<span className="font-medium">
-										{message.type === "ask"
-											? t("chat:directoryOperations.wantsToViewRecursive")
-											: t("chat:directoryOperations.didViewRecursive")}
-									</span>
-								</div>
-								{/* Success icon for completed state */}
-								{message.type === "say" && (
-									<div className="flex items-center gap-2 ml-2">
-										<span className="codicon codicon-check text-xs text-green-500"></span>
-									</div>
-								)}
-								{/* Approval buttons */}
-								{showApprovalButtons && message.type === "ask" && (
-									<div className="flex items-center gap-2 ml-2">
-										{primaryButtonText && (
-											<button
-												disabled={!enableApprovalButtons}
-												className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-white bg-vscode-button-background hover:bg-vscode-button-hoverBackground disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer rounded transition-colors duration-150"
-												onClick={onApprove}>
-												<span className="codicon codicon-check text-xs"></span>
-												{primaryButtonText}
-											</button>
-										)}
-										{secondaryButtonText && (
-											<button
-												disabled={!enableApprovalButtons}
-												className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-vscode-foreground bg-vscode-button-secondaryBackground hover:bg-vscode-button-secondaryHoverBackground disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer rounded transition-colors duration-150"
-												onClick={onReject}>
-												<span className="codicon codicon-close text-xs"></span>
-												{secondaryButtonText}
-											</button>
-										)}
-									</div>
-								)}
-							</ToolUseBlockHeader>
-						</ToolUseBlock>
 						<CodeAccordian
 							path={tool.path}
 							code={tool.content}
 							language="shellsession"
 							isExpanded={isExpanded}
 							onToggleExpand={handleToggleExpand}
+							customHeaderText="Read directory"
+							customHeaderIcon="folder"
+							customSubText={tool.path}
+							showApprovalButtons={showApprovalButtons && message.type === "ask"}
+							primaryButtonText={primaryButtonText}
+							secondaryButtonText={secondaryButtonText}
+							enableApprovalButtons={enableApprovalButtons}
+							onApprove={onApprove}
+							onReject={onReject}
 						/>
 					</>
 				)

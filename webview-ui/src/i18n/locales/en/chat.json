@@ -163,10 +163,10 @@
 		"wantsToInsertAtEnd": "cubent wants to append content to the end of this file:"
 	},
 	"directoryOperations": {
-		"wantsToViewTopLevel": "cubent wants to view the top level files in this directory:",
-		"didViewTopLevel": "cubent viewed the top level files in this directory:",
-		"wantsToViewRecursive": "cubent wants to recursively view all files in this directory:",
-		"didViewRecursive": "cubent recursively viewed all files in this directory:",
+		"wantsToViewTopLevel": "Reading directory...",
+		"didViewTopLevel": "Read directory",
+		"wantsToViewRecursive": "Reading directory...",
+		"didViewRecursive": "Read directory",
 		"wantsToViewDefinitions": "cubent wants to view source code definition names used in this directory:",
 		"didViewDefinitions": "cubent viewed source code definition names used in this directory:",
 		"wantsToSearch": "cubent wants to search this directory for <code>{{regex}}</code>:",

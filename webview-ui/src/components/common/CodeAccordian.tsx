@@ -71,13 +71,13 @@ const CodeAccordian = ({
 
 	// Calculate diff stats if this is a diff
 	const diffStats = useMemo(() => {
-		console.log('CodeAccordian props:', { language, codeLength: code?.length, path, hasCode: !!code })
+		console.log("CodeAccordian props:", { language, codeLength: code?.length, path, hasCode: !!code })
 		if (code) {
-			console.log('Code content preview:', code.substring(0, 200))
+			console.log("Code content preview:", code.substring(0, 200))
 		}
 		if (language === "diff" && code) {
 			const stats = calculateDiffStats(code)
-			console.log('Diff stats calculated:', { language, codeLength: code.length, stats })
+			console.log("Diff stats calculated:", { language, codeLength: code.length, stats })
 			return stats
 		}
 		return { added: 0, removed: 0 }
@@ -85,7 +85,7 @@ const CodeAccordian = ({
 
 	const diffStatsText = useMemo(() => {
 		const formatted = formatDiffStats(diffStats.added, diffStats.removed)
-		console.log('Diff stats formatted:', { diffStats, formatted })
+		console.log("Diff stats formatted:", { diffStats, formatted })
 		return formatted
 	}, [diffStats])
 
@@ -106,16 +106,18 @@ const CodeAccordian = ({
 						</div>
 					) : isEditedFile ? (
 						<div className="flex flex-col flex-1 min-w-0">
-							<div className="flex items-center">
-								<span className="codicon codicon-edit mr-1.5" />
-								<span className="font-medium mr-2">
+							<div className="flex items-center min-w-0">
+								<span className="codicon codicon-edit mr-1.5 flex-shrink-0" />
+								<span className="font-medium mr-2 flex-shrink-0">
 									{isLoading ? "Editing..." : "Edited file"}
 								</span>
 								{(diffStats.added > 0 || diffStats.removed > 0) && (
-									<span className="text-xs mr-2 flex-shrink-0" style={{
-										color: "var(--vscode-descriptionForeground)",
-										fontWeight: "normal"
-									}}>
+									<span
+										className="text-xs mr-2 flex-shrink-0"
+										style={{
+											color: "var(--vscode-descriptionForeground)",
+											fontWeight: "normal",
+										}}>
 										{diffStats.added > 0 && (
 											<span style={{ color: "#4ade80" }}>+{diffStats.added}</span>
 										)}
@@ -129,14 +131,15 @@ const CodeAccordian = ({
 							<div
 								className="text-xs text-vscode-descriptionForeground ml-6 mt-0.5 overflow-hidden whitespace-nowrap cursor-default"
 								style={{
-									textOverflow: 'ellipsis',
-									maxWidth: 'calc(100% + 20px)',
-									direction: 'rtl',
-									textAlign: 'left'
+									textOverflow: "ellipsis",
+									maxWidth: "calc(100% + 20px)",
+									direction: "rtl",
+									textAlign: "left",
 								}}
-								title={path ? (path.startsWith(".") ? "." : "") + removeLeadingNonAlphanumeric(path) : ""}
-							>
-								<span style={{ direction: 'ltr' }}>
+								title={
+									path ? (path.startsWith(".") ? "." : "") + removeLeadingNonAlphanumeric(path) : ""
+								}>
+								<span style={{ direction: "ltr" }}>
 									{path?.startsWith(".") && <span>.</span>}
 									{removeLeadingNonAlphanumeric(path ?? "")}
 								</span>
@@ -150,10 +153,12 @@ const CodeAccordian = ({
 									{isLoading ? "Searching and replacing..." : "Search and Replace"}
 								</span>
 								{(diffStats.added > 0 || diffStats.removed > 0) && (
-									<span className="text-xs mr-2 flex-shrink-0" style={{
-										color: "var(--vscode-descriptionForeground)",
-										fontWeight: "normal"
-									}}>
+									<span
+										className="text-xs mr-2 flex-shrink-0"
+										style={{
+											color: "var(--vscode-descriptionForeground)",
+											fontWeight: "normal",
+										}}>
 										{diffStats.added > 0 && (
 											<span style={{ color: "#4ade80" }}>+{diffStats.added}</span>
 										)}
@@ -167,14 +172,13 @@ const CodeAccordian = ({
 							<div
 								className="text-xs text-vscode-descriptionForeground ml-6 mt-0.5 overflow-hidden whitespace-nowrap cursor-default"
 								style={{
-									textOverflow: 'ellipsis',
-									maxWidth: 'calc(100% - 20px)',
-									direction: 'rtl',
-									textAlign: 'left'
+									textOverflow: "ellipsis",
+									maxWidth: "calc(100% - 20px)",
+									direction: "rtl",
+									textAlign: "left",
 								}}
-								title={path ? (path.startsWith(".") ? "." : "") + path : ""}
-							>
-								<span style={{ direction: 'ltr' }}>
+								title={path ? (path.startsWith(".") ? "." : "") + path : ""}>
+								<span style={{ direction: "ltr" }}>
 									{path?.startsWith(".") && <span>.</span>}
 									{path ?? ""}
 								</span>
@@ -188,25 +192,26 @@ const CodeAccordian = ({
 									{isLoading ? "Creating file..." : "Created file"}
 								</span>
 								{code && (
-									<span className="text-xs mr-2 flex-shrink-0" style={{
-										color: "var(--vscode-descriptionForeground)",
-										fontWeight: "normal"
-									}}>
-										<span style={{ color: "#4ade80" }}>+{code.split('\n').length}</span>
+									<span
+										className="text-xs mr-2 flex-shrink-0"
+										style={{
+											color: "var(--vscode-descriptionForeground)",
+											fontWeight: "normal",
+										}}>
+										<span style={{ color: "#4ade80" }}>+{code.split("\n").length}</span>
 									</span>
 								)}
 							</div>
 							<div
 								className="text-xs text-vscode-descriptionForeground ml-6 mt-0.5 overflow-hidden whitespace-nowrap cursor-default"
 								style={{
-									textOverflow: 'ellipsis',
-									maxWidth: 'calc(100% - 20px)',
-									direction: 'rtl',
-									textAlign: 'left'
+									textOverflow: "ellipsis",
+									maxWidth: "calc(100% - 20px)",
+									direction: "rtl",
+									textAlign: "left",
 								}}
-								title={path ? (path.startsWith(".") ? "." : "") + path : ""}
-							>
-								<span style={{ direction: 'ltr' }}>
+								title={path ? (path.startsWith(".") ? "." : "") + path : ""}>
+								<span style={{ direction: "ltr" }}>
 									{path?.startsWith(".") && <span>.</span>}
 									{path ?? ""}
 								</span>
@@ -220,10 +225,12 @@ const CodeAccordian = ({
 									{isLoading ? "Appending content..." : "Append content"}
 								</span>
 								{(diffStats.added > 0 || diffStats.removed > 0) && (
-									<span className="text-xs mr-2 flex-shrink-0" style={{
-										color: "var(--vscode-descriptionForeground)",
-										fontWeight: "normal"
-									}}>
+									<span
+										className="text-xs mr-2 flex-shrink-0"
+										style={{
+											color: "var(--vscode-descriptionForeground)",
+											fontWeight: "normal",
+										}}>
 										{diffStats.added > 0 && (
 											<span style={{ color: "#4ade80" }}>+{diffStats.added}</span>
 										)}
@@ -237,14 +244,13 @@ const CodeAccordian = ({
 							<div
 								className="text-xs text-vscode-descriptionForeground ml-6 mt-0.5 overflow-hidden whitespace-nowrap cursor-default"
 								style={{
-									textOverflow: 'ellipsis',
-									maxWidth: 'calc(100% - 20px)',
-									direction: 'rtl',
-									textAlign: 'left'
+									textOverflow: "ellipsis",
+									maxWidth: "calc(100% - 20px)",
+									direction: "rtl",
+									textAlign: "left",
 								}}
-								title={path ? (path.startsWith(".") ? "." : "") + path : ""}
-							>
-								<span style={{ direction: 'ltr' }}>
+								title={path ? (path.startsWith(".") ? "." : "") + path : ""}>
+								<span style={{ direction: "ltr" }}>
 									{path?.startsWith(".") && <span>.</span>}
 									{path ?? ""}
 								</span>
@@ -253,7 +259,9 @@ const CodeAccordian = ({
 					) : customHeaderText ? (
 						<div className="flex flex-col flex-1 min-w-0">
 							<div className="flex items-center">
-								<span className={`codicon codicon-${customHeaderIcon || 'file'} mr-1.5 flex-shrink-0`} />
+								<span
+									className={`codicon codicon-${customHeaderIcon || "file"} mr-1.5 flex-shrink-0`}
+								/>
 								<span className="text-sm font-medium whitespace-nowrap">
 									{customHeaderText}
 									{customHighlightText && (
@@ -270,14 +278,13 @@ const CodeAccordian = ({
 								<div
 									className="text-xs text-vscode-descriptionForeground ml-6 mt-0.5 overflow-hidden whitespace-nowrap"
 									style={{
-										textOverflow: 'ellipsis',
-										maxWidth: 'calc(100% - 20px)',
-										direction: 'rtl',
-										textAlign: 'left'
+										textOverflow: "ellipsis",
+										maxWidth: "calc(100% - 20px)",
+										direction: "rtl",
+										textAlign: "left",
 									}}
-									title={customSubText || path}
-								>
-									<span style={{ direction: 'ltr' }}>
+									title={customSubText || path}>
+									<span style={{ direction: "ltr" }}>
 										{(customSubText || path)?.startsWith(".") && <span>.</span>}
 										{removeLeadingNonAlphanumeric(customSubText || path || "")}
 									</span>
@@ -291,10 +298,12 @@ const CodeAccordian = ({
 								{truncatedPath + "\u200E"}
 							</span>
 							{(diffStats.added > 0 || diffStats.removed > 0) && (
-								<span className="text-xs mr-2 flex-shrink-0" style={{
-									color: "var(--vscode-descriptionForeground)",
-									fontWeight: "normal"
-								}}>
+								<span
+									className="text-xs mr-2 flex-shrink-0"
+									style={{
+										color: "var(--vscode-descriptionForeground)",
+										fontWeight: "normal",
+									}}>
 									{diffStats.added > 0 && (
 										<span style={{ color: "#4ade80" }}>+{diffStats.added}</span>
 									)}
@@ -324,17 +333,12 @@ const CodeAccordian = ({
 							onClick={(e) => {
 								e.stopPropagation()
 								onViewFile()
-							}}
-						>
+							}}>
 							<span className="codicon codicon-link-external text-[10px]"></span>
 						</button>
 					)}
 					{/* Status dot for edited files */}
-					{isEditedFile && (
-						<StatusDot
-							state={isLoading ? "building" : code ? "success" : "error"}
-						/>
-					)}
+					{isEditedFile && <StatusDot state={isLoading ? "building" : code ? "success" : "error"} />}
 					{/* Show diff button for append content - MOVED TO EXPANDED AREA */}
 					{/* View file and success icons for append content */}
 					{isAppendContent && showViewFileIcon && path && onViewFile && (
@@ -344,8 +348,7 @@ const CodeAccordian = ({
 							onClick={(e) => {
 								e.stopPropagation()
 								onViewFile()
-							}}
-						>
+							}}>
 							<span className="codicon codicon-link-external text-[10px]"></span>
 						</button>
 					)}
@@ -358,17 +361,12 @@ const CodeAccordian = ({
 							onClick={(e) => {
 								e.stopPropagation()
 								onViewFile()
-							}}
-						>
+							}}>
 							<span className="codicon codicon-link-external text-[10px]"></span>
 						</button>
 					)}
 					{/* Status dot for search and replace */}
-					{isSearchAndReplace && (
-						<StatusDot
-							state={isLoading ? "building" : code ? "success" : "error"}
-						/>
-					)}
+					{isSearchAndReplace && <StatusDot state={isLoading ? "building" : code ? "success" : "error"} />}
 					{/* External link icon for created files */}
 					{isCreatedFile && path && showViewFileIcon && onViewFile && (
 						<button
@@ -377,26 +375,21 @@ const CodeAccordian = ({
 							onClick={(e) => {
 								e.stopPropagation()
 								onViewFile()
-							}}
-						>
+							}}>
 							<span className="codicon codicon-link-external text-[10px]"></span>
 						</button>
 					)}
 					{/* Status dot for created files */}
-					{isCreatedFile && (
-						<StatusDot
-							state={isLoading ? "building" : code ? "success" : "error"}
-						/>
-					)}
+					{isCreatedFile && <StatusDot state={isLoading ? "building" : code ? "success" : "error"} />}
 					{/* Status dot for append content */}
-					{isAppendContent && (
-						<StatusDot
-							state={isLoading ? "building" : code ? "success" : "error"}
-						/>
-					)}
+					{isAppendContent && <StatusDot state={isLoading ? "building" : code ? "success" : "error"} />}
+
+					{/* Status dot for custom header tools (search, list, etc.) */}
+					{customHeaderText && <StatusDot state={isLoading ? "building" : code ? "success" : "error"} />}
 
 					{/* Chevron for all file types - smaller with tighter right spacing */}
-					<span className={`codicon codicon-chevron-${isExpanded ? "up" : "down"} scale-75 -ml-1 -mr-2`}></span>
+					<span
+						className={`codicon codicon-chevron-${isExpanded ? "up" : "down"} scale-75 -ml-1 -mr-2`}></span>
 				</ToolUseBlockHeader>
 			)}
 			{/* Approval buttons below header for custom headers and append content */}
@@ -438,15 +431,14 @@ const CodeAccordian = ({
 											type: "showDiff",
 											text: path,
 											values: {
-												diffContent: code // Pass the diff content
-											}
+												diffContent: code, // Pass the diff content
+											},
 										})
 									} else {
 										// Show error if no diff content available
 										console.warn("No diff content available for file:", path)
 									}
-								}}
-							>
+								}}>
 								<span className="codicon codicon-diff text-xs"></span>
 								Show diff
 							</button>

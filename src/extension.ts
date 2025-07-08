@@ -2,6 +2,17 @@ import * as vscode from "vscode"
 import * as dotenvx from "@dotenvx/dotenvx"
 import * as path from "path"
 
+/**
+ * Cubent.dev Extension - AI-powered coding assistant
+ *
+ * This extension provides an intelligent coding companion that helps developers
+ * with code generation, explanation, debugging, and various development tasks.
+ * Built with modern AI capabilities and seamless VS Code integration.
+ *
+ * @author Cubent Team
+ * @version 0.30.0
+ */
+
 // Load environment variables from .env file
 try {
 	// Specify path to .env file in the project root directory
