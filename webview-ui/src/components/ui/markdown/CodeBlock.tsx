@@ -57,7 +57,7 @@ export const CodeBlock: FC<CodeBlockProps> = memo(({ language, value, className,
 			className="relative mt-4"
 			style={{
 				backgroundColor: "transparent",
-				border: "0.5px solid white",
+				border: "1px solid rgba(255, 255, 255, 0.05)",
 				borderRadius: "8px",
 				overflow: "hidden",
 			}}
@@ -77,8 +77,22 @@ export const CodeBlock: FC<CodeBlockProps> = memo(({ language, value, className,
 				<div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
 					<span>{language || "text"}</span>
 					<div style={{ display: "flex", gap: "4px" }}>
-						<div style={{ width: "8px", height: "8px", backgroundColor: "rgba(255,255,255,0.3)", borderRadius: "50%" }} />
-						<div style={{ width: "8px", height: "8px", backgroundColor: "rgba(255,255,255,0.3)", borderRadius: "50%" }} />
+						<div
+							style={{
+								width: "8px",
+								height: "8px",
+								backgroundColor: "rgba(255,255,255,0.3)",
+								borderRadius: "50%",
+							}}
+						/>
+						<div
+							style={{
+								width: "8px",
+								height: "8px",
+								backgroundColor: "rgba(255,255,255,0.3)",
+								borderRadius: "50%",
+							}}
+						/>
 					</div>
 				</div>
 				<Button

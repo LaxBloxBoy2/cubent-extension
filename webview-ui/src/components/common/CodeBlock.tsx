@@ -98,7 +98,7 @@ const CodeBlockContainer = styled.div`
 	position: relative;
 	overflow: hidden;
 	background-color: transparent;
-	border: 0.5px solid #666;
+	border: 1px solid rgba(255, 255, 255, 0.05);
 	border-radius: 6px;
 	margin-top: 16px;
 
@@ -117,7 +117,7 @@ const CodeBlockContainer = styled.div`
 
 const CodeBlockHeader = styled.div`
 	background-color: rgba(255, 255, 255, 0.05);
-	border-bottom: 0.5px solid #666;
+	border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 	padding: 6px 12px;
 	display: flex;
 	align-items: center;
@@ -172,10 +172,10 @@ export const StyledPre = styled.div<{
 
 	pre,
 	code {
-		/* Undefined wordwrap defaults to true (pre-wrap) behavior. */
-		white-space: ${({ wordwrap }) => (wordwrap === "false" ? "pre" : "pre-wrap")};
-		word-break: ${({ wordwrap }) => (wordwrap === "false" ? "normal" : "normal")};
-		overflow-wrap: ${({ wordwrap }) => (wordwrap === "false" ? "normal" : "break-word")};
+		/* Undefined wordwrap defaults to false (pre) behavior - no word wrap by default. */
+		white-space: ${({ wordwrap }) => (wordwrap === "true" ? "pre-wrap" : "pre")};
+		word-break: ${({ wordwrap }) => (wordwrap === "true" ? "normal" : "normal")};
+		overflow-wrap: ${({ wordwrap }) => (wordwrap === "true" ? "break-word" : "normal")};
 		font-size: 11px;
 		line-height: 1.4;
 		font-family: var(--vscode-editor-font-family);
@@ -698,9 +698,13 @@ const CodeBlock = memo(
 									background: "transparent",
 									border: "none",
 									opacity: "1",
-									pointerEvents: "all"
+									pointerEvents: "all",
 								}}>
-								{windowShade ? <ChevronDown size={10} color="white" /> : <ChevronUp size={10} color="white" />}
+								{windowShade ? (
+									<ChevronDown size={10} color="white" />
+								) : (
+									<ChevronUp size={10} color="white" />
+								)}
 							</CodeBlockButton>
 						)}
 						<CodeBlockButton
@@ -713,19 +717,22 @@ const CodeBlock = memo(
 								background: "transparent",
 								border: "none",
 								opacity: "1",
-								pointerEvents: "all"
+								pointerEvents: "all",
 							}}>
 							{wordWrap ? <AlignJustify size={10} color="white" /> : <WrapText size={10} color="white" />}
 						</CodeBlockButton>
-						<CodeBlockButton onClick={handleCopy} title={t("chat:codeblock.tooltips.copy_code")} style={{
-							width: "20px",
-							height: "20px",
-							padding: "0",
-							background: "transparent",
-							border: "none",
-							opacity: "1",
-							pointerEvents: "all"
-						}}>
+						<CodeBlockButton
+							onClick={handleCopy}
+							title={t("chat:codeblock.tooltips.copy_code")}
+							style={{
+								width: "20px",
+								height: "20px",
+								padding: "0",
+								background: "transparent",
+								border: "none",
+								opacity: "1",
+								pointerEvents: "all",
+							}}>
 							{showCopyFeedback ? <Check size={10} color="white" /> : <Copy size={10} color="white" />}
 						</CodeBlockButton>
 					</div>
@@ -748,7 +755,7 @@ const CodeBlock = memo(
 							value={currentLanguage}
 							style={{
 								width: `calc(${currentLanguage?.length || 0}ch + 9px)`,
-								border: "0.5px solid #666"
+								border: "0.5px solid #666",
 							}}
 							onClick={(e) => {
 								e.currentTarget.focus()

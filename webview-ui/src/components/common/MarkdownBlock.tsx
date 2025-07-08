@@ -60,7 +60,7 @@ const StyledMarkdown = styled.div`
 		font-family: var(--vscode-editor-font-family, monospace) !important;
 		color: #569cd6 !important;
 		background-color: var(--vscode-input-background, #3c3c3c) !important;
-		border: 1px solid var(--vscode-input-border, #6b6b6b) !important;
+		border: 1px solid rgba(255, 255, 255, 0.05) !important;
 		border-radius: 3px !important;
 		padding: 1px 4px !important;
 		font-size: 0.9em !important;
@@ -248,7 +248,7 @@ const MarkdownBlock = memo(({ markdown }: MarkdownBlockProps) => {
 	}, [markdown, setMarkdown, theme])
 
 	return (
-		<div style={{}}>
+		<div style={{ paddingBottom: "8px" }}>
 			<StyledMarkdown>{reactContent}</StyledMarkdown>
 		</div>
 	)

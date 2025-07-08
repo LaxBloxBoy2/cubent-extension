@@ -239,14 +239,10 @@ export default function MermaidBlock({ code }: MermaidBlockProps) {
 					<DiagramHeader>
 						<DiagramTitle>Mermaid Diagram</DiagramTitle>
 						<DiagramActions>
-							<ActionButton
-								onClick={handleCopyCode}
-								title="Copy diagram code">
+							<ActionButton onClick={handleCopyCode} title="Copy diagram code">
 								<span className={`codicon codicon-${showCopyFeedback ? "check" : "copy"}`}></span>
 							</ActionButton>
-							<ActionButton
-								onClick={handleDownload}
-								title="Download as PNG">
+							<ActionButton onClick={handleDownload} title="Download as PNG">
 								<span className="codicon codicon-cloud-download"></span>
 							</ActionButton>
 						</DiagramActions>
@@ -344,7 +340,7 @@ interface SvgContainerProps {
 
 const DiagramContainer = styled.div`
 	background-color: var(--vscode-editor-background);
-	border: 1px solid var(--vscode-editorGroup-border);
+	border: 1px solid rgba(255, 255, 255, 0.05);
 	border-radius: 8px;
 	overflow: hidden;
 `

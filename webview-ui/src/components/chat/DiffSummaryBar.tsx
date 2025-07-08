@@ -28,7 +28,6 @@ const DiffSummaryBar: React.FC<DiffSummaryBarProps> = ({ messages }) => {
 
 		// Scan through messages to find file operations
 		messages.forEach((message, index) => {
-
 			if (message.type === "ask" && message.ask === "tool" && message.text) {
 				try {
 					const tool = JSON.parse(message.text) as ClineSayTool
@@ -36,14 +35,14 @@ const DiffSummaryBar: React.FC<DiffSummaryBarProps> = ({ messages }) => {
 					switch (tool.tool) {
 						case "newFileCreated":
 							if (tool.path && tool.content) {
-								const lines = tool.content.split('\n').length
+								const lines = tool.content.split("\n").length
 								const change: FileChange = {
 									path: tool.path,
 									type: "created",
 									linesAdded: lines,
 									linesRemoved: 0,
-									relativePath: tool.path.split('/').pop() || tool.path,
-									fullPath: tool.path
+									relativePath: tool.path.split("/").pop() || tool.path,
+									fullPath: tool.path,
 								}
 								changes.set(tool.path, change)
 								totalAdded += lines
@@ -59,48 +58,63 @@ const DiffSummaryBar: React.FC<DiffSummaryBarProps> = ({ messages }) => {
 								if (tool.diff) {
 									// Handle both standard diff format and SEARCH/REPLACE format
 									const diffContent = tool.diff
-									console.log('DiffSummaryBar: Processing diff for', tool.path)
-									console.log('DiffSummaryBar: Diff content:', diffContent.substring(0, 200) + '...')
+									console.log("DiffSummaryBar: Processing diff for", tool.path)
+									console.log("DiffSummaryBar: Diff content:", diffContent.substring(0, 200) + "...")
 
-									if (diffContent.includes('<<<<<<< SEARCH') && diffContent.includes('>>>>>>> REPLACE')) {
+									if (
+										diffContent.includes("<<<<<<< SEARCH") &&
+										diffContent.includes(">>>>>>> REPLACE")
+									) {
 										// SEARCH/REPLACE format - count lines in each section
-										console.log('DiffSummaryBar: Using SEARCH/REPLACE format')
-										const blocks = diffContent.split('<<<<<<< SEARCH')
-										console.log('DiffSummaryBar: Found', blocks.length - 1, 'search/replace blocks')
+										console.log("DiffSummaryBar: Using SEARCH/REPLACE format")
+										const blocks = diffContent.split("<<<<<<< SEARCH")
+										console.log("DiffSummaryBar: Found", blocks.length - 1, "search/replace blocks")
 
 										blocks.forEach((block, blockIndex) => {
-											if (block.includes('>>>>>>> REPLACE')) {
+											if (block.includes(">>>>>>> REPLACE")) {
 												console.log(`DiffSummaryBar: Processing block ${blockIndex}`)
-												const parts = block.split('=======')
+												const parts = block.split("=======")
 												if (parts.length === 2) {
 													const searchPart = parts[0].trim()
-													const replacePart = parts[1].split('>>>>>>> REPLACE')[0].trim()
+													const replacePart = parts[1].split(">>>>>>> REPLACE")[0].trim()
 
-													console.log('DiffSummaryBar: Search part:', searchPart)
-													console.log('DiffSummaryBar: Replace part:', replacePart)
+													console.log("DiffSummaryBar: Search part:", searchPart)
+													console.log("DiffSummaryBar: Replace part:", replacePart)
 
 													// Filter out metadata lines and only count actual content lines
-													const searchLines = searchPart ? searchPart.split('\n').filter(line => {
-														const trimmed = line.trim()
-														const isMetadata = trimmed.startsWith(':start_line:') ||
-																		 trimmed.startsWith(':end_line:') ||
-																		 trimmed.startsWith('-------') ||
-																		 trimmed === ''
-														console.log(`DiffSummaryBar: Search line "${trimmed}" - isMetadata: ${isMetadata}`)
-														return !isMetadata
-													}) : []
+													const searchLines = searchPart
+														? searchPart.split("\n").filter((line) => {
+																const trimmed = line.trim()
+																const isMetadata =
+																	trimmed.startsWith(":start_line:") ||
+																	trimmed.startsWith(":end_line:") ||
+																	trimmed.startsWith("-------") ||
+																	trimmed === ""
+																console.log(
+																	`DiffSummaryBar: Search line "${trimmed}" - isMetadata: ${isMetadata}`,
+																)
+																return !isMetadata
+															})
+														: []
 
-													const replaceLines = replacePart ? replacePart.split('\n').filter(line => {
-														const trimmed = line.trim()
-														const isMetadata = trimmed.startsWith(':start_line:') ||
-																		 trimmed.startsWith(':end_line:') ||
-																		 trimmed.startsWith('-------') ||
-																		 trimmed === ''
-														console.log(`DiffSummaryBar: Replace line "${trimmed}" - isMetadata: ${isMetadata}`)
-														return !isMetadata
-													}) : []
+													const replaceLines = replacePart
+														? replacePart.split("\n").filter((line) => {
+																const trimmed = line.trim()
+																const isMetadata =
+																	trimmed.startsWith(":start_line:") ||
+																	trimmed.startsWith(":end_line:") ||
+																	trimmed.startsWith("-------") ||
+																	trimmed === ""
+																console.log(
+																	`DiffSummaryBar: Replace line "${trimmed}" - isMetadata: ${isMetadata}`,
+																)
+																return !isMetadata
+															})
+														: []
 
-													console.log(`DiffSummaryBar: Block ${blockIndex} - searchLines: ${searchLines.length}, replaceLines: ${replaceLines.length}`)
+													console.log(
+														`DiffSummaryBar: Block ${blockIndex} - searchLines: ${searchLines.length}, replaceLines: ${replaceLines.length}`,
+													)
 													linesRemoved += searchLines.length
 													linesAdded += replaceLines.length
 												}
@@ -108,31 +122,42 @@ const DiffSummaryBar: React.FC<DiffSummaryBarProps> = ({ messages }) => {
 										})
 									} else {
 										// Standard diff format
-										console.log('DiffSummaryBar: Using standard diff format')
-										const diffLines = diffContent.split('\n')
-										diffLines.forEach(line => {
+										console.log("DiffSummaryBar: Using standard diff format")
+										const diffLines = diffContent.split("\n")
+										diffLines.forEach((line) => {
 											// Skip diff headers and context lines
-											if (line.startsWith('@@') || line.startsWith('diff ') || line.startsWith('index ') ||
-												line.startsWith('Binary files') || line.startsWith('\\ No newline') ||
-												line.startsWith('---') || line.startsWith('+++')) {
+											if (
+												line.startsWith("@@") ||
+												line.startsWith("diff ") ||
+												line.startsWith("index ") ||
+												line.startsWith("Binary files") ||
+												line.startsWith("\\ No newline") ||
+												line.startsWith("---") ||
+												line.startsWith("+++")
+											) {
 												return
 											}
 
-											if (line.startsWith('+')) {
+											if (line.startsWith("+")) {
 												linesAdded++
-												console.log('DiffSummaryBar: Found added line:', line.substring(0, 50))
+												console.log("DiffSummaryBar: Found added line:", line.substring(0, 50))
 											}
-											if (line.startsWith('-')) {
+											if (line.startsWith("-")) {
 												linesRemoved++
-												console.log('DiffSummaryBar: Found removed line:', line.substring(0, 50))
+												console.log(
+													"DiffSummaryBar: Found removed line:",
+													line.substring(0, 50),
+												)
 											}
 										})
 									}
 
-									console.log(`DiffSummaryBar: Final counts for ${tool.path} - added: ${linesAdded}, removed: ${linesRemoved}`)
+									console.log(
+										`DiffSummaryBar: Final counts for ${tool.path} - added: ${linesAdded}, removed: ${linesRemoved}`,
+									)
 								} else if (tool.content) {
 									// For new content, count actual lines
-									linesAdded = tool.content.split('\n').filter(line => line.trim()).length
+									linesAdded = tool.content.split("\n").filter((line) => line.trim()).length
 								} else {
 									linesAdded = 1 // Default estimate
 								}
@@ -143,8 +168,8 @@ const DiffSummaryBar: React.FC<DiffSummaryBarProps> = ({ messages }) => {
 									type: "edited",
 									linesAdded,
 									linesRemoved,
-									relativePath: tool.path.split('/').pop() || tool.path,
-									fullPath: tool.path
+									relativePath: tool.path.split("/").pop() || tool.path,
+									fullPath: tool.path,
 								}
 								changes.set(tool.path, change)
 							}
@@ -157,7 +182,7 @@ const DiffSummaryBar: React.FC<DiffSummaryBarProps> = ({ messages }) => {
 		})
 
 		// Calculate totals from final changes
-		changes.forEach(change => {
+		changes.forEach((change) => {
 			totalAdded += change.linesAdded
 			totalRemoved += change.linesRemoved
 		})
@@ -165,7 +190,7 @@ const DiffSummaryBar: React.FC<DiffSummaryBarProps> = ({ messages }) => {
 		return {
 			fileChanges: Array.from(changes.values()),
 			totalLinesAdded: totalAdded,
-			totalLinesRemoved: totalRemoved
+			totalLinesRemoved: totalRemoved,
 		}
 	}, [messages])
 
@@ -190,7 +215,7 @@ const DiffSummaryBar: React.FC<DiffSummaryBarProps> = ({ messages }) => {
 
 		// Discard all changes - revert files to their previous state
 		vscode.postMessage({
-			type: "discardAllChanges"
+			type: "discardAllChanges",
 		})
 		// Hide the bar after discarding changes
 		setIsHidden(true)
@@ -220,123 +245,91 @@ const DiffSummaryBar: React.FC<DiffSummaryBarProps> = ({ messages }) => {
 
 	return (
 		<div
-			className="mx-4 bg-[#2d2d30] border border-[color-mix(in_srgb,_var(--vscode-input-border)_50%,_transparent)] rounded-[3px] mb-0 text-sm"
+			className="mb-1 mx-2 bg-vscode-editor-background rounded border border-vscode-input-border/30 text-sm"
 			onClick={(e) => e.stopPropagation()}
-			onMouseDown={(e) => e.stopPropagation()}
-		>
+			onMouseDown={(e) => e.stopPropagation()}>
 			{/* Collapsed Header */}
-			<div className="flex items-center px-3 py-2">
-				<div className="flex items-center gap-2">
+			<div className="flex items-center justify-between px-3 py-2">
+				<div className="flex flex-wrap items-center gap-2">
 					<button
 						onClick={handleToggleExpanded}
-						className="flex items-center gap-1 text-[#cccccc] hover:text-white cursor-pointer"
-					>
-						<span className={`codicon ${isExpanded ? 'codicon-chevron-down' : 'codicon-chevron-right'} text-[12px]`}></span>
-						<span>{totalChanges} file{totalChanges !== 1 ? "s" : ""} changed</span>
+						className="flex items-center gap-1 text-vscode-foreground hover:opacity-70 cursor-pointer text-xs">
+						<span
+							className={`codicon ${isExpanded ? "codicon-chevron-down" : "codicon-chevron-right"} text-[11px]`}></span>
+						<span className="text-[11px]">
+							{totalChanges} file{totalChanges !== 1 ? "s" : ""} changed
+						</span>
 					</button>
-					{totalLinesAdded > 0 && (
-						<span className="text-[#22c55e] text-xs">+{totalLinesAdded}</span>
-					)}
-					{totalLinesRemoved > 0 && (
-						<span className="text-[#f85149] text-xs">-{totalLinesRemoved}</span>
-					)}
+
+					{/* Diff stats - will wrap below when no space */}
+					<div className="flex items-center gap-1 px-1.5 py-0.5 bg-vscode-input-background rounded text-[10px]">
+						{totalLinesAdded > 0 && <span className="text-green-400">+{totalLinesAdded}</span>}
+						{totalLinesAdded > 0 && totalLinesRemoved > 0 && (
+							<span className="text-vscode-descriptionForeground">/</span>
+						)}
+						{totalLinesRemoved > 0 && <span className="text-red-400">-{totalLinesRemoved}</span>}
+					</div>
 				</div>
 
-				<div className="flex-1 flex justify-center">
-					<div className="flex items-center gap-2">
-						<button
-							onClick={handleDiscardAll}
-							className="flex items-center gap-1 px-2 py-1 text-xs text-[#cccccc] hover:text-white hover:bg-[#3e3e42] rounded transition-colors cursor-pointer"
-							title="Revert all changes to previous state"
-						>
-							<span className="codicon codicon-discard text-[12px]"></span>
-							Discard All
-						</button>
-						<button
-							onClick={handleKeepAll}
-							className="flex items-center gap-1 px-2 py-1 text-xs text-[#3bcd87] bg-[#19342a] hover:bg-[#1a3d2e] rounded transition-colors cursor-pointer"
-							title="Keep changes and hide this bar"
-						>
-							<span className="codicon codicon-check text-[12px]"></span>
-							Keep All
-						</button>
-					</div>
+				<div className="flex items-center gap-1">
+					<button
+						onClick={handleDiscardAll}
+						className="px-2 py-1 text-[11px] text-vscode-foreground hover:bg-vscode-toolbar-hoverBackground/40 rounded transition-colors cursor-pointer"
+						title="Revert all changes to previous state">
+						Discard All
+					</button>
+					<button
+						onClick={handleKeepAll}
+						className="px-2 py-1 text-[11px] text-green-400 bg-vscode-input-background hover:bg-vscode-toolbar-hoverBackground/40 rounded transition-colors cursor-pointer"
+						title="Keep changes and hide this bar">
+						Keep All
+					</button>
 				</div>
 			</div>
 
 			{/* Expanded File List */}
 			{isExpanded && (
-				<div className="border-t border-[color-mix(in_srgb,_var(--vscode-input-border)_30%,_transparent)]">
+				<div className="border-t border-vscode-input-border/30">
 					{/* Scrollable File List - Max 4 files visible */}
-					<div className="max-h-[240px] overflow-y-auto">
+					<div className="max-h-[180px] overflow-y-auto">
 						{fileChanges.map((change, index) => (
 							<div
 								key={change.path}
-								className="flex items-center justify-between px-3 py-2 hover:bg-[#3e3e42] transition-colors"
-							>
+								className="flex items-center justify-between px-3 py-1.5 hover:bg-vscode-toolbar-hoverBackground/20 transition-colors">
 								<div className="flex items-center gap-2 flex-1 min-w-0">
-									<span className="text-[#cccccc] font-medium truncate">
+									<span className="text-vscode-foreground text-xs font-medium truncate">
 										{change.relativePath}
 									</span>
-									<span className="text-[#8c8c8c] text-xs truncate">
-										{change.fullPath.replace(change.relativePath, '').replace(/\/$/, '')}
-									</span>
+									<div className="flex items-center gap-1 px-1 py-0.5 bg-vscode-input-background rounded text-[10px]">
+										{change.linesAdded > 0 && (
+											<span className="text-green-400">+{change.linesAdded}</span>
+										)}
+										{change.linesAdded > 0 && change.linesRemoved > 0 && (
+											<span className="text-vscode-descriptionForeground">/</span>
+										)}
+										{change.linesRemoved > 0 && (
+											<span className="text-red-400">-{change.linesRemoved}</span>
+										)}
+									</div>
 								</div>
 
-								<div className="flex items-center gap-2">
-									{change.linesAdded > 0 && (
-										<span className="text-[#22c55e] text-xs">+{change.linesAdded}</span>
-									)}
-									{change.linesRemoved > 0 && (
-										<span className="text-[#f85149] text-xs">-{change.linesRemoved}</span>
-									)}
-
+								<div className="flex items-center gap-1">
 									<button
 										onClick={() => handleOpenFile(change.fullPath)}
-										className="p-1 text-[#cccccc] hover:text-white hover:bg-[#4e4e4e] rounded transition-colors cursor-pointer"
-										title="Open file"
-									>
-										<span className="codicon codicon-go-to-file text-[12px]"></span>
+										className="p-1 text-vscode-foreground hover:opacity-70 transition-opacity cursor-pointer"
+										title="Open file">
+										<span className="codicon codicon-go-to-file text-[11px]"></span>
 									</button>
 
 									<button
 										onClick={() => handleDeleteFile(change.fullPath)}
-										className="p-1 text-[#cccccc] hover:text-[#f85149] hover:bg-[#4e4e4e] rounded transition-colors cursor-pointer"
-										title="Delete file"
-									>
-										<span className="codicon codicon-trash text-[12px]"></span>
+										className="p-1 text-vscode-foreground hover:text-red-400 transition-colors cursor-pointer"
+										title="Delete file">
+										<span className="codicon codicon-trash text-[11px]"></span>
 									</button>
 								</div>
 							</div>
 						))}
-					</div>
-
-					{/* Bottom Action Bar */}
-					<div className="flex items-center justify-between px-3 py-2 border-t border-[color-mix(in_srgb,_var(--vscode-input-border)_30%,_transparent)] bg-[#252526]">
-						<div className="flex items-center gap-2">
-							<span className="text-[#8c8c8c] text-xs">
-								{totalChanges} file{totalChanges !== 1 ? "s" : ""} with {totalLinesAdded + totalLinesRemoved} changes
-							</span>
-						</div>
-
-						<div className="flex items-center gap-2">
-							<button
-								onClick={handleDiscardAll}
-								className="flex items-center gap-1 px-3 py-1 text-xs text-[#cccccc] hover:text-white hover:bg-[#3e3e42] rounded transition-colors cursor-pointer"
-								title="Revert all changes to previous state"
-							>
-								<span className="codicon codicon-discard text-[12px]"></span>
-								Discard All
-							</button>
-							<button
-								onClick={handleKeepAll}
-								className="flex items-center gap-1 px-3 py-1 text-xs text-[#3bcd87] bg-[#19342a] hover:bg-[#1a3d2e] rounded transition-colors cursor-pointer"
-								title="Keep changes and hide this bar"
-							>
-								<span className="codicon codicon-check text-[12px]"></span>
-								Keep All
-							</button>
-						</div>
 					</div>
 				</div>
 			)}
