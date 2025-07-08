@@ -1,17 +1,16 @@
 import React, { useState } from "react"
 import { useCopyToClipboard } from "@/utils/clipboard"
 import { FeedbackDialog } from "./FeedbackDialog"
+import { MessageUsageAnalytics } from "./MessageUsageAnalytics"
 
 interface FeedbackButtonsProps {
 	messageTs: number
 	messageText: string
+	userMessageTs?: number // Optional: timestamp of the user message that triggered this completion
 }
 
-// FeedbackButtons component - handles like/dislike/copy actions for chat messages
-export const FeedbackButtons: React.FC<FeedbackButtonsProps> = ({
-	messageTs,
-	messageText,
-}) => {
+// FeedbackButtons component - handles like/dislike/copy/usage analytics actions for chat messages
+export const FeedbackButtons: React.FC<FeedbackButtonsProps> = ({ messageTs, messageText, userMessageTs }) => {
 	const [feedbackDialogOpen, setFeedbackDialogOpen] = useState(false)
 	const [feedbackType, setFeedbackType] = useState<"positive" | "negative">("positive")
 	const [selectedFeedback, setSelectedFeedback] = useState<"positive" | "negative" | null>(null)
@@ -44,7 +43,7 @@ export const FeedbackButtons: React.FC<FeedbackButtonsProps> = ({
 							: "bg-transparent text-vscode-foreground"
 					}`}
 					title="Good response">
-					<span className="codicon codicon-thumbsup" style={{ fontSize: '12px' }} />
+					<span className="codicon codicon-thumbsup" style={{ fontSize: "12px" }} />
 				</button>
 				<button
 					onClick={handleThumbsDown}
@@ -54,7 +53,7 @@ export const FeedbackButtons: React.FC<FeedbackButtonsProps> = ({
 							: "bg-transparent text-vscode-foreground"
 					}`}
 					title="Bad response">
-					<span className="codicon codicon-thumbsdown" style={{ fontSize: '12px' }} />
+					<span className="codicon codicon-thumbsdown" style={{ fontSize: "12px" }} />
 				</button>
 				<button
 					onClick={handleCopy}
@@ -62,9 +61,10 @@ export const FeedbackButtons: React.FC<FeedbackButtonsProps> = ({
 					title="Copy response">
 					<span
 						className={`codicon codicon-${showCopyFeedback ? "check" : "copy"}`}
-						style={{ fontSize: '12px' }}
+						style={{ fontSize: "12px" }}
 					/>
 				</button>
+				<MessageUsageAnalytics messageTs={messageTs} userMessageTs={userMessageTs} />
 			</div>
 			<FeedbackDialog
 				isOpen={feedbackDialogOpen}

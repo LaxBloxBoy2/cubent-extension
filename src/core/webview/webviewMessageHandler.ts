@@ -2010,5 +2010,89 @@ export const webviewMessageHandler = async (provider: ClineProvider, message: We
 			vscode.commands.executeCommand("cubent.showUsage")
 			break
 		}
+		case "getMessageUsageData": {
+			try {
+				const { messageTs, userMessageTs } = message
+				const task = provider.getCurrentCline()
+
+				console.log(`🔍 Getting usage data for messageTs: ${messageTs}, userMessageTs: ${userMessageTs}`)
+
+				if (!task) {
+					console.log(`🔍 No task found`)
+					provider.postMessageToWebview({
+						type: "messageUsageData",
+						messageTs,
+						data: null,
+					})
+					break
+				}
+
+				// Get usage data for the specific message
+				let usageData = null
+
+				if (messageTs) {
+					// Try to get data by completion message timestamp
+					usageData = task.messageUsageTracker.getMessageUsageData(messageTs)
+					console.log(`🔍 Usage data by completion messageTs: ${usageData ? "found" : "not found"}`)
+				}
+
+				if (!usageData && userMessageTs) {
+					// Try to get data by user message timestamp
+					usageData = task.messageUsageTracker.getUsageDataByUserMessage(userMessageTs)
+					console.log(`🔍 Usage data by userMessageTs: ${usageData ? "found" : "not found"}`)
+				}
+
+				// If no specific data found, try to get from active session
+				if (!usageData && userMessageTs) {
+					const activeSession = task.messageUsageTracker.getActiveSession(userMessageTs)
+					console.log(`🔍 Active session: ${activeSession ? "found" : "not found"}`)
+					if (activeSession) {
+						usageData = {
+							messageTs: messageTs || userMessageTs,
+							userMessageTs,
+							inputTokens: activeSession.inputTokens,
+							outputTokens: activeSession.outputTokens,
+							totalTokens: activeSession.inputTokens + activeSession.outputTokens,
+							cacheWrites: activeSession.cacheWrites,
+							cacheReads: activeSession.cacheReads,
+							totalCost: activeSession.totalCost,
+							responseTime: undefined, // Not available for active sessions
+							toolCalls: activeSession.toolCalls,
+							modelId: activeSession.modelId,
+							provider: activeSession.provider,
+							cubentUnits: activeSession.cubentUnits,
+							startTime: activeSession.startTime,
+						}
+					}
+				}
+
+				// If still no data, try to get any available data for debugging
+				if (!usageData) {
+					const allUsageData = task.messageUsageTracker.getAllUsageData()
+					const activeSessions = Array.from(task.messageUsageTracker.getActiveSessions().entries())
+					console.log(`🔍 All usage data count: ${allUsageData.length}`)
+					console.log(`🔍 Active sessions count: ${activeSessions.length}`)
+					console.log(`🔍 All usage data:`, allUsageData)
+					console.log(`🔍 Active sessions:`, activeSessions)
+				}
+
+				console.log(`🔍 Final usage data:`, usageData)
+
+				provider.postMessageToWebview({
+					type: "messageUsageData",
+					messageTs,
+					data: usageData,
+					userMessageTs: usageData?.userMessageTs,
+				})
+			} catch (error) {
+				console.error("Error getting message usage data:", error)
+				provider.postMessageToWebview({
+					type: "messageUsageData",
+					messageTs: message.messageTs,
+					data: null,
+				})
+			}
+			break
+		}
 	}
 }

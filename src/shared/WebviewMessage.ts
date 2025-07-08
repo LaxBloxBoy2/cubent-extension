@@ -166,6 +166,7 @@ export interface WebviewMessage {
 		| "showUpgradePrompt"
 		| "acknowledgeUsageAlert"
 		| "showUsage"
+		| "getMessageUsageData"
 	text?: string
 	disabled?: boolean
 	askResponse?: ClineAskResponse
@@ -187,6 +188,7 @@ export interface WebviewMessage {
 	setting?: string
 	slug?: string
 	modeConfig?: ModeConfig
+	userMessageTs?: number
 	timeout?: number
 	payload?: WebViewMessagePayload
 	source?: "global" | "project"

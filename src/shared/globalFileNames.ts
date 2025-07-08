@@ -4,4 +4,5 @@ export const GlobalFileNames = {
 	mcpSettings: "mcp_settings.json",
 	customModes: "custom_modes.yaml",
 	taskMetadata: "task_metadata.json",
+	messageUsageData: "message_usage_data.json",
 }

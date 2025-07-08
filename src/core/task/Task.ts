@@ -48,6 +48,7 @@ import { RepoPerTaskCheckpointService } from "../../services/checkpoints"
 import UsageTrackingService from "../../services/UsageTrackingService"
 import { getUserManagementIntegration } from "../../extension"
 import CubentWebApiService from "../../services/CubentWebApiService"
+import { MessageUsageTracker } from "../../services/MessageUsageTracker"
 
 // integrations
 import { DiffViewProvider } from "../../integrations/editor/DiffViewProvider"
@@ -175,6 +176,10 @@ export class Task extends EventEmitter<ClineEvents> {
 	consecutiveMistakeCountForApplyDiff: Map<string, number> = new Map()
 	toolUsage: ToolUsage = {}
 
+	// Message Usage Tracking
+	messageUsageTracker: MessageUsageTracker
+	currentUserMessageTs?: number // Track the current user message timestamp for linking to completion
+
 	// Checkpoints
 	enableCheckpoints: boolean
 	checkpointService?: RepoPerTaskCheckpointService
@@ -255,6 +260,8 @@ export class Task extends EventEmitter<ClineEvents> {
 
 		this.diffStrategy = new MultiSearchReplaceDiffStrategy(this.fuzzyMatchThreshold)
 		this.toolRepetitionDetector = new ToolRepetitionDetector(this.consecutiveMistakeLimit)
+		this.messageUsageTracker = MessageUsageTracker.getInstance()
+		this.messageUsageTracker.initialize(this.taskId, this.globalStoragePath)
 
 		onCreated?.(this)
 
@@ -504,6 +511,17 @@ export class Task extends EventEmitter<ClineEvents> {
 		this.askResponse = askResponse
 		this.askResponseText = text
 		this.askResponseImages = images
+
+		// Start tracking usage for user messages (when user provides feedback/input)
+		if (askResponse === "messageResponse" && text) {
+			this.currentUserMessageTs = Date.now()
+			console.log(`🔍 Starting message usage tracking for user response: ${this.currentUserMessageTs}`)
+			this.messageUsageTracker.startMessageTracking(
+				this.currentUserMessageTs,
+				this.apiConfiguration.apiModelId,
+				this.apiConfiguration.apiProvider,
+			)
+		}
 	}
 
 	async handleTerminalOperation(terminalOperation: "continue" | "abort") {
@@ -1438,6 +1456,21 @@ export class Task extends EventEmitter<ClineEvents> {
 				} else {
 					console.log(`⏭️ Skipping usage tracking for tool follow-up in task ${this.taskId}`)
 				}
+
+				// Update message usage tracking with token data
+				if (this.currentUserMessageTs) {
+					console.log(
+						`🔍 Updating session usage for ${this.currentUserMessageTs}: input=${inputTokens}, output=${outputTokens}, cost=${totalCost}`,
+					)
+					this.messageUsageTracker.updateSessionUsage(this.currentUserMessageTs, {
+						inputTokens,
+						outputTokens,
+						cacheWrites: cacheWriteTokens,
+						cacheReads: cacheReadTokens,
+						totalCost,
+						cubentUnits: !isToolFollowUp ? this.getCubentUnitsForModel(this.api.getModel().id) : undefined,
+					})
+				}
 			}
 
 			// Need to call here in case the stream was aborted.
@@ -1961,6 +1994,11 @@ export class Task extends EventEmitter<ClineEvents> {
 		}
 
 		this.toolUsage[toolName].attempts++
+
+		// Track tool usage in message usage tracker
+		if (this.currentUserMessageTs) {
+			this.messageUsageTracker.recordToolUsage(this.currentUserMessageTs)
+		}
 	}
 
 	public recordToolError(toolName: ToolName, error?: string) {

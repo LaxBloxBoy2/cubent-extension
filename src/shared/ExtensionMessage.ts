@@ -82,6 +82,7 @@ export interface ExtensionMessage {
 		| "userProfile"
 		| "trialInfo"
 		| "usageStats"
+		| "messageUsageData"
 	text?: string
 	action?:
 		| "chatButtonClicked"

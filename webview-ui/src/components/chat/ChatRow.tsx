@@ -539,14 +539,18 @@ export const ChatRowContent = ({
 									<div
 										className="text-xs text-vscode-descriptionForeground ml-6 mt-0.5 overflow-hidden whitespace-nowrap cursor-default"
 										style={{
-											textOverflow: 'ellipsis',
-											maxWidth: 'calc(100% - 20px)',
-											direction: 'rtl',
-											textAlign: 'left'
+											textOverflow: "ellipsis",
+											maxWidth: "calc(100% - 20px)",
+											direction: "rtl",
+											textAlign: "left",
 										}}
-										title={tool.path ? (tool.path.startsWith(".") ? "." : "") + removeLeadingNonAlphanumeric(tool.path) : ""}
-									>
-										<span style={{ direction: 'ltr' }}>
+										title={
+											tool.path
+												? (tool.path.startsWith(".") ? "." : "") +
+													removeLeadingNonAlphanumeric(tool.path)
+												: ""
+										}>
+										<span style={{ direction: "ltr" }}>
 											{tool.path?.startsWith(".") && <span>.</span>}
 											{removeLeadingNonAlphanumeric(tool.path ?? "")}
 										</span>
@@ -561,15 +565,12 @@ export const ChatRowContent = ({
 										onClick={(e) => {
 											e.stopPropagation()
 											vscode.postMessage({ type: "openFile", text: "./" + tool.path })
-										}}
-									>
+										}}>
 										<span className="codicon codicon-link-external text-[10px]"></span>
 									</button>
 								)}
 								{/* Status dot for read files */}
-								<StatusDot
-									state={isLoading ? "building" : isCompleted ? "success" : "error"}
-								/>
+								<StatusDot state={isLoading ? "building" : isCompleted ? "success" : "error"} />
 							</ToolUseBlockHeader>
 						</ToolUseBlock>
 						{/* Approval buttons for single file requests */}
@@ -1025,9 +1026,7 @@ export const ChatRowContent = ({
 				case "user_feedback":
 					return (
 						<div className="flex flex-col items-end mb-4 group">
-							<div className="text-xs text-gray-400 mb-1 mr-2">
-								{formatDate(message.ts)}
-							</div>
+							<div className="text-xs text-gray-400 mb-1 mr-2">{formatDate(message.ts)}</div>
 							<div className="max-w-[80%] bg-neutral-700 rounded-lg p-3 relative overflow-hidden whitespace-pre-wrap word-break-break-word overflow-wrap-anywhere">
 								<div className="pr-2 text-right">
 									<Mention text={message.text} withShadow />
@@ -1045,7 +1044,7 @@ export const ChatRowContent = ({
 									e.stopPropagation()
 									vscode.postMessage({ type: "deleteMessage", value: message.ts })
 								}}>
-								<span className="codicon codicon-trash" style={{ fontSize: '14px' }} />
+								<span className="codicon codicon-trash" style={{ fontSize: "14px" }} />
 							</button>
 						</div>
 					)
@@ -1083,6 +1082,7 @@ export const ChatRowContent = ({
 								<FeedbackButtons
 									messageTs={message.ts}
 									messageText={message.text}
+									userMessageTs={undefined} // TODO: Track user message timestamp relationship
 								/>
 							)}
 						</div>
@@ -1234,27 +1234,42 @@ export const ChatRowContent = ({
 								)}
 								{useMcpServer.type === "use_mcp_tool" && (
 									<>
-										<div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "8px" }}>
+										<div
+											style={{
+												display: "flex",
+												alignItems: "center",
+												justifyContent: "space-between",
+												marginBottom: "8px",
+											}}>
 											<div style={{ display: "flex", alignItems: "center" }}>
-												<span className="codicon codicon-symbol-method" style={{ marginRight: "6px" }}></span>
+												<span
+													className="codicon codicon-symbol-method"
+													style={{ marginRight: "6px" }}></span>
 												<span style={{ fontWeight: 500 }}>{useMcpServer.toolName}</span>
 											</div>
 											{tool?.alwaysAllow && (
-												<div style={{
-													background: "var(--vscode-testing-iconPassed)",
-													color: "white",
-													padding: "2px 6px",
-													borderRadius: "3px",
-													fontSize: "10px",
-													fontWeight: "500",
-													textTransform: "uppercase",
-													letterSpacing: "0.5px",
-												}}>
+												<div
+													style={{
+														background: "var(--vscode-testing-iconPassed)",
+														color: "white",
+														padding: "2px 6px",
+														borderRadius: "3px",
+														fontSize: "10px",
+														fontWeight: "500",
+														textTransform: "uppercase",
+														letterSpacing: "0.5px",
+													}}>
 													Always Allow
 												</div>
 											)}
 										</div>
-										<div style={{ marginLeft: "22px", fontSize: "12px", opacity: 0.8, marginBottom: "8px" }}>
+										<div
+											style={{
+												marginLeft: "22px",
+												fontSize: "12px",
+												opacity: 0.8,
+												marginBottom: "8px",
+											}}>
 											{useMcpServer.serverName}
 										</div>
 										{useMcpServer.arguments && useMcpServer.arguments !== "{}" && (
@@ -1321,15 +1336,23 @@ export const ChatRowContent = ({
 					return (
 						<>
 							{title && (
-								<div style={{ ...headerStyle, marginTop: "8px", marginBottom: "12px", display: "flex", alignItems: "center" }}>
-									<div style={{
-										display: "inline-flex",
+								<div
+									style={{
+										...headerStyle,
+										marginTop: "8px",
+										marginBottom: "12px",
+										display: "flex",
 										alignItems: "center",
-										gap: "8px",
-										border: "1px solid var(--vscode-input-border)",
-										borderRadius: "4px",
-										padding: "8px 12px",
 									}}>
+									<div
+										style={{
+											display: "inline-flex",
+											alignItems: "center",
+											gap: "8px",
+											border: "1px solid var(--vscode-input-border)",
+											borderRadius: "4px",
+											padding: "8px 12px",
+										}}>
 										{icon}
 										{title}
 									</div>
@@ -1358,16 +1381,13 @@ export const ChatRowContent = ({
 								<span className="text-vscode-foreground font-medium">Operation failed</span>
 							</div>
 							{message.text && (
-								<div className="text-vscode-descriptionForeground text-xs mb-3">
-									{message.text}
-								</div>
+								<div className="text-vscode-descriptionForeground text-xs mb-3">{message.text}</div>
 							)}
 							<div className="text-vscode-foreground text-xs">
 								<span
 									className="underline cursor-pointer"
 									style={{ color: "var(--vscode-textLink-foreground)" }}
-									onClick={() => onApprove && onApprove()}
-								>
+									onClick={() => onApprove && onApprove()}>
 									try operation again
 								</span>
 							</div>

@@ -46,6 +46,23 @@ export async function attemptCompletionTool(
 					// we have command string, which means we have the result as well, so finish it (doesnt have to exist yet)
 					await cline.say("completion_result", removeClosingTag("result", result), undefined, false)
 
+					// Complete message usage tracking - get the actual completion message timestamp
+					const completionMessage = cline.clineMessages.at(-1)
+					const completionMessageTs = completionMessage?.ts || Date.now()
+
+					if (cline.currentUserMessageTs) {
+						console.log(
+							`🔍 Completing tracking for user message ${cline.currentUserMessageTs} -> completion ${completionMessageTs}`,
+						)
+						cline.messageUsageTracker.completeMessageTracking(
+							cline.currentUserMessageTs,
+							completionMessageTs,
+						)
+						cline.currentUserMessageTs = undefined // Clear after use
+					} else {
+						console.log(`🔍 No current user message timestamp found for completion tracking`)
+					}
+
 					TelemetryService.instance.captureTaskCompleted(cline.taskId)
 					cline.emit("taskCompleted", cline.taskId, cline.getTokenUsage(), cline.toolUsage)
 
@@ -72,6 +89,22 @@ export async function attemptCompletionTool(
 				if (lastMessage && lastMessage.ask !== "command") {
 					// Haven't sent a command message yet so first send completion_result then command.
 					await cline.say("completion_result", result, undefined, false)
+
+					// Complete message usage tracking - get the actual completion message timestamp
+					const completionMessage = cline.clineMessages.at(-1)
+					const completionMessageTs = completionMessage?.ts || Date.now()
+
+					if (cline.currentUserMessageTs) {
+						console.log(
+							`🔍 Completing tracking for user message ${cline.currentUserMessageTs} -> completion ${completionMessageTs}`,
+						)
+						cline.messageUsageTracker.completeMessageTracking(
+							cline.currentUserMessageTs,
+							completionMessageTs,
+						)
+						cline.currentUserMessageTs = undefined // Clear after use
+					}
+
 					TelemetryService.instance.captureTaskCompleted(cline.taskId)
 					cline.emit("taskCompleted", cline.taskId, cline.getTokenUsage(), cline.toolUsage)
 				}
@@ -97,6 +130,19 @@ export async function attemptCompletionTool(
 				commandResult = execCommandResult
 			} else {
 				await cline.say("completion_result", result, undefined, false)
+
+				// Complete message usage tracking - get the actual completion message timestamp
+				const completionMessage = cline.clineMessages.at(-1)
+				const completionMessageTs = completionMessage?.ts || Date.now()
+
+				if (cline.currentUserMessageTs) {
+					console.log(
+						`🔍 Completing tracking for user message ${cline.currentUserMessageTs} -> completion ${completionMessageTs}`,
+					)
+					cline.messageUsageTracker.completeMessageTracking(cline.currentUserMessageTs, completionMessageTs)
+					cline.currentUserMessageTs = undefined // Clear after use
+				}
+
 				TelemetryService.instance.captureTaskCompleted(cline.taskId)
 				cline.emit("taskCompleted", cline.taskId, cline.getTokenUsage(), cline.toolUsage)
 			}
