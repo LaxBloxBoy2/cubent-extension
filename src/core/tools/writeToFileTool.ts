@@ -144,6 +144,9 @@ export async function writeToFileTool(
 
 			cline.consecutiveMistakeCount = 0
 
+			// Capture state BEFORE any changes are made (like Augment's 'view' tool)
+			await cline.diffViewProvider.captureFileState(relPath)
+
 			// if isEditingFile false, that means we have the full contents of the file already.
 			// it's important to note how cline function works, you can't make the assumption that the block.partial conditional will always be called since it may immediately get complete, non-partial data. So cline part of the logic will always be called.
 			// in other words, you must always repeat the block.partial logic here
@@ -211,6 +214,9 @@ export async function writeToFileTool(
 
 			// Call saveChanges to update the DiffViewProvider properties
 			await cline.diffViewProvider.saveChanges()
+
+			// Update state after edit (like Augment's verification)
+			await cline.diffViewProvider.updateFileState(relPath)
 
 			// Track file edit operation
 			if (relPath) {

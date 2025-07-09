@@ -1884,6 +1884,79 @@ export const webviewMessageHandler = async (provider: ClineProvider, message: We
 			}
 			break
 		}
+		case "getTrackedChanges": {
+			// Get reactive tracked changes from the diff view provider
+			const currentCline = provider.getCurrentCline()
+			if (currentCline) {
+				try {
+					const trackedChanges = await currentCline.diffViewProvider.getTrackedChanges()
+					provider.postMessageToWebview({
+						type: "trackedChanges",
+						changes: trackedChanges,
+					})
+				} catch (error) {
+					console.error("Error getting tracked changes:", error)
+					provider.postMessageToWebview({
+						type: "trackedChanges",
+						changes: [],
+					})
+				}
+			}
+			break
+		}
+		case "discardAllTrackedChanges": {
+			// Discard all reactive tracked changes
+			const currentCline = provider.getCurrentCline()
+			if (currentCline) {
+				try {
+					const result = await currentCline.diffViewProvider.discardAllChanges()
+					if (result.success) {
+						vscode.window.showInformationMessage("✅ All tracked changes discarded successfully!")
+					} else {
+						vscode.window.showErrorMessage(`❌ Failed to discard changes: ${result.error}`)
+					}
+				} catch (error) {
+					vscode.window.showErrorMessage(
+						"❌ Failed to discard changes: " + (error instanceof Error ? error.message : String(error)),
+					)
+				}
+			}
+			break
+		}
+		case "keepAllTrackedChanges": {
+			// Keep all reactive tracked changes (stop tracking)
+			const currentCline = provider.getCurrentCline()
+			if (currentCline) {
+				try {
+					const result = await currentCline.diffViewProvider.keepAllChanges()
+					if (result.success) {
+						vscode.window.showInformationMessage("✅ Stopped tracking changes - files kept as-is!")
+					} else {
+						vscode.window.showErrorMessage(`❌ Failed to stop tracking: ${result.error}`)
+					}
+				} catch (error) {
+					vscode.window.showErrorMessage(
+						"❌ Failed to stop tracking: " + (error instanceof Error ? error.message : String(error)),
+					)
+				}
+			}
+			break
+		}
+		case "viewSourceControlChanges": {
+			// Open VS Code's source control diff for a file
+			const currentCline = provider.getCurrentCline()
+			if (currentCline && message.text) {
+				try {
+					await currentCline.diffViewProvider.openSourceControlDiff(message.text)
+				} catch (error) {
+					vscode.window.showErrorMessage(
+						"❌ Failed to open source control diff: " +
+							(error instanceof Error ? error.message : String(error)),
+					)
+				}
+			}
+			break
+		}
 
 		// User Management Cases
 		case "getUserProfile": {

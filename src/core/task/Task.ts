@@ -52,6 +52,7 @@ import { MessageUsageTracker } from "../../services/MessageUsageTracker"
 
 // integrations
 import { DiffViewProvider } from "../../integrations/editor/DiffViewProvider"
+import { ReactiveChangeTracker } from "../../services/ReactiveChangeTracker"
 import { findToolName, formatContentBlockToMarkdown } from "../../integrations/misc/export-markdown"
 import { RooTerminalProcess } from "../../integrations/terminal/types"
 import { TerminalRegistry } from "../../integrations/terminal/TerminalRegistry"
@@ -247,6 +248,9 @@ export class Task extends EventEmitter<ClineEvents> {
 		this.globalStoragePath = provider.context.globalStorageUri.fsPath
 		this.diffViewProvider = new DiffViewProvider(this.cwd)
 		this.enableCheckpoints = enableCheckpoints
+
+		// Initialize ReactiveChangeTracker (like Augment starting a conversation)
+		ReactiveChangeTracker.getInstance(this.cwd)
 
 		this.rootTask = rootTask
 		this.parentTask = parentTask

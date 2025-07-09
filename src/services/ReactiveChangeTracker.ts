@@ -1,0 +1,296 @@
+import * as vscode from "vscode"
+import * as path from "path"
+import * as fs from "fs/promises"
+
+export interface FileSnapshot {
+	originalContent: string
+	currentContent?: string
+	captureTime: number
+	linesAdded: number
+	linesRemoved: number
+	relativePath: string
+	fullPath: string
+}
+
+export interface ChangeStats {
+	totalLinesAdded: number
+	totalLinesRemoved: number
+	fileCount: number
+}
+
+/**
+ * Reactive change tracker that works like Augment Agent
+ * - Captures state before edits
+ * - Updates state after edits
+ * - Provides immediate feedback
+ * - No complex file watchers, just reactive updates
+ */
+export class ReactiveChangeTracker {
+	private static instance: ReactiveChangeTracker | undefined
+	private sessionChanges = new Map<string, FileSnapshot>()
+	private isSessionActive = false
+	private sessionStartTime = 0
+	private cwd: string
+	private updateCallbacks: (() => void)[] = []
+
+	private constructor(cwd: string) {
+		this.cwd = cwd
+	}
+
+	public static getInstance(cwd?: string): ReactiveChangeTracker {
+		if (!ReactiveChangeTracker.instance && cwd) {
+			ReactiveChangeTracker.instance = new ReactiveChangeTracker(cwd)
+		}
+		if (!ReactiveChangeTracker.instance) {
+			throw new Error("ReactiveChangeTracker not initialized. Call getInstance with cwd first.")
+		}
+		return ReactiveChangeTracker.instance
+	}
+
+	public static reset(): void {
+		ReactiveChangeTracker.instance = undefined
+	}
+
+	/**
+	 * Register callback for when changes are updated
+	 */
+	public onUpdate(callback: () => void): void {
+		this.updateCallbacks.push(callback)
+	}
+
+	/**
+	 * Notify all listeners that changes were updated
+	 */
+	private notifyUpdate(): void {
+		this.updateCallbacks.forEach((callback) => {
+			try {
+				callback()
+			} catch (error) {
+				console.error("Error in ReactiveChangeTracker update callback:", error)
+			}
+		})
+	}
+
+	/**
+	 * Start a new editing session (like starting a new conversation with Augment)
+	 */
+	public startNewSession(): void {
+		this.isSessionActive = true
+		this.sessionStartTime = Date.now()
+		this.sessionChanges.clear()
+		console.log("🚀 ReactiveChangeTracker: Started new editing session")
+		this.notifyUpdate()
+	}
+
+	/**
+	 * Stop the current session (like ending conversation)
+	 */
+	public stopSession(): void {
+		this.isSessionActive = false
+		console.log("ReactiveChangeTracker: Stopped editing session")
+		this.notifyUpdate()
+	}
+
+	/**
+	 * Check if session is currently active
+	 */
+	public isActive(): boolean {
+		return this.isSessionActive
+	}
+
+	/**
+	 * Capture file state BEFORE making changes (like Augment's 'view' tool)
+	 */
+	public async captureFileState(filePath: string): Promise<void> {
+		// Auto-start session if not active (like Augment starting to work)
+		if (!this.isSessionActive) {
+			this.startNewSession()
+		}
+
+		// Only capture if we haven't already captured this file
+		if (!this.sessionChanges.has(filePath)) {
+			try {
+				const absolutePath = path.resolve(this.cwd, filePath)
+				const content = await fs.readFile(absolutePath, "utf-8")
+
+				const snapshot: FileSnapshot = {
+					originalContent: content,
+					captureTime: Date.now(),
+					linesAdded: 0,
+					linesRemoved: 0,
+					relativePath: path.relative(this.cwd, absolutePath),
+					fullPath: absolutePath,
+				}
+
+				this.sessionChanges.set(filePath, snapshot)
+				console.log(`📸 ReactiveChangeTracker: Captured state for ${filePath}`)
+			} catch (error) {
+				// File might be new, capture empty content
+				const snapshot: FileSnapshot = {
+					originalContent: "",
+					captureTime: Date.now(),
+					linesAdded: 0,
+					linesRemoved: 0,
+					relativePath: filePath,
+					fullPath: path.resolve(this.cwd, filePath),
+				}
+
+				this.sessionChanges.set(filePath, snapshot)
+				console.log(`ReactiveChangeTracker: Captured new file state for ${filePath}`)
+			}
+		}
+	}
+
+	/**
+	 * Update file state AFTER making changes (like Augment's verification)
+	 */
+	public async updateFileState(filePath: string): Promise<void> {
+		const snapshot = this.sessionChanges.get(filePath)
+		if (!snapshot) {
+			console.warn(`ReactiveChangeTracker: No snapshot found for ${filePath}`)
+			return
+		}
+
+		try {
+			const absolutePath = path.resolve(this.cwd, filePath)
+			const currentContent = await fs.readFile(absolutePath, "utf-8")
+
+			// Calculate diff immediately (like Augment's analysis)
+			const { added, removed } = this.calculateLineDiff(snapshot.originalContent, currentContent)
+
+			snapshot.currentContent = currentContent
+			snapshot.linesAdded = added
+			snapshot.linesRemoved = removed
+
+			console.log(`✅ ReactiveChangeTracker: Updated ${filePath} - +${added}/-${removed} lines`)
+
+			// Notify UI immediately (like Augment's immediate feedback)
+			this.notifyUpdate()
+		} catch (error) {
+			console.error(`ReactiveChangeTracker: Failed to update state for ${filePath}:`, error)
+		}
+	}
+
+	/**
+	 * Get all tracked changes
+	 */
+	public getAllChanges(): FileSnapshot[] {
+		return Array.from(this.sessionChanges.values())
+	}
+
+	/**
+	 * Get total statistics
+	 */
+	public getTotalStats(): ChangeStats {
+		let totalLinesAdded = 0
+		let totalLinesRemoved = 0
+
+		for (const snapshot of this.sessionChanges.values()) {
+			totalLinesAdded += snapshot.linesAdded
+			totalLinesRemoved += snapshot.linesRemoved
+		}
+
+		return {
+			totalLinesAdded,
+			totalLinesRemoved,
+			fileCount: this.sessionChanges.size,
+		}
+	}
+
+	/**
+	 * Discard all changes - revert files to original state
+	 */
+	public async discardAllChanges(): Promise<{ success: boolean; errors: string[] }> {
+		const errors: string[] = []
+
+		console.log(`🔄 ReactiveChangeTracker: Discarding ${this.sessionChanges.size} tracked files`)
+		for (const snapshot of this.sessionChanges.values()) {
+			try {
+				await fs.writeFile(snapshot.fullPath, snapshot.originalContent, "utf-8")
+				console.log(`✅ ReactiveChangeTracker: Reverted ${snapshot.relativePath}`)
+			} catch (error) {
+				const errorMsg = error instanceof Error ? error.message : String(error)
+				errors.push(`Failed to revert ${snapshot.relativePath}: ${errorMsg}`)
+				console.error(`❌ ReactiveChangeTracker: Failed to revert ${snapshot.relativePath}:`, error)
+			}
+		}
+
+		// Stop session after discarding
+		this.stopSession()
+
+		return {
+			success: errors.length === 0,
+			errors,
+		}
+	}
+
+	/**
+	 * Keep all changes - just stop tracking (like ending Augment conversation)
+	 */
+	public keepAllChanges(): void {
+		console.log("ReactiveChangeTracker: Keeping all changes, stopping session")
+		this.stopSession()
+	}
+
+	/**
+	 * Open VS Code's source control diff for a file
+	 */
+	public async openSourceControlDiff(filePath: string): Promise<void> {
+		try {
+			const absolutePath = path.resolve(this.cwd, filePath)
+			const uri = vscode.Uri.file(absolutePath)
+
+			// Use VS Code's built-in git diff
+			await vscode.commands.executeCommand("git.openChange", uri)
+		} catch (error) {
+			console.error(`Failed to open source control diff for ${filePath}:`, error)
+			// Fallback: open the file
+			const absolutePath = path.resolve(this.cwd, filePath)
+			const uri = vscode.Uri.file(absolutePath)
+			await vscode.window.showTextDocument(uri)
+		}
+	}
+
+	/**
+	 * Calculate line differences (like Augment's analysis)
+	 */
+	private calculateLineDiff(original: string, current: string): { added: number; removed: number } {
+		// Normalize line endings
+		const normalizeLines = (text: string): string[] => text.replace(/\r\n/g, "\n").split("\n")
+
+		const originalLines = normalizeLines(original)
+		const currentLines = normalizeLines(current)
+
+		// Simple but accurate line counting
+		const maxLines = Math.max(originalLines.length, currentLines.length)
+		let added = 0
+		let removed = 0
+
+		// Count actual line differences
+		for (let i = 0; i < maxLines; i++) {
+			const origLine = originalLines[i] || ""
+			const currLine = currentLines[i] || ""
+
+			if (origLine !== currLine) {
+				if (!origLine && currLine) {
+					added++ // New line added
+				} else if (origLine && !currLine) {
+					removed++ // Line removed
+				} else if (origLine && currLine) {
+					// Line modified - count as both added and removed
+					added++
+					removed++
+				}
+			}
+		}
+
+		return { added, removed }
+	}
+
+	/**
+	 * Check if there are any tracked changes
+	 */
+	public hasChanges(): boolean {
+		return this.sessionChanges.size > 0
+	}
+}

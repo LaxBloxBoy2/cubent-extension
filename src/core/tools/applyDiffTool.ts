@@ -88,6 +88,9 @@ export async function applyDiffTool(
 
 			const originalContent = await fs.readFile(absolutePath, "utf-8")
 
+			// Capture state BEFORE applying diff (like Augment's 'view' tool)
+			await cline.diffViewProvider.captureFileState(relPath)
+
 			// Apply the diff to the original content
 			const diffResult = (await cline.diffStrategy?.applyDiff(
 				originalContent,
@@ -164,6 +167,9 @@ export async function applyDiffTool(
 
 			// Call saveChanges to update the DiffViewProvider properties
 			await cline.diffViewProvider.saveChanges()
+
+			// Update state after edit (like Augment's verification)
+			await cline.diffViewProvider.updateFileState(relPath)
 
 			// Track file edit operation
 			if (relPath) {

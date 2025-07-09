@@ -14,177 +14,76 @@ interface FileChange {
 	linesRemoved: number
 	relativePath: string
 	fullPath: string
+	isTracked?: boolean
+}
+
+interface ReactiveFileChange {
+	filePath: string
+	originalContent: string
+	currentContent?: string
+	captureTime: number
+	linesAdded: number
+	linesRemoved: number
+	relativePath: string
+	fullPath: string
+	isTracked: boolean
 }
 
 const DiffSummaryBar: React.FC<DiffSummaryBarProps> = ({ messages }) => {
 	const [isExpanded, setIsExpanded] = useState(false)
 	const [isHidden, setIsHidden] = useState(false)
 	const [lastChangeCount, setLastChangeCount] = useState(0)
+	const [reactiveChanges, setReactiveChanges] = useState<ReactiveFileChange[]>([])
+	const [refreshTrigger, setRefreshTrigger] = useState(0)
+
+	// Fetch reactive changes (like Augment checking current state)
+	useEffect(() => {
+		const fetchReactiveChanges = () => {
+			vscode.postMessage({ type: "getTrackedChanges" })
+		}
+
+		fetchReactiveChanges()
+
+		// Set up interval to refresh reactive changes
+		const interval = setInterval(fetchReactiveChanges, 2000)
+
+		return () => clearInterval(interval)
+	}, [refreshTrigger])
+
+	// Listen for reactive changes response
+	useEffect(() => {
+		const handleMessage = (event: MessageEvent) => {
+			const message = event.data
+			if (message.type === "trackedChanges") {
+				console.log("🔄 DiffSummaryBar: Received tracked changes:", message.changes)
+				setReactiveChanges(message.changes || [])
+			}
+		}
+
+		window.addEventListener("message", handleMessage)
+		return () => window.removeEventListener("message", handleMessage)
+	}, [])
 
 	const { fileChanges, totalLinesAdded, totalLinesRemoved } = useMemo(() => {
+		// ONLY use reactive changes, ignore message-based tracking
 		const changes = new Map<string, FileChange>()
 		let totalAdded = 0
 		let totalRemoved = 0
 
-		// Scan through messages to find file operations
-		messages.forEach((message, index) => {
-			if (message.type === "ask" && message.ask === "tool" && message.text) {
-				try {
-					const tool = JSON.parse(message.text) as ClineSayTool
-
-					switch (tool.tool) {
-						case "newFileCreated":
-							if (tool.path && tool.content) {
-								const lines = tool.content.split("\n").length
-								const change: FileChange = {
-									path: tool.path,
-									type: "created",
-									linesAdded: lines,
-									linesRemoved: 0,
-									relativePath: tool.path.split("/").pop() || tool.path,
-									fullPath: tool.path,
-								}
-								changes.set(tool.path, change)
-								totalAdded += lines
-							}
-							break
-						case "editedExistingFile":
-						case "appliedDiff":
-							if (tool.path) {
-								// Parse diff to get line counts
-								let linesAdded = 0
-								let linesRemoved = 0
-
-								if (tool.diff) {
-									// Handle both standard diff format and SEARCH/REPLACE format
-									const diffContent = tool.diff
-									console.log("DiffSummaryBar: Processing diff for", tool.path)
-									console.log("DiffSummaryBar: Diff content:", diffContent.substring(0, 200) + "...")
-
-									if (
-										diffContent.includes("<<<<<<< SEARCH") &&
-										diffContent.includes(">>>>>>> REPLACE")
-									) {
-										// SEARCH/REPLACE format - count lines in each section
-										console.log("DiffSummaryBar: Using SEARCH/REPLACE format")
-										const blocks = diffContent.split("<<<<<<< SEARCH")
-										console.log("DiffSummaryBar: Found", blocks.length - 1, "search/replace blocks")
-
-										blocks.forEach((block, blockIndex) => {
-											if (block.includes(">>>>>>> REPLACE")) {
-												console.log(`DiffSummaryBar: Processing block ${blockIndex}`)
-												const parts = block.split("=======")
-												if (parts.length === 2) {
-													const searchPart = parts[0].trim()
-													const replacePart = parts[1].split(">>>>>>> REPLACE")[0].trim()
-
-													console.log("DiffSummaryBar: Search part:", searchPart)
-													console.log("DiffSummaryBar: Replace part:", replacePart)
-
-													// Filter out metadata lines and only count actual content lines
-													const searchLines = searchPart
-														? searchPart.split("\n").filter((line) => {
-																const trimmed = line.trim()
-																const isMetadata =
-																	trimmed.startsWith(":start_line:") ||
-																	trimmed.startsWith(":end_line:") ||
-																	trimmed.startsWith("-------") ||
-																	trimmed === ""
-																console.log(
-																	`DiffSummaryBar: Search line "${trimmed}" - isMetadata: ${isMetadata}`,
-																)
-																return !isMetadata
-															})
-														: []
-
-													const replaceLines = replacePart
-														? replacePart.split("\n").filter((line) => {
-																const trimmed = line.trim()
-																const isMetadata =
-																	trimmed.startsWith(":start_line:") ||
-																	trimmed.startsWith(":end_line:") ||
-																	trimmed.startsWith("-------") ||
-																	trimmed === ""
-																console.log(
-																	`DiffSummaryBar: Replace line "${trimmed}" - isMetadata: ${isMetadata}`,
-																)
-																return !isMetadata
-															})
-														: []
-
-													console.log(
-														`DiffSummaryBar: Block ${blockIndex} - searchLines: ${searchLines.length}, replaceLines: ${replaceLines.length}`,
-													)
-													linesRemoved += searchLines.length
-													linesAdded += replaceLines.length
-												}
-											}
-										})
-									} else {
-										// Standard diff format
-										console.log("DiffSummaryBar: Using standard diff format")
-										const diffLines = diffContent.split("\n")
-										diffLines.forEach((line) => {
-											// Skip diff headers and context lines
-											if (
-												line.startsWith("@@") ||
-												line.startsWith("diff ") ||
-												line.startsWith("index ") ||
-												line.startsWith("Binary files") ||
-												line.startsWith("\\ No newline") ||
-												line.startsWith("---") ||
-												line.startsWith("+++")
-											) {
-												return
-											}
-
-											if (line.startsWith("+")) {
-												linesAdded++
-												console.log("DiffSummaryBar: Found added line:", line.substring(0, 50))
-											}
-											if (line.startsWith("-")) {
-												linesRemoved++
-												console.log(
-													"DiffSummaryBar: Found removed line:",
-													line.substring(0, 50),
-												)
-											}
-										})
-									}
-
-									console.log(
-										`DiffSummaryBar: Final counts for ${tool.path} - added: ${linesAdded}, removed: ${linesRemoved}`,
-									)
-								} else if (tool.content) {
-									// For new content, count actual lines
-									linesAdded = tool.content.split("\n").filter((line) => line.trim()).length
-								} else {
-									linesAdded = 1 // Default estimate
-								}
-
-								// Replace existing change instead of accumulating
-								const change: FileChange = {
-									path: tool.path,
-									type: "edited",
-									linesAdded,
-									linesRemoved,
-									relativePath: tool.path.split("/").pop() || tool.path,
-									fullPath: tool.path,
-								}
-								changes.set(tool.path, change)
-							}
-							break
-					}
-				} catch (error) {
-					// Ignore parsing errors
-				}
+		// Convert reactive changes to FileChange format
+		reactiveChanges.forEach((reactiveChange) => {
+			const change: FileChange = {
+				path: reactiveChange.relativePath,
+				type: reactiveChange.originalContent === "" ? "created" : "edited",
+				linesAdded: reactiveChange.linesAdded,
+				linesRemoved: reactiveChange.linesRemoved,
+				relativePath: reactiveChange.relativePath,
+				fullPath: reactiveChange.fullPath,
+				isTracked: reactiveChange.isTracked,
 			}
-		})
-
-		// Calculate totals from final changes
-		changes.forEach((change) => {
-			totalAdded += change.linesAdded
-			totalRemoved += change.linesRemoved
+			changes.set(reactiveChange.relativePath, change)
+			totalAdded += reactiveChange.linesAdded
+			totalRemoved += reactiveChange.linesRemoved
 		})
 
 		return {
@@ -192,7 +91,7 @@ const DiffSummaryBar: React.FC<DiffSummaryBarProps> = ({ messages }) => {
 			totalLinesAdded: totalAdded,
 			totalLinesRemoved: totalRemoved,
 		}
-	}, [messages])
+	}, [reactiveChanges]) // Only depend on reactive changes
 
 	const totalChanges = fileChanges.length
 
@@ -205,6 +104,9 @@ const DiffSummaryBar: React.FC<DiffSummaryBarProps> = ({ messages }) => {
 	}, [isHidden, totalChanges, lastChangeCount])
 
 	// Hide the bar if there are no changes or if manually hidden
+	console.log(
+		`📊 DiffSummaryBar: totalChanges=${totalChanges}, isHidden=${isHidden}, reactiveChanges.length=${reactiveChanges.length}`,
+	)
 	if (totalChanges === 0 || isHidden) {
 		return null
 	}
@@ -213,21 +115,28 @@ const DiffSummaryBar: React.FC<DiffSummaryBarProps> = ({ messages }) => {
 		e.preventDefault()
 		e.stopPropagation()
 
-		// Discard all changes - revert files to their previous state
+		// Discard all reactive changes - revert files to original state
 		vscode.postMessage({
-			type: "discardAllChanges",
+			type: "discardAllTrackedChanges",
 		})
 		// Hide the bar after discarding changes
 		setIsHidden(true)
+		// Trigger refresh to update reactive changes
+		setRefreshTrigger((prev) => prev + 1)
 	}
 
 	const handleKeepAll = (e: React.MouseEvent) => {
 		e.preventDefault()
 		e.stopPropagation()
 
-		// Keep All - just hide the bar, don't create checkpoint
-		// Bar will reappear when new changes are detected
+		// Keep All - just stop tracking (like ending Augment conversation)
+		vscode.postMessage({
+			type: "keepAllTrackedChanges",
+		})
+		// Hide the bar after keeping changes
 		setIsHidden(true)
+		// Trigger refresh to update reactive changes
+		setRefreshTrigger((prev) => prev + 1)
 	}
 
 	const handleToggleExpanded = () => {
@@ -241,6 +150,10 @@ const DiffSummaryBar: React.FC<DiffSummaryBarProps> = ({ messages }) => {
 	const handleDeleteFile = (filePath: string) => {
 		// Future implementation for individual file deletion
 		console.log("Delete file:", filePath)
+	}
+
+	const handleViewSourceControlChanges = (filePath: string) => {
+		vscode.postMessage({ type: "viewSourceControlChanges", text: filePath })
 	}
 
 	return (
@@ -305,6 +218,11 @@ const DiffSummaryBar: React.FC<DiffSummaryBarProps> = ({ messages }) => {
 									<span className="text-vscode-foreground text-xs font-medium truncate">
 										{change.relativePath}
 									</span>
+									{change.isTracked && (
+										<span className="px-1 py-0.5 bg-blue-500/20 text-blue-400 text-[9px] rounded font-medium">
+											TRACKED
+										</span>
+									)}
 									<div className="flex items-center gap-1 px-1 py-0.5 bg-vscode-input-background rounded text-[10px]">
 										{change.linesAdded > 0 && (
 											<span className="text-green-400">+{change.linesAdded}</span>
@@ -319,6 +237,12 @@ const DiffSummaryBar: React.FC<DiffSummaryBarProps> = ({ messages }) => {
 								</div>
 
 								<div className="flex items-center gap-1">
+									<button
+										onClick={() => handleViewSourceControlChanges(change.fullPath)}
+										className="p-1 text-vscode-foreground hover:opacity-70 transition-opacity cursor-pointer"
+										title="View changes in source control">
+										<span className="codicon codicon-source-control text-[11px]"></span>
+									</button>
 									<button
 										onClick={() => handleOpenFile(change.fullPath)}
 										className="p-1 text-vscode-foreground hover:opacity-70 transition-opacity cursor-pointer"

@@ -88,6 +88,9 @@ export async function insertContentTool(
 
 		cline.consecutiveMistakeCount = 0
 
+		// Capture state BEFORE reading/modifying file (like Augment's 'view' tool)
+		await cline.diffViewProvider.captureFileState(relPath)
+
 		// Read the file
 		const fileContent = await fs.readFile(absolutePath, "utf8")
 		cline.diffViewProvider.editType = "modify"
@@ -138,6 +141,9 @@ export async function insertContentTool(
 
 		// Call saveChanges to update the DiffViewProvider properties
 		await cline.diffViewProvider.saveChanges()
+
+		// Update state after edit (like Augment's verification)
+		await cline.diffViewProvider.updateFileState(relPath)
 
 		// Track file edit operation
 		if (relPath) {

@@ -13,6 +13,7 @@ import { ClineSayTool } from "../../shared/ExtensionMessage"
 import { Task } from "../../core/task/Task"
 
 import { DecorationController } from "./DecorationController"
+import { ReactiveChangeTracker } from "../../services/ReactiveChangeTracker"
 
 export const DIFF_VIEW_URI_SCHEME = "cline-diff"
 
@@ -522,5 +523,104 @@ export class DiffViewProvider {
 		this.activeLineController = undefined
 		this.streamedLines = []
 		this.preDiagnostics = []
+	}
+
+	/**
+	 * Capture file state before making changes (like Augment's 'view' tool)
+	 */
+	async captureFileState(filePath: string): Promise<void> {
+		try {
+			const tracker = ReactiveChangeTracker.getInstance(this.cwd)
+			await tracker.captureFileState(filePath)
+			console.log(`DiffViewProvider: Captured state for ${filePath}`)
+		} catch (error) {
+			console.error("Failed to capture file state:", error)
+		}
+	}
+
+	/**
+	 * Update file state after making changes (like Augment's verification)
+	 */
+	async updateFileState(filePath: string): Promise<void> {
+		try {
+			const tracker = ReactiveChangeTracker.getInstance(this.cwd)
+			await tracker.updateFileState(filePath)
+			console.log(`DiffViewProvider: Updated state for ${filePath}`)
+		} catch (error) {
+			console.error("Failed to update file state:", error)
+		}
+	}
+
+	/**
+	 * Get all tracked changes
+	 */
+	async getTrackedChanges(): Promise<any[]> {
+		try {
+			const tracker = ReactiveChangeTracker.getInstance(this.cwd)
+			return tracker.getAllChanges()
+		} catch (error) {
+			console.error("Failed to get tracked changes:", error)
+			return []
+		}
+	}
+
+	/**
+	 * Get preview data for a specific file
+	 */
+	async getFilePreview(filePath: string): Promise<any> {
+		try {
+			const tracker = ReactiveChangeTracker.getInstance(this.cwd)
+			const snapshot = tracker.getAllChanges().find((s) => s.relativePath === filePath)
+			if (!snapshot) return null
+
+			return {
+				filePath: snapshot.relativePath,
+				originalContent: snapshot.originalContent,
+				modifiedContent: snapshot.currentContent || snapshot.originalContent,
+				linesAdded: snapshot.linesAdded,
+				linesRemoved: snapshot.linesRemoved,
+			}
+		} catch (error) {
+			console.error("Failed to get file preview:", error)
+			return null
+		}
+	}
+
+	/**
+	 * Keep all changes (stop tracking like ending Augment conversation)
+	 */
+	async keepAllChanges(): Promise<{ success: boolean; error?: string }> {
+		try {
+			const tracker = ReactiveChangeTracker.getInstance(this.cwd)
+			tracker.keepAllChanges()
+			return { success: true }
+		} catch (error) {
+			return { success: false, error: `Failed to keep changes: ${error}` }
+		}
+	}
+
+	/**
+	 * Discard all changes (revert to original state)
+	 */
+	async discardAllChanges(): Promise<{ success: boolean; error?: string }> {
+		try {
+			const tracker = ReactiveChangeTracker.getInstance(this.cwd)
+			const result = await tracker.discardAllChanges()
+			return { success: result.success, error: result.errors.join(", ") }
+		} catch (error) {
+			return { success: false, error: `Failed to discard changes: ${error}` }
+		}
+	}
+
+	/**
+	 * Open source control diff for a file
+	 */
+	async openSourceControlDiff(filePath: string): Promise<void> {
+		try {
+			const tracker = ReactiveChangeTracker.getInstance(this.cwd)
+			await tracker.openSourceControlDiff(filePath)
+		} catch (error) {
+			console.error("Failed to open source control diff:", error)
+		}
 	}
 }
