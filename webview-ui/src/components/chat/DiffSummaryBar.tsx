@@ -105,7 +105,7 @@ const DiffSummaryBar: React.FC<DiffSummaryBarProps> = ({ messages }) => {
 
 	// Hide the bar if there are no changes or if manually hidden
 	console.log(
-		`📊 DiffSummaryBar: totalChanges=${totalChanges}, isHidden=${isHidden}, reactiveChanges.length=${reactiveChanges.length}`,
+		`📊 DiffSummaryBar: totalChanges=${totalChanges}, isHidden=${isHidden}, reactiveChanges.length=${reactiveChanges.length}, totalAdded=${totalLinesAdded}, totalRemoved=${totalLinesRemoved}`,
 	)
 	if (totalChanges === 0 || isHidden) {
 		return null

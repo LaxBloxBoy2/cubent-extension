@@ -26,7 +26,7 @@ export interface ChangeStats {
  * - No complex file watchers, just reactive updates
  */
 export class ReactiveChangeTracker {
-	private static instance: ReactiveChangeTracker | undefined
+	private static instances = new Map<string, ReactiveChangeTracker>()
 	private sessionChanges = new Map<string, FileSnapshot>()
 	private isSessionActive = false
 	private sessionStartTime = 0
@@ -38,17 +38,26 @@ export class ReactiveChangeTracker {
 	}
 
 	public static getInstance(cwd?: string): ReactiveChangeTracker {
-		if (!ReactiveChangeTracker.instance && cwd) {
-			ReactiveChangeTracker.instance = new ReactiveChangeTracker(cwd)
+		if (!cwd) {
+			throw new Error("ReactiveChangeTracker: cwd is required")
 		}
-		if (!ReactiveChangeTracker.instance) {
-			throw new Error("ReactiveChangeTracker not initialized. Call getInstance with cwd first.")
+
+		if (!ReactiveChangeTracker.instances.has(cwd)) {
+			ReactiveChangeTracker.instances.set(cwd, new ReactiveChangeTracker(cwd))
+			console.log(`🆕 ReactiveChangeTracker: Created new instance for ${cwd}`)
 		}
-		return ReactiveChangeTracker.instance
+
+		return ReactiveChangeTracker.instances.get(cwd)!
 	}
 
-	public static reset(): void {
-		ReactiveChangeTracker.instance = undefined
+	public static reset(cwd?: string): void {
+		if (cwd) {
+			ReactiveChangeTracker.instances.delete(cwd)
+			console.log(`🗑️ ReactiveChangeTracker: Removed instance for ${cwd}`)
+		} else {
+			ReactiveChangeTracker.instances.clear()
+			console.log(`🗑️ ReactiveChangeTracker: Cleared all instances`)
+		}
 	}
 
 	/**
@@ -87,7 +96,8 @@ export class ReactiveChangeTracker {
 	 */
 	public stopSession(): void {
 		this.isSessionActive = false
-		console.log("ReactiveChangeTracker: Stopped editing session")
+		this.sessionChanges.clear()
+		console.log("🛑 ReactiveChangeTracker: Stopped session (ready to auto-restart)")
 		this.notifyUpdate()
 	}
 
@@ -104,6 +114,7 @@ export class ReactiveChangeTracker {
 	public async captureFileState(filePath: string): Promise<void> {
 		// Auto-start session if not active (like Augment starting to work)
 		if (!this.isSessionActive) {
+			console.log("🔄 ReactiveChangeTracker: Auto-starting new session for edit")
 			this.startNewSession()
 		}
 
