@@ -28,7 +28,16 @@ interface CommandExecutionProps {
 	onReject?: () => void
 }
 
-export const CommandExecution = ({ executionId, text, icon, title, showButtons, enableButtons, onRunCommand, onReject }: CommandExecutionProps) => {
+export const CommandExecution = ({
+	executionId,
+	text,
+	icon,
+	title,
+	showButtons,
+	enableButtons,
+	onRunCommand,
+	onReject,
+}: CommandExecutionProps) => {
 	const { terminalShellIntegrationDisabled = false } = useExtensionState()
 	const { t } = useTranslation()
 
@@ -85,53 +94,82 @@ export const CommandExecution = ({ executionId, text, icon, title, showButtons, 
 		<>
 			<ToolUseBlock>
 				<ToolUseBlockHeader onClick={() => setIsExpanded(!isExpanded)}>
-					<div className="flex flex-col w-full">
+					<div className="flex flex-col flex-1 min-w-0">
 						<div className="flex items-center">
 							<span className="codicon codicon-terminal mr-1.5" />
-							<span className="font-medium mr-2 whitespace-nowrap">
-								Run Command
-							</span>
+							<span className="font-medium mr-2 whitespace-nowrap">Terminal</span>
 							{status?.status === "started" && (
-								<span className="text-xs mr-2 flex-shrink-0" style={{
-									color: "var(--vscode-descriptionForeground)",
-									fontWeight: "normal"
-								}}>
+								<span
+									className="text-xs mr-2 flex-shrink-0"
+									style={{
+										color: "var(--vscode-descriptionForeground)",
+										fontWeight: "normal",
+									}}>
 									<span style={{ color: "#4ade80" }}>Running</span>
 									{status.pid && <span> (PID: {status.pid})</span>}
 								</span>
 							)}
 							{status?.status === "exited" && (
-								<span className="text-xs mr-2 flex-shrink-0" style={{
-									color: "var(--vscode-descriptionForeground)",
-									fontWeight: "normal"
-								}}>
+								<span
+									className="text-xs mr-2 flex-shrink-0"
+									style={{
+										color: "var(--vscode-descriptionForeground)",
+										fontWeight: "normal",
+									}}>
 									<span style={{ color: status.exitCode === 0 ? "#4ade80" : "#f87171" }}>
 										Exited ({status.exitCode})
 									</span>
 								</span>
 							)}
-							<div className="flex-grow" />
-							{status?.status === "started" && (
+						</div>
+						<div className="whitespace-nowrap overflow-hidden text-ellipsis text-left mr-2 rtl">
+							<span
+								className="text-sm font-mono"
+								style={{ color: "var(--vscode-descriptionForeground)" }}>
+								{command}
+							</span>
+						</div>
+					</div>
+					<div className="flex items-center">
+						{status?.status === "started" && (
+							<>
+								<span
+									className="codicon codicon-loading codicon-modifier-spin mr-1"
+									style={{ fontSize: "12px", color: "var(--vscode-descriptionForeground)" }}></span>
 								<Button
 									variant="ghost"
-									size="icon"
-									className="mr-2"
+									size="sm"
+									className="mr-0.5 h-6 w-6 p-0"
+									onClick={(e) => {
+										e.stopPropagation()
+										vscode.postMessage({ type: "terminalOperation", terminalOperation: "continue" })
+									}}
+									title="Continue in background">
+									<span
+										className="codicon codicon-play"
+										style={{ color: "white", fontSize: "12px" }}
+									/>
+								</Button>
+								<Button
+									variant="ghost"
+									size="sm"
+									className="mr-2 h-6 w-6 p-0"
 									onClick={(e) => {
 										e.stopPropagation()
 										vscode.postMessage({ type: "terminalOperation", terminalOperation: "abort" })
-									}}>
-									<span className="codicon codicon-debug-stop" style={{ color: "#f14c4c", fontSize: "16px" }} />
+									}}
+									title="Stop command">
+									<span
+										className="codicon codicon-debug-stop"
+										style={{ color: "#f14c4c", fontSize: "12px" }}
+									/>
 								</Button>
-							)}
-							{output.length > 0 && (
-								<span className={`codicon codicon-chevron-${isExpanded ? "up" : "down"}`}></span>
-							)}
-						</div>
-						<div className="mt-2 mb-1" style={{ width: 'calc(100vw - 120px)', maxWidth: '800px' }}>
-							<div className="border border-vscode-border rounded px-3 py-1.5 min-h-[32px] flex items-center">
-								<span className="text-sm font-mono text-vscode-editor-foreground whitespace-nowrap overflow-x-auto block w-full">{command}</span>
-							</div>
-						</div>
+							</>
+						)}
+						{output.length > 0 && (
+							<span
+								className={`codicon codicon-chevron-${isExpanded ? "up" : "down"} scale-75 -ml-1 -mr-2`}></span>
+						)}
 					</div>
 				</ToolUseBlockHeader>
 				{isExpanded && output.length > 0 && (
@@ -159,14 +197,6 @@ export const CommandExecution = ({ executionId, text, icon, title, showButtons, 
 						<span className="codicon codicon-close text-xs"></span>
 						{t("chat:reject.title")}
 					</button>
-				</div>
-			)}
-
-			{/* Status message when command is running */}
-			{status?.status === "started" && (
-				<div className="flex items-center justify-center gap-2 mt-2 p-2 bg-vscode-editor-background border border-vscode-widget-border rounded text-xs text-vscode-foreground">
-					<span className="codicon codicon-loading codicon-modifier-spin"></span>
-					<span>Command is running, please wait for completion...</span>
 				</div>
 			)}
 		</>

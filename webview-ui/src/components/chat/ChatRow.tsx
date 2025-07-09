@@ -213,8 +213,8 @@ export const ChatRowContent = ({
 				]
 			case "completion_result":
 				return [
-					<QaptCoderBranding />,
-					null, // No additional title needed since the branding component includes the text
+					null, // Hide Cubent logo and text
+					null, // No additional title needed
 				]
 			case "api_req_retry_delayed":
 				return []
@@ -1044,8 +1044,7 @@ export const ChatRowContent = ({
 				case "completion_result":
 					return (
 						<div>
-							<div style={{ marginBottom: "4px", paddingTop: "8px" }}>{icon}</div>
-							{/* Hide completion text, only show branding and feedback */}
+							{/* Hide completion text and logo, only show feedback */}
 							{message.text && (
 								<FeedbackButtons
 									messageTs={message.ts}

@@ -245,11 +245,16 @@ const DiffSummaryBar: React.FC<DiffSummaryBarProps> = ({ messages }) => {
 
 	return (
 		<div
-			className="mb-1 mx-2 bg-vscode-editor-background rounded border border-vscode-input-border/30 text-sm"
+			// Positioned as part of chat input area with proper spacing from content above
+			className="mt-4 mx-2 bg-vscode-editor-background rounded border border-vscode-input-border/60 text-sm"
+			style={{
+				boxShadow:
+					"0 -8px 24px rgba(0, 0, 0, 0.2), 0 -4px 12px rgba(0, 0, 0, 0.15), 0 -2px 6px rgba(0, 0, 0, 0.1)",
+			}}
 			onClick={(e) => e.stopPropagation()}
 			onMouseDown={(e) => e.stopPropagation()}>
 			{/* Collapsed Header */}
-			<div className="flex items-center justify-between px-3 py-2">
+			<div className="flex items-center justify-between px-3 py-0.5">
 				<div className="flex flex-wrap items-center gap-2">
 					<button
 						onClick={handleToggleExpanded}
@@ -274,13 +279,13 @@ const DiffSummaryBar: React.FC<DiffSummaryBarProps> = ({ messages }) => {
 				<div className="flex items-center gap-1">
 					<button
 						onClick={handleDiscardAll}
-						className="px-2 py-1 text-[11px] text-vscode-foreground hover:bg-vscode-toolbar-hoverBackground/40 rounded transition-colors cursor-pointer"
+						className="px-2 py-1 text-[11px] text-vscode-foreground hover:bg-vscode-toolbar-hoverBackground/40 rounded border border-vscode-input-border/40 transition-colors cursor-pointer"
 						title="Revert all changes to previous state">
 						Discard All
 					</button>
 					<button
 						onClick={handleKeepAll}
-						className="px-2 py-1 text-[11px] text-green-400 bg-vscode-input-background hover:bg-vscode-toolbar-hoverBackground/40 rounded transition-colors cursor-pointer"
+						className="px-2 py-1 text-[11px] text-white bg-vscode-input-background hover:bg-vscode-toolbar-hoverBackground/40 rounded transition-colors cursor-pointer"
 						title="Keep changes and hide this bar">
 						Keep All
 					</button>

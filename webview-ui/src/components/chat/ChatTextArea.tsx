@@ -1049,14 +1049,14 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 		// Bottom placeholder text removed for cleaner interface
 
 		return (
-			<div className={cn("relative", "flex", "flex-col", "w-full", "p-3")}>
+			<div className={cn("relative", "flex", "flex-col", "w-full", "px-1 py-3")}>
 				{/* Chat input container with darker background and improved styling for better visual appearance */}
 				<div
 					className={cn(
 						"relative",
 						"flex",
 						"flex-col",
-						"bg-[#151515]",
+						"bg-vscode-editor-background",
 						"rounded-lg",
 						"border border-[#2a2a2a]",
 						"p-0",
@@ -1289,7 +1289,7 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 										onHeightChange?.(height)
 									}}
 									placeholder={placeholderText}
-									minRows={2}
+									minRows={2.5}
 									maxRows={15}
 									autoFocus={true}
 									className={cn(
@@ -1306,7 +1306,7 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 										"bg-transparent",
 										"transition-background-color duration-150 ease-in-out",
 										"will-change-background-color",
-										"min-h-[60px]",
+										"min-h-[70px]",
 										"box-border",
 										"resize-none",
 										"overflow-x-hidden",
@@ -1350,8 +1350,11 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 					{/* Images now show in context bar instead of thumbnails */}
 
 					<div
-						className={cn("flex", "justify-between", "items-center", "mt-auto", "p-1")}
-						style={{ backgroundColor: "color-mix(in srgb, var(--vscode-input-background) 85%, black)" }}>
+						className={cn("flex", "justify-between", "items-center", "mt-auto", "p-1", "rounded-lg")}
+						style={{
+							backgroundColor: "color-mix(in srgb, var(--vscode-input-background) 85%, black)",
+							borderRadius: "8px",
+						}}>
 						<div className={cn("flex", "items-center", "gap-1", "min-w-0")}>
 							{/* Mode selector - fixed width */}
 							<div className="shrink-0">
@@ -1407,8 +1410,8 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 										}
 									}}
 									shortcutText={modeShortcutText}
-									triggerClassName="w-full bg-[rgba(255,255,255,0.08)] text-vscode-foreground border-none rounded-md px-3 py-1.5 hover:bg-[rgba(255,255,255,0.12)]"
-									contentClassName="bg-[#1a1a1a] border border-[#333] rounded-md shadow-lg min-w-[280px]"
+									triggerClassName="w-full bg-vscode-input-background text-vscode-foreground border-none rounded-md px-3 py-1.5 hover:bg-vscode-list-hoverBackground"
+									contentClassName="bg-vscode-editor-background/95 border-vscode-dropdown-border rounded-lg shadow-lg min-w-[280px]"
 									placeholder={
 										mode === "agent-auto"
 											? "Agent (Auto)"
@@ -1588,7 +1591,6 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 								"gap-1",
 								"shrink-0",
 								"bg-transparent",
-								"opacity-60",
 								"px-1.5",
 								"py-0.5",
 							)}>
@@ -1598,7 +1600,7 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 								disabled={sendingDisabled}
 								style={{
 									fontSize: 12,
-									color: "var(--vscode-icon-foreground)",
+									color: "#ffffff",
 								}}
 								onClick={() => {
 									// Append @ to the current input value
@@ -1650,14 +1652,14 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 								disabled={sendingDisabled}
 								isLoading={isEnhancingPrompt}
 								onClick={handleEnhancePrompt}
-								style={{ fontSize: 9 }}
+								style={{ fontSize: 9, color: "#ffffff" }}
 							/>
 							<IconButton
 								iconClass="codicon-file"
 								title={t("chat:addImages")}
 								disabled={shouldDisableImages}
 								onClick={onSelectImages}
-								style={{ fontSize: 9 }}
+								style={{ fontSize: 9, color: "#ffffff" }}
 							/>
 							{showRetry && (
 								<IconButton
@@ -1665,7 +1667,7 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 									title={t("chat:retry.tooltip")}
 									disabled={false}
 									onClick={onRetry}
-									style={{ fontSize: 9 }}
+									style={{ fontSize: 9, color: "#ffffff" }}
 								/>
 							)}
 							{isStreaming ? (

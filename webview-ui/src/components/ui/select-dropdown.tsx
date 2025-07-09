@@ -197,43 +197,46 @@ export const SelectDropdown = React.memo(
 						title={title}
 						data-testid="dropdown-trigger"
 						className={cn(
-							"w-full min-w-0 max-w-full inline-flex items-center gap-1.5 relative whitespace-nowrap text-sm",
+							"w-full min-w-0 max-w-full inline-flex items-center gap-1 relative whitespace-nowrap text-xs",
 							showUserIcon
-								? "bg-[rgba(255,255,255,0.03)] border-none rounded-md text-vscode-foreground px-2 py-1 text-xs"
-								: "bg-vscode-input-background border-none rounded text-vscode-foreground px-2 py-1 text-xs",
+								? "bg-vscode-input-background border-none rounded-md text-vscode-foreground px-1.5 py-1.5"
+								: "bg-vscode-input-background border-none rounded text-vscode-foreground px-1.5 py-1.5",
 							"transition-all duration-150 focus:outline-none focus-visible:ring-1 focus-visible:ring-vscode-focusBorder focus-visible:ring-inset",
 							disabled
 								? "opacity-50 cursor-not-allowed"
 								: showUserIcon
-									? "opacity-90 hover:opacity-100 hover:bg-[rgba(255,255,255,0.05)] cursor-pointer"
-									: "opacity-90 hover:opacity-100 hover:bg-vscode-button-hoverBackground cursor-pointer",
+									? "opacity-90 hover:opacity-100 hover:bg-vscode-list-hoverBackground cursor-pointer"
+									: "opacity-90 hover:opacity-100 hover:bg-vscode-list-hoverBackground cursor-pointer",
 							triggerClassName,
 						)}>
 						{showUserIcon ? (
-							<div className="pointer-events-none opacity-80 flex-shrink-0 text-sm">
-								{selectedIcon === "comment" && <MessageCircle className="size-3.5" />}
-								{selectedIcon === "list-ordered" && <ListOrdered className="size-3.5" />}
-								{selectedIcon === "person" && <User className="size-3.5" />}
-								{selectedIcon === "cloud" && <Cloud className="size-3.5" />}
+							<div className="pointer-events-none opacity-80 flex-shrink-0 text-xs">
+								{selectedIcon === "comment" && <MessageCircle className="size-3" />}
+								{selectedIcon === "list-ordered" && <ListOrdered className="size-3" />}
+								{selectedIcon === "person" && <User className="size-3" />}
+								{selectedIcon === "cloud" && <Cloud className="size-3" />}
 
-								{!selectedIcon && <span className="codicon codicon-account text-sm" />}
+								{!selectedIcon && <span className="codicon codicon-account text-xs" />}
 							</div>
 						) : (
-							<CaretUpIcon className="pointer-events-none opacity-80 flex-shrink-0 size-3" />
+							<CaretUpIcon className="pointer-events-none opacity-80 flex-shrink-0 size-2.5" />
 						)}
-						<span className="truncate font-medium">{displayText}</span>
+						<span className="truncate font-medium text-xs">{displayText}</span>
 						{showUserIcon && (
-							<CaretDownIcon className="pointer-events-none opacity-80 flex-shrink-0 size-4 ml-auto" />
+							<CaretDownIcon className="pointer-events-none opacity-80 flex-shrink-0 size-3 ml-auto" />
 						)}
 					</PopoverTrigger>
 					<PopoverContent
 						align={align}
 						sideOffset={sideOffset}
 						container={portalContainer}
-						className={cn("p-0 overflow-hidden bg-vscode-dropdown-background border-vscode-dropdown-border rounded-lg", contentClassName)}>
+						className={cn(
+							"p-0 overflow-hidden bg-vscode-editor-background/95 border-vscode-dropdown-border rounded-lg shadow-lg",
+							contentClassName,
+						)}>
 						<div className="flex flex-col w-full">
 							{/* Dropdown items - Use windowing for large lists */}
-							<div className="max-h-[280px] overflow-y-auto">
+							<div className="max-h-[240px] overflow-y-auto">
 								{groupedOptions.length === 0 && searchValue ? (
 									<div className="py-2 px-3 text-sm text-vscode-foreground/70">No results found</div>
 								) : (
@@ -271,7 +274,7 @@ export const SelectDropdown = React.memo(
 													key={itemKey}
 													onClick={() => !option.disabled && handleSelect(option.value)}
 													className={cn(
-														"px-3 py-1.5 text-sm cursor-pointer flex items-center text-vscode-foreground",
+														"px-2 py-1 text-xs cursor-pointer flex items-center text-vscode-foreground",
 														option.disabled
 															? "opacity-50 cursor-not-allowed"
 															: "hover:bg-vscode-list-hoverBackground",
@@ -285,19 +288,31 @@ export const SelectDropdown = React.memo(
 														renderItem(option)
 													) : (
 														<>
-															<div className="flex items-center gap-2.5 flex-1">
+															<div className="flex items-center gap-1.5 flex-1">
 																{option.icon && (
 																	<div className="text-vscode-foreground opacity-70">
-																		{option.icon === "comment" && <MessageCircle className="size-4" />}
-																		{option.icon === "list-ordered" && <ListOrdered className="size-4" />}
-																		{option.icon === "person" && <User className="size-4" />}
-																		{option.icon === "cloud" && <Cloud className="size-4" />}
+																		{option.icon === "comment" && (
+																			<MessageCircle className="size-3" />
+																		)}
+																		{option.icon === "list-ordered" && (
+																			<ListOrdered className="size-3" />
+																		)}
+																		{option.icon === "person" && (
+																			<User className="size-3" />
+																		)}
+																		{option.icon === "cloud" && (
+																			<Cloud className="size-3" />
+																		)}
 
-															{option.icon === "settings" && <Settings className="size-4" />}
+																		{option.icon === "settings" && (
+																			<Settings className="size-3" />
+																		)}
 																	</div>
 																)}
 																<div className="flex flex-col leading-tight">
-																	<span className="text-vscode-foreground leading-tight">{option.label}</span>
+																	<span className="text-vscode-foreground leading-tight">
+																		{option.label}
+																	</span>
 																	{option.description && (
 																		<span className="text-vscode-descriptionForeground text-xs opacity-70 leading-tight mt-0.5">
 																			{option.description}

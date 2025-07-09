@@ -24,7 +24,7 @@ export const IconButton: React.FC<IconButtonProps> = ({
 		"relative inline-flex items-center justify-center",
 		"bg-transparent border-none p-1",
 		"rounded-md min-w-[24px] min-h-[24px]",
-		"text-vscode-foreground opacity-85",
+		"text-white opacity-90",
 		"transition-all duration-150",
 		"hover:opacity-100 hover:bg-[rgba(255,255,255,0.03)] hover:border-[rgba(255,255,255,0.15)]",
 		"focus:outline-none focus-visible:ring-1 focus-visible:ring-vscode-focusBorder",
