@@ -1,6 +1,7 @@
 import { Anthropic } from "@anthropic-ai/sdk"
 import * as path from "path"
 import * as diff from "diff"
+import stripBom from "strip-bom"
 import { RooIgnoreController, LOCK_TEXT_SYMBOL } from "../ignore/RooIgnoreController"
 
 export const formatResponse = {
@@ -160,10 +161,29 @@ Otherwise, if you have not completed the task and do not need additional informa
 
 	createPrettyPatch: (filename = "file", oldStr?: string, newStr?: string) => {
 		// strings cannot be undefined or diff throws exception
-		const patch = diff.createPatch(filename.toPosix(), oldStr || "", newStr || "")
+		const normalizedOldStr = formatResponse.normalizeContentForDiff(oldStr || "")
+		const normalizedNewStr = formatResponse.normalizeContentForDiff(newStr || "")
+
+		const patch = diff.createPatch(filename.toPosix(), normalizedOldStr, normalizedNewStr)
 		const lines = patch.split("\n")
 		const prettyPatchLines = lines.slice(4)
 		return prettyPatchLines.join("\n")
+	},
+
+	normalizeContentForDiff: (content: string) => {
+		// Strip all BOMs (same logic as DiffViewProvider.stripAllBOMs)
+		let result = content
+		let previous
+		do {
+			previous = result
+			result = stripBom(result)
+		} while (result !== previous)
+
+		// Normalize line endings (same logic as DiffViewProvider)
+		const contentEOL = result.includes("\r\n") ? "\r\n" : "\n"
+		const normalizedContent = result.replace(/\r\n|\n/g, contentEOL).trimEnd() + contentEOL
+
+		return normalizedContent
 	},
 }
 

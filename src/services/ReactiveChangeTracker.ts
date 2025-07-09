@@ -1,6 +1,7 @@
 import * as vscode from "vscode"
 import * as path from "path"
 import * as fs from "fs/promises"
+import stripBom from "strip-bom"
 
 export interface FileSnapshot {
 	originalContent: string
@@ -264,13 +265,32 @@ export class ReactiveChangeTracker {
 
 	/**
 	 * Calculate line differences (like Augment's analysis)
+	 * Uses the same content normalization as the tool diff display
 	 */
 	private calculateLineDiff(original: string, current: string): { added: number; removed: number } {
-		// Normalize line endings
-		const normalizeLines = (text: string): string[] => text.replace(/\r\n/g, "\n").split("\n")
+		// Apply the same content normalization as createPrettyPatch
+		const normalizeContent = (content: string): string => {
+			// Strip all BOMs (same logic as DiffViewProvider.stripAllBOMs)
+			let result = content
+			let previous
+			do {
+				previous = result
+				result = stripBom(result)
+			} while (result !== previous)
 
-		const originalLines = normalizeLines(original)
-		const currentLines = normalizeLines(current)
+			// Normalize line endings (same logic as DiffViewProvider)
+			const contentEOL = result.includes("\r\n") ? "\r\n" : "\n"
+			const normalizedContent = result.replace(/\r\n|\n/g, contentEOL).trimEnd() + contentEOL
+
+			return normalizedContent
+		}
+
+		const normalizedOriginal = normalizeContent(original)
+		const normalizedCurrent = normalizeContent(current)
+
+		// Split into lines for comparison
+		const originalLines = normalizedOriginal.split(/\r\n|\n/)
+		const currentLines = normalizedCurrent.split(/\r\n|\n/)
 
 		// Simple but accurate line counting
 		const maxLines = Math.max(originalLines.length, currentLines.length)
