@@ -366,7 +366,8 @@ const ApiConfigManager = ({
 						{/* Only show management buttons for BYAK profiles */}
 						{isByakProfile && (
 							<>
-								<ApiKeyManagerPopup
+								{/* API Key Manager button hidden - now available in dedicated API Keys settings section */}
+								{/* <ApiKeyManagerPopup
 									trigger={
 										<Button
 											variant="ghost"
@@ -376,7 +377,7 @@ const ApiConfigManager = ({
 											<span className="codicon codicon-key" />
 										</Button>
 									}
-								/>
+								/> */}
 								<Button
 									variant="ghost"
 									size="icon"

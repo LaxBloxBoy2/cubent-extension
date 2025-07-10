@@ -27,6 +27,7 @@ import {
 	Brain,
 	LucideIcon,
 	User,
+	Key,
 	ChevronDown,
 } from "lucide-react"
 
@@ -59,6 +60,7 @@ import { SectionHeader } from "./SectionHeader"
 import ApiConfigManager from "./ApiConfigManager"
 import ApiOptions from "./ApiOptions"
 import { AutoApproveSettings } from "./AutoApproveSettings"
+import { ApiKeyManagementSettings } from "./ApiKeyManagementSettings"
 
 import { BrowserSettings } from "./BrowserSettings"
 import { CheckpointSettings } from "./CheckpointSettings"
@@ -75,11 +77,11 @@ import PromptsSettings from "./PromptsSettings"
 import { UserManagementSettings } from "../user/UserManagementSettings"
 import { cn } from "@/lib/utils"
 
-export const settingsTabsContainer = "flex flex-1 overflow-hidden [&.narrow_.tab-label]:hidden"
+export const settingsTabsContainer = "flex flex-1 overflow-hidden flex-col [&.narrow_.tab-label]:hidden"
 export const settingsTabList =
-	"w-48 data-[compact=true]:w-12 flex-shrink-0 flex flex-col overflow-y-auto overflow-x-hidden border-r border-vscode-sideBar-background"
+	"h-12 data-[compact=true]:h-12 flex-shrink-0 flex flex-row justify-center overflow-x-auto overflow-y-hidden border-b border-vscode-sideBar-background bg-vscode-editor-background/50"
 export const settingsTabTrigger =
-	"whitespace-nowrap overflow-hidden min-w-0 h-12 px-4 py-3 box-border flex items-center border-l-2 border-transparent text-vscode-foreground opacity-70 hover:bg-vscode-list-hoverBackground data-[compact=true]:w-12 data-[compact=true]:p-4"
+	"whitespace-nowrap overflow-hidden min-w-0 h-12 px-4 py-3 box-border flex items-center border-b-2 border-transparent text-vscode-foreground opacity-70 hover:bg-vscode-list-hoverBackground data-[compact=true]:min-w-12 data-[compact=true]:p-4"
 export const settingsTabTriggerActive = "opacity-100 border-gray-500 bg-gray-100 dark:bg-gray-800"
 
 export interface SettingsViewRef {
@@ -88,6 +90,7 @@ export interface SettingsViewRef {
 
 const sectionNames = [
 	"providers",
+	"apiKeyManagement",
 	"autoApprove",
 	"browser",
 	"checkpoints",
@@ -386,8 +389,8 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 
 		const observer = new ResizeObserver((entries) => {
 			for (const entry of entries) {
-				// If container width is less than 500px, switch to compact mode
-				setIsCompactMode(entry.contentRect.width < 500)
+				// If container width is less than 800px, switch to compact mode (icons only)
+				setIsCompactMode(entry.contentRect.width < 800)
 			}
 		})
 
@@ -401,6 +404,7 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 	const sections: { id: SectionName; icon: LucideIcon }[] = useMemo(
 		() => [
 			{ id: "providers", icon: Brain },
+			{ id: "apiKeyManagement", icon: Key },
 			{ id: "autoApprove", icon: CheckCheck },
 			{ id: "checkpoints", icon: GitBranch },
 			{ id: "contextManagement", icon: Database },
@@ -487,9 +491,9 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 				</div>
 			</TabHeader>
 
-			{/* Vertical tabs layout */}
+			{/* Horizontal tabs layout */}
 			<div ref={containerRef} className={cn(settingsTabsContainer, isCompactMode && "narrow")}>
-				{/* Tab sidebar */}
+				{/* Tab top bar */}
 				<TabList
 					value={activeTab || ""}
 					onValueChange={(value) => handleTabChange(value as SectionName)}
@@ -531,7 +535,7 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 											{/* Clone to avoid ref issues if triggerComponent itself had a key */}
 											{React.cloneElement(triggerComponent)}
 										</TooltipTrigger>
-										<TooltipContent side="right" className="text-base">
+										<TooltipContent side="bottom" className="text-base">
 											<p className="m-0">{t(`settings:sections.${id}`)}</p>
 										</TooltipContent>
 									</Tooltip>
@@ -647,6 +651,19 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 							alwaysAllowExecute={alwaysAllowExecute}
 							allowedCommands={allowedCommands}
 							setCachedStateField={setCachedStateField}
+						/>
+					)}
+
+					{/* API Key Management Section */}
+					{activeTab === "apiKeyManagement" && (
+						<ApiKeyManagementSettings
+							apiConfiguration={apiConfiguration}
+							onApiConfigurationChange={(newConfig) => {
+								setCachedState((prevState) => {
+									setChangeDetected(true)
+									return { ...prevState, apiConfiguration: newConfig }
+								})
+							}}
 						/>
 					)}
 

@@ -73,6 +73,12 @@ export const AutoApproveSettings = ({
 		}
 	}
 
+	const handleAllowAllCommands = () => {
+		const newCommands = ["*"]
+		setCachedStateField("allowedCommands", newCommands)
+		vscode.postMessage({ type: "allowedCommands", commands: newCommands })
+	}
+
 	return (
 		<div {...props}>
 			<SectionHeader description={t("settings:autoApprove.description")}>
@@ -218,6 +224,14 @@ export const AutoApproveSettings = ({
 							/>
 							<Button className="h-8" onClick={handleAddCommand} data-testid="add-command-button">
 								{t("settings:autoApprove.execute.addButton")}
+							</Button>
+							<Button
+								className="h-8"
+								variant="outline"
+								onClick={handleAllowAllCommands}
+								data-testid="allow-all-commands-button"
+								title="Allow all commands (use with caution)">
+								Allow All (*)
 							</Button>
 						</div>
 

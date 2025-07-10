@@ -433,6 +433,26 @@ body:focus-within .code-block-scrollable {
 }
 
 /**
+ * Thinner horizontal scrollbar
+ */
+::-webkit-scrollbar:horizontal {
+	height: 6px; /* Make horizontal scrollbar thinner */
+}
+
+::-webkit-scrollbar-thumb:horizontal {
+	background-color: var(--vscode-scrollbarSlider-background);
+	border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:horizontal:hover {
+	background-color: var(--vscode-scrollbarSlider-hoverBackground);
+}
+
+::-webkit-scrollbar-track:horizontal {
+	background: var(--vscode-editor-background);
+}
+
+/**
  * Dropdown label
  * https://github.com/microsoft/vscode-webview-ui-toolkit/tree/main/src/dropdown#with-label
  */

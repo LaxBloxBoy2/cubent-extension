@@ -27,6 +27,7 @@
 	"sections": {
 		"providers": "Models",
 		"models": "Models",
+		"apiKeyManagement": "API Keys",
 		"autoApprove": "Auto-Approve",
 		"browser": "Browser",
 		"checkpoints": "Checkpoints",

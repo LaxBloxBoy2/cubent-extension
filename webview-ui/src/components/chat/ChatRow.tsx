@@ -43,6 +43,11 @@ import { CondenseContextErrorRow, CondensingContextRow, ContextCondenseRow } fro
 import CodebaseSearchResultsDisplay from "./CodebaseSearchResultsDisplay"
 import { QaptCoderBranding } from "./QaptCoderBranding"
 
+// TODO: Fix error formatting system - previous implementation broke api_req_retry_delayed display
+// Need to handle retry messages properly without breaking the icon/title useMemo structure
+// The issue was mixing JSX elements in the icon/title array vs the main switch statement
+// Also need to fix raw error messages in Task.ts and other source files
+
 interface ChatRowProps {
 	message: ClineMessage
 	lastModifiedMessage?: ClineMessage
@@ -995,6 +1000,8 @@ export const ChatRowContent = ({
 						</div>
 					)
 				case "error":
+					// Compact error display with dark background and non-hardcoded colors
+					// Error label on top, details below, very compact design
 					return (
 						<div
 							style={{
@@ -1004,9 +1011,8 @@ export const ChatRowContent = ({
 								padding: "6px 8px",
 								fontSize: "12px",
 								lineHeight: "1.3",
-								maxWidth: "100%"
-							}}
-						>
+								maxWidth: "100%",
+							}}>
 							{/* Error Header */}
 							<div
 								style={{
@@ -1015,13 +1021,9 @@ export const ChatRowContent = ({
 									gap: "4px",
 									marginBottom: "4px",
 									color: "var(--vscode-errorForeground)",
-									fontWeight: "500"
-								}}
-							>
-								<span
-									className="codicon codicon-error"
-									style={{ fontSize: "12px" }}
-								/>
+									fontWeight: "500",
+								}}>
+								<span className="codicon codicon-error" style={{ fontSize: "12px" }} />
 								<span>Error</span>
 							</div>
 
@@ -1033,9 +1035,8 @@ export const ChatRowContent = ({
 									lineHeight: "1.4",
 									wordBreak: "break-word",
 									whiteSpace: "pre-wrap",
-									opacity: 0.9
-								}}
-							>
+									opacity: 0.9,
+								}}>
 								{message.text}
 							</div>
 						</div>
@@ -1135,6 +1136,8 @@ export const ChatRowContent = ({
 		case "ask":
 			switch (message.ask) {
 				case "mistake_limit_reached":
+					// Compact error display for mistake limit - same styling as general errors
+					// Dark background, error label on top, details below
 					return (
 						<div
 							style={{
@@ -1144,9 +1147,8 @@ export const ChatRowContent = ({
 								padding: "6px 8px",
 								fontSize: "12px",
 								lineHeight: "1.3",
-								maxWidth: "100%"
-							}}
-						>
+								maxWidth: "100%",
+							}}>
 							{/* Error Header */}
 							<div
 								style={{
@@ -1155,13 +1157,9 @@ export const ChatRowContent = ({
 									gap: "4px",
 									marginBottom: "4px",
 									color: "var(--vscode-errorForeground)",
-									fontWeight: "500"
-								}}
-							>
-								<span
-									className="codicon codicon-error"
-									style={{ fontSize: "12px" }}
-								/>
+									fontWeight: "500",
+								}}>
+								<span className="codicon codicon-error" style={{ fontSize: "12px" }} />
 								<span>Error</span>
 							</div>
 
@@ -1173,9 +1171,8 @@ export const ChatRowContent = ({
 									lineHeight: "1.4",
 									wordBreak: "break-word",
 									whiteSpace: "pre-wrap",
-									opacity: 0.9
-								}}
-							>
+									opacity: 0.9,
+								}}>
 								{message.text}
 							</div>
 						</div>

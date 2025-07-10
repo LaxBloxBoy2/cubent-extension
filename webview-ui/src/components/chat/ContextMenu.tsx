@@ -210,14 +210,13 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
 			<div
 				ref={menuRef}
 				style={{
-					backgroundColor: "#1e1e1e",
-					border: "1px solid var(--vscode-editorGroup-border)",
-					borderRadius: "3px",
-					boxShadow: "0 4px 10px rgba(0, 0, 0, 0.25)",
+					backgroundColor: "var(--vscode-editor-background)",
+					borderRadius: "2px",
+					boxShadow: "0 2px 8px var(--vscode-widget-shadow)",
 					zIndex: 1000,
 					display: "flex",
 					flexDirection: "column",
-					maxHeight: "200px",
+					maxHeight: "180px",
 					overflowY: "auto",
 				}}>
 				{filteredOptions && filteredOptions.length > 0 ? (
@@ -226,16 +225,18 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
 							key={`${option.type}-${option.value || index}`}
 							onClick={() => isOptionSelectable(option) && onSelect(option.type, option.value)}
 							style={{
-								padding: "4px 6px",
+								padding: "2px 4px",
 								cursor: isOptionSelectable(option) ? "pointer" : "default",
-								color: "var(--vscode-dropdown-foreground)",
+								color: "var(--vscode-menu-foreground)",
 								display: "flex",
 								alignItems: "center",
 								justifyContent: "space-between",
+								fontSize: "12px",
+								minHeight: "20px",
 								...(index === selectedIndex && isOptionSelectable(option)
 									? {
-											backgroundColor: "var(--vscode-list-activeSelectionBackground)",
-											color: "var(--vscode-list-activeSelectionForeground)",
+											backgroundColor: "var(--vscode-list-hoverBackground)",
+											color: "var(--vscode-menu-foreground)",
 										}
 									: {}),
 							}}
@@ -248,6 +249,7 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
 									minWidth: 0,
 									overflow: "hidden",
 									paddingTop: 0,
+									gap: "4px",
 								}}>
 								{(option.type === ContextMenuOptionType.File ||
 									option.type === ContextMenuOptionType.Folder ||
@@ -256,10 +258,9 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
 										src={getMaterialIconForOption(option)}
 										alt="Mode"
 										style={{
-											marginRight: "6px",
 											flexShrink: 0,
-											width: "16px",
-											height: "16px",
+											width: "14px",
+											height: "14px",
 										}}
 									/>
 								)}
@@ -271,9 +272,8 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
 										<i
 											className={`codicon codicon-${getIconForOption(option)}`}
 											style={{
-												marginRight: "6px",
 												flexShrink: 0,
-												fontSize: "14px",
+												fontSize: "12px",
 												marginTop: 0,
 											}}
 										/>
@@ -286,7 +286,7 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
 								!option.value && (
 									<i
 										className="codicon codicon-chevron-right"
-										style={{ fontSize: "10px", flexShrink: 0, marginLeft: 8 }}
+										style={{ fontSize: "9px", flexShrink: 0, marginLeft: 4 }}
 									/>
 								)}
 						</div>

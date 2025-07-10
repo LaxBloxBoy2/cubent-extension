@@ -120,20 +120,16 @@ const PROVIDERS: Provider[] = [
 	},
 ]
 
-export const ApiKeyManagerPopup = ({
-	trigger,
-	isOpen: controlledOpen,
-	onOpenChange: controlledOnOpenChange,
-}: ApiKeyManagerPopupProps) => {
-	const { t } = useAppTranslation()
-	const [internalOpen, setInternalOpen] = useState(false)
+// Content component that can be used both in popup and settings
+export const ApiKeyManagerContent = ({
+	apiConfiguration,
+	onApiConfigurationChange,
+}: {
+	apiConfiguration?: any
+	onApiConfigurationChange?: (config: any) => void
+}) => {
 	const [apiKeys, setApiKeys] = useState<ApiKeyState>({})
-	const [isLoading, setIsLoading] = useState(false)
 	const [searchQuery, setSearchQuery] = useState("")
-
-	// Use controlled or internal state
-	const isOpen = controlledOpen !== undefined ? controlledOpen : internalOpen
-	const onOpenChange = controlledOnOpenChange || setInternalOpen
 
 	// Filter providers based on search query
 	const filteredProviders = useMemo(() => {
@@ -145,12 +141,166 @@ export const ApiKeyManagerPopup = ({
 		)
 	}, [searchQuery])
 
-	// Load existing API keys when popup opens
+	// Load existing API keys when component mounts
 	useEffect(() => {
-		if (isOpen) {
+		if (apiConfiguration) {
+			// Initialize from provided API configuration (settings mode)
+			const keys: ApiKeyState = {}
+			PROVIDERS.forEach((provider) => {
+				keys[provider.apiKeyField] = apiConfiguration[provider.apiKeyField] || ""
+			})
+			setApiKeys(keys)
+		} else {
+			// Load from extension (popup mode)
 			loadApiKeys()
 		}
-	}, [isOpen])
+	}, [apiConfiguration])
+
+	const loadApiKeys = () => {
+		// Request current API keys from extension
+		vscode.postMessage({ type: "getByakApiKeys" })
+	}
+
+	// Listen for API key response from extension
+	useEffect(() => {
+		const handleMessage = (event: MessageEvent) => {
+			const message = event.data
+			if (message.type === "byakApiKeysResponse") {
+				// Initialize all provider keys
+				const keys: ApiKeyState = {}
+				PROVIDERS.forEach((provider) => {
+					keys[provider.apiKeyField] = message.keys?.[provider.apiKeyField] || ""
+				})
+				setApiKeys(keys)
+			}
+		}
+
+		window.addEventListener("message", handleMessage)
+		return () => window.removeEventListener("message", handleMessage)
+	}, [])
+
+	const handleApiKeyChange = (apiKeyField: string, value: string) => {
+		setApiKeys((prev) => ({
+			...prev,
+			[apiKeyField]: value,
+		}))
+
+		// Update the API configuration if callback is provided (for settings integration)
+		if (onApiConfigurationChange && apiConfiguration) {
+			onApiConfigurationChange({
+				...apiConfiguration,
+				[apiKeyField]: value,
+			})
+		}
+	}
+
+	const handleLinkClick = (url: string) => {
+		vscode.postMessage({ type: "openExternalUrl", url })
+	}
+
+	return (
+		<div className="flex flex-col space-y-3 flex-1 min-h-0">
+			{/* Tabs */}
+			<div className="flex border-b border-vscode-input-border flex-shrink-0">
+				<button className="px-2 py-1 text-xs font-medium text-vscode-foreground border-b-2 border-vscode-focusBorder">
+					<span className="flex items-center gap-1">
+						<Key className="w-3 h-3" />
+						API Key
+					</span>
+				</button>
+				<button className="px-2 py-1 text-xs text-vscode-descriptionForeground opacity-50 cursor-not-allowed">
+					Upgrade
+				</button>
+				<button className="px-2 py-1 text-xs text-vscode-descriptionForeground opacity-50 cursor-not-allowed">
+					Local
+				</button>
+			</div>
+
+			{/* Search Bar */}
+			<div className="relative flex-shrink-0">
+				<Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-3 h-3 text-vscode-descriptionForeground" />
+				<Input
+					type="text"
+					placeholder="Search providers..."
+					value={searchQuery}
+					onChange={(e) => setSearchQuery(e.target.value)}
+					className="pl-7 h-7 text-xs bg-vscode-input-background border-vscode-input-border text-vscode-foreground placeholder-vscode-descriptionForeground"
+				/>
+			</div>
+
+			{/* Scrollable Provider List */}
+			<div className="flex-1 overflow-y-auto space-y-2 min-h-0 pr-1">
+				{filteredProviders.map((provider) => (
+					<div
+						key={provider.id}
+						className="space-y-1 p-2 bg-vscode-editor-background rounded border border-vscode-input-border">
+						<div className="flex items-center gap-2 mb-1">
+							{provider.logo}
+							<div className="flex-1 min-w-0">
+								<h3 className="text-vscode-foreground font-medium text-xs truncate mt-0.5">
+									{provider.name}
+								</h3>
+								<p className="text-vscode-descriptionForeground text-xs truncate">
+									{provider.description}
+								</p>
+							</div>
+						</div>
+						<VSCodeTextField
+							value={apiKeys[provider.apiKeyField] || ""}
+							type="password"
+							onInput={(e) =>
+								handleApiKeyChange(provider.apiKeyField, (e.target as HTMLInputElement).value)
+							}
+							placeholder={`Enter your ${provider.name} API key`}
+							className="w-full text-xs -mt-0.5"
+						/>
+						<button
+							onClick={() => handleLinkClick(provider.createKeyUrl)}
+							className="text-xs text-vscode-foreground hover:text-vscode-descriptionForeground flex items-center gap-1 transition-colors cursor-pointer">
+							Get {provider.name} API key
+							<ExternalLink className="w-3 h-3" />
+						</button>
+					</div>
+				))}
+				{filteredProviders.length === 0 && (
+					<div className="text-center py-4 text-vscode-descriptionForeground text-xs">
+						No providers found matching "{searchQuery}"
+					</div>
+				)}
+			</div>
+
+			{/* Security Notice */}
+			<div className="flex-shrink-0 pt-2 border-t border-vscode-input-border">
+				<div className="text-center">
+					<p className="text-xs text-vscode-descriptionForeground">
+						API credentials are protected through secure storage within VSCode.
+					</p>
+				</div>
+			</div>
+		</div>
+	)
+}
+
+// Popup-specific content with Connect button
+const ApiKeyManagerPopupContent = () => {
+	const [apiKeys, setApiKeys] = useState<ApiKeyState>({})
+	const [isLoading, setIsLoading] = useState(false)
+	const [searchQuery, setSearchQuery] = useState("")
+
+	// Filter providers based on search query
+	const filteredProviders = useMemo(() => {
+		if (!searchQuery.trim()) return PROVIDERS
+		const query = searchQuery.toLowerCase()
+		return PROVIDERS.filter(
+			(provider) =>
+				provider.name.toLowerCase().includes(query) || provider.description.toLowerCase().includes(query),
+		)
+	}, [searchQuery])
+
+	// Load existing API keys when component mounts
+	useEffect(() => {
+		loadApiKeys()
+	}, [])
 
 	const loadApiKeys = () => {
 		// Request current API keys from extension
@@ -191,9 +341,9 @@ export const ApiKeyManagerPopup = ({
 				keys: apiKeys,
 			})
 
-			// Close popup after successful update
+			// Reload API keys to show updated values
 			setTimeout(() => {
-				onOpenChange(false)
+				loadApiKeys()
 				setIsLoading(false)
 			}, 500)
 		} catch (error) {
@@ -205,6 +355,119 @@ export const ApiKeyManagerPopup = ({
 	const handleLinkClick = (url: string) => {
 		vscode.postMessage({ type: "openExternalUrl", url })
 	}
+
+	return (
+		<div className="flex flex-col space-y-3 flex-1 min-h-0">
+			{/* Tabs */}
+			<div className="flex border-b border-vscode-input-border flex-shrink-0">
+				<button className="px-2 py-1 text-xs font-medium text-vscode-foreground border-b-2 border-vscode-focusBorder">
+					<span className="flex items-center gap-1">
+						<Key className="w-3 h-3" />
+						API Key
+					</span>
+				</button>
+				<button className="px-2 py-1 text-xs text-vscode-descriptionForeground opacity-50 cursor-not-allowed">
+					Upgrade
+				</button>
+				<button className="px-2 py-1 text-xs text-vscode-descriptionForeground opacity-50 cursor-not-allowed">
+					Local
+				</button>
+			</div>
+
+			{/* Search Bar */}
+			<div className="relative flex-shrink-0">
+				<Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-3 h-3 text-vscode-descriptionForeground" />
+				<Input
+					type="text"
+					placeholder="Search providers..."
+					value={searchQuery}
+					onChange={(e) => setSearchQuery(e.target.value)}
+					className="pl-7 h-7 text-xs bg-vscode-input-background border-vscode-input-border text-vscode-foreground placeholder-vscode-descriptionForeground"
+				/>
+			</div>
+
+			{/* Scrollable Provider List */}
+			<div className="flex-1 overflow-y-auto space-y-2 min-h-0 pr-1">
+				{filteredProviders.map((provider) => (
+					<div
+						key={provider.id}
+						className="space-y-1 p-2 bg-vscode-editor-background rounded border border-vscode-input-border">
+						<div className="flex items-center gap-2 mb-1">
+							{provider.logo}
+							<div className="flex-1 min-w-0">
+								<h3 className="text-vscode-foreground font-medium text-xs truncate mt-0.5">
+									{provider.name}
+								</h3>
+								<p className="text-vscode-descriptionForeground text-xs truncate">
+									{provider.description}
+								</p>
+							</div>
+						</div>
+						<VSCodeTextField
+							value={apiKeys[provider.apiKeyField] || ""}
+							type="password"
+							onInput={(e) =>
+								handleApiKeyChange(provider.apiKeyField, (e.target as HTMLInputElement).value)
+							}
+							placeholder={`Enter your ${provider.name} API key`}
+							className="w-full text-xs -mt-0.5"
+						/>
+						<button
+							onClick={() => handleLinkClick(provider.createKeyUrl)}
+							className="text-xs text-vscode-foreground hover:text-vscode-descriptionForeground flex items-center gap-1 transition-colors cursor-pointer">
+							Get {provider.name} API key
+							<ExternalLink className="w-3 h-3" />
+						</button>
+					</div>
+				))}
+				{filteredProviders.length === 0 && (
+					<div className="text-center py-4 text-vscode-descriptionForeground text-xs">
+						No providers found matching "{searchQuery}"
+					</div>
+				)}
+			</div>
+
+			{/* Footer with Connect Button */}
+			<div className="flex-shrink-0 space-y-2 pt-2 border-t border-vscode-input-border">
+				{/* Security Notice */}
+				<div className="text-center">
+					<p className="text-xs text-vscode-descriptionForeground">
+						API credentials are protected through secure storage within VSCode.
+					</p>
+				</div>
+
+				{/* Connect Button */}
+				<VSCodeButton
+					onClick={handleConnect}
+					disabled={isLoading}
+					className="w-full bg-vscode-button-background hover:bg-vscode-button-hoverBackground text-vscode-button-foreground py-1 text-xs">
+					{isLoading ? "Connecting..." : "Connect"}
+				</VSCodeButton>
+
+				{/* More providers link */}
+				<div className="text-center">
+					<button
+						onClick={() => handleLinkClick("https://docs.cubent.dev/providers")}
+						className="text-xs text-vscode-foreground hover:text-vscode-descriptionForeground flex items-center gap-1 mx-auto transition-colors cursor-pointer">
+						Click here to view more providers
+						<ExternalLink className="w-3 h-3" />
+					</button>
+				</div>
+			</div>
+		</div>
+	)
+}
+
+export const ApiKeyManagerPopup = ({
+	trigger,
+	isOpen: controlledOpen,
+	onOpenChange: controlledOnOpenChange,
+}: ApiKeyManagerPopupProps) => {
+	const [internalOpen, setInternalOpen] = useState(false)
+
+	// Use controlled or internal state
+	const isOpen = controlledOpen !== undefined ? controlledOpen : internalOpen
+	const onOpenChange = controlledOnOpenChange || setInternalOpen
 
 	const defaultTrigger = (
 		<Button variant="outline" size="sm" className="gap-2">
@@ -223,105 +486,7 @@ export const ApiKeyManagerPopup = ({
 						API Key Management
 					</DialogTitle>
 				</DialogHeader>
-
-				<div className="flex flex-col space-y-3 flex-1 min-h-0">
-					{/* Tabs */}
-					<div className="flex border-b border-vscode-input-border flex-shrink-0">
-						<button className="px-2 py-1 text-xs font-medium text-vscode-foreground border-b-2 border-vscode-focusBorder">
-							<span className="flex items-center gap-1">
-								<Key className="w-3 h-3" />
-								API Key
-							</span>
-						</button>
-						<button className="px-2 py-1 text-xs text-vscode-descriptionForeground opacity-50 cursor-not-allowed">
-							Upgrade
-						</button>
-						<button className="px-2 py-1 text-xs text-vscode-descriptionForeground opacity-50 cursor-not-allowed">
-							Local
-						</button>
-					</div>
-
-					{/* Search Bar */}
-					<div className="relative flex-shrink-0">
-						<Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-3 h-3 text-vscode-descriptionForeground" />
-						<Input
-							type="text"
-							placeholder="Search providers..."
-							value={searchQuery}
-							onChange={(e) => setSearchQuery(e.target.value)}
-							className="pl-7 h-7 text-xs bg-vscode-input-background border-vscode-input-border text-vscode-foreground placeholder-vscode-descriptionForeground"
-						/>
-					</div>
-
-					{/* Scrollable Provider List */}
-					<div className="flex-1 overflow-y-auto space-y-2 min-h-0 pr-1">
-						{filteredProviders.map((provider) => (
-							<div
-								key={provider.id}
-								className="space-y-1 p-2 bg-vscode-editor-background rounded border border-vscode-input-border">
-								<div className="flex items-center gap-2 mb-1">
-									{provider.logo}
-									<div className="flex-1 min-w-0">
-										<h3 className="text-vscode-foreground font-medium text-xs truncate mt-0.5">
-											{provider.name}
-										</h3>
-										<p className="text-vscode-descriptionForeground text-xs truncate">
-											{provider.description}
-										</p>
-									</div>
-								</div>
-								<VSCodeTextField
-									value={apiKeys[provider.apiKeyField] || ""}
-									type="password"
-									onInput={(e) =>
-										handleApiKeyChange(provider.apiKeyField, (e.target as HTMLInputElement).value)
-									}
-									placeholder={`Enter your ${provider.name} API key`}
-									className="w-full text-xs -mt-0.5"
-								/>
-								<button
-									onClick={() => handleLinkClick(provider.createKeyUrl)}
-									className="text-xs text-vscode-foreground hover:text-vscode-descriptionForeground flex items-center gap-1 transition-colors cursor-pointer">
-									Get {provider.name} API key
-									<ExternalLink className="w-3 h-3" />
-								</button>
-							</div>
-						))}
-						{filteredProviders.length === 0 && (
-							<div className="text-center py-4 text-vscode-descriptionForeground text-xs">
-								No providers found matching "{searchQuery}"
-							</div>
-						)}
-					</div>
-
-					{/* Footer */}
-					<div className="flex-shrink-0 space-y-2 pt-2 border-t border-vscode-input-border">
-						{/* Security Notice */}
-						<div className="text-center">
-							<p className="text-xs text-vscode-descriptionForeground">
-								API credentials are protected through secure storage within VSCode.
-							</p>
-						</div>
-
-						{/* Connect Button */}
-						<VSCodeButton
-							onClick={handleConnect}
-							disabled={isLoading}
-							className="w-full bg-vscode-button-background hover:bg-vscode-button-hoverBackground text-vscode-button-foreground py-1 text-xs">
-							{isLoading ? "Connecting..." : "Connect"}
-						</VSCodeButton>
-
-						{/* More providers link */}
-						<div className="text-center">
-							<button
-								onClick={() => handleLinkClick("https://docs.cubent.dev/providers")}
-								className="text-xs text-vscode-foreground hover:text-vscode-descriptionForeground flex items-center gap-1 mx-auto transition-colors cursor-pointer">
-								Click here to view more providers
-								<ExternalLink className="w-3 h-3" />
-							</button>
-						</div>
-					</div>
-				</div>
+				<ApiKeyManagerPopupContent />
 			</DialogContent>
 		</Dialog>
 	)

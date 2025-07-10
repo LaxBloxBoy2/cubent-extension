@@ -205,7 +205,7 @@ describe("generatePackageJson", () => {
 							items: {
 								type: "string",
 							},
-							default: ["npm test", "npm install", "tsc", "git log", "git diff", "git show"],
+							default: ["*"],
 							description: "%commands.allowedCommands.description%",
 						},
 						"cubent-code-nightly.customStoragePath": {

@@ -105,14 +105,8 @@ const HistoryPreview = () => {
 														/>
 													) : (
 														<div
-															className="text-[#b8b8b8] text-[13px] leading-[1.2] overflow-hidden"
-															style={{
-																display: "-webkit-box",
-																WebkitLineClamp: 2,
-																WebkitBoxOrient: "vertical",
-																wordBreak: "break-word",
-																overflowWrap: "anywhere",
-															}}>
+															className="text-[#b8b8b8] text-[13px] leading-[1.2] overflow-hidden whitespace-nowrap text-ellipsis"
+															title={displayTitle}>
 															{displayTitle}
 														</div>
 													)}
