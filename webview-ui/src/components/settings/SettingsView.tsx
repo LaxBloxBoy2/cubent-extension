@@ -70,7 +70,6 @@ import { ExperimentalSettings } from "./ExperimentalSettings"
 import { LanguageSettings } from "./LanguageSettings"
 import { Section } from "./Section"
 import PromptsSettings from "./PromptsSettings"
-import { UserManagementSettings } from "../user/UserManagementSettings"
 import { cn } from "@/lib/utils"
 
 export const settingsTabsContainer = "flex flex-1 overflow-hidden flex-col [&.narrow_.tab-label]:hidden"
@@ -98,7 +97,6 @@ const sectionNames = [
 	"prompts",
 	"experimental",
 	"language",
-	"userManagement",
 ] as const
 
 type SectionName = (typeof sectionNames)[number]
@@ -393,7 +391,6 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 			{ id: "checkpoints", icon: GitBranch },
 			{ id: "contextManagement", icon: Database },
 			{ id: "historyManagement", icon: History },
-			{ id: "userManagement", icon: User },
 		],
 		[], // No dependencies needed now
 	)
@@ -682,9 +679,6 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 							setCachedStateField={setCachedStateField}
 						/>
 					)}
-
-					{/* User Management Section */}
-					{activeTab === "userManagement" && <UserManagementSettings />}
 				</TabContent>
 			</div>
 
