@@ -132,14 +132,8 @@ const getCommandsMap = ({ context, outputChannel, provider }: RegisterCommandOpt
 			return
 		}
 
-		// First, open the extension in a new tab with settings as initial tab
-		const tabProvider = await openClineInNewTab({ context, outputChannel, initialTab: "settings" })
-
-		// Force immediate state synchronization from the main instance
-		await tabProvider.syncFromProvider(visibleProvider)
-
-		// Then tell that tab to show settings (it should already be showing due to initialTab)
-		await tabProvider.postMessageToWebview({ type: "action", action: "settingsButtonClicked" })
+		// Show settings in the same tab instead of opening a new tab
+		await visibleProvider.postMessageToWebview({ type: "action", action: "settingsButtonClicked" })
 	},
 	toggleAutoApprove: async () => {
 		const visibleProvider = getVisibleProviderOrLog(outputChannel)
@@ -233,7 +227,7 @@ const getCommandsMap = ({ context, outputChannel, provider }: RegisterCommandOpt
 export const openClineInNewTab = async ({
 	context,
 	outputChannel,
-	initialTab
+	initialTab,
 }: Omit<RegisterCommandOptions, "provider"> & { initialTab?: string }) => {
 	// (This example uses webviewProvider activation event which is necessary to
 	// deserialize cached webview, but since we use retainContextWhenHidden, we
@@ -289,5 +283,3 @@ export const openClineInNewTab = async ({
 
 	return tabProvider
 }
-
-

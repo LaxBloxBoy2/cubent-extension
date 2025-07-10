@@ -21,6 +21,9 @@ export interface WebviewMessage {
 		| "loadApiConfigurationById"
 		| "renameApiConfiguration"
 		| "getListApiConfiguration"
+		| "getByakApiKeys"
+		| "updateByakApiKeys"
+		| "openExternalUrl"
 		| "customInstructions"
 		| "allowedCommands"
 		| "alwaysAllowReadOnly"
@@ -210,6 +213,11 @@ export interface WebviewMessage {
 	preferences?: any
 	alertId?: string
 	url?: string
+	keys?: {
+		openAiApiKey?: string
+		anthropicApiKey?: string
+		geminiApiKey?: string
+	}
 }
 
 export const checkoutDiffPayloadSchema = z.object({

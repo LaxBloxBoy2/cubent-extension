@@ -2167,5 +2167,68 @@ export const webviewMessageHandler = async (provider: ClineProvider, message: We
 			}
 			break
 		}
+		case "getByakApiKeys": {
+			try {
+				// Get current API keys from all BYAK profiles
+				const currentConfig = await provider.getState()
+				const apiConfig = currentConfig.apiConfiguration
+
+				const keys = {
+					openAiApiKey: apiConfig?.openAiApiKey || "",
+					anthropicApiKey: apiConfig?.apiKey || "",
+					geminiApiKey: apiConfig?.geminiApiKey || "",
+					xaiApiKey: apiConfig?.xaiApiKey || "",
+					deepSeekApiKey: apiConfig?.deepSeekApiKey || "",
+					groqApiKey: apiConfig?.groqApiKey || "",
+					mistralApiKey: apiConfig?.mistralApiKey || "",
+				}
+
+				provider.postMessageToWebview({
+					type: "byakApiKeysResponse",
+					keys,
+				})
+			} catch (error) {
+				console.error("Error getting BYAK API keys:", error)
+				provider.postMessageToWebview({
+					type: "byakApiKeysResponse",
+					keys: {
+						openAiApiKey: "",
+						anthropicApiKey: "",
+						geminiApiKey: "",
+						xaiApiKey: "",
+						deepSeekApiKey: "",
+						groqApiKey: "",
+						mistralApiKey: "",
+					},
+				})
+			}
+			break
+		}
+		case "updateByakApiKeys": {
+			try {
+				if (!message.keys) {
+					break
+				}
+
+				// Update all BYAK profiles with the new API keys
+				await provider.updateByakApiKeys(message.keys)
+
+				// Broadcast the change to other instances
+				ClineProvider.broadcastStateChange(provider, "configProfile")
+			} catch (error) {
+				console.error("Error updating BYAK API keys:", error)
+			}
+			break
+		}
+		case "openExternalUrl": {
+			try {
+				if (message.url) {
+					await vscode.env.openExternal(vscode.Uri.parse(message.url))
+				}
+			} catch (error) {
+				console.error("Error opening external URL:", error)
+			}
+			break
+		}
 	}
 }

@@ -114,12 +114,28 @@ export class MessageUsageTracker extends EventEmitter {
 		console.log(`🔍 Updating session ${userMessageTs} with:`, updates)
 		console.log(`🔍 Session before update:`, session)
 
-		// Update session data
-		Object.assign(session, updates)
-
-		// Calculate total tokens
-		session.inputTokens = updates.inputTokens ?? session.inputTokens
-		session.outputTokens = updates.outputTokens ?? session.outputTokens
+		// Accumulate token counts across multiple API calls within the same message
+		if (updates.inputTokens !== undefined) {
+			session.inputTokens += updates.inputTokens
+		}
+		if (updates.outputTokens !== undefined) {
+			session.outputTokens += updates.outputTokens
+		}
+		if (updates.cacheWrites !== undefined) {
+			session.cacheWrites = (session.cacheWrites || 0) + updates.cacheWrites
+		}
+		if (updates.cacheReads !== undefined) {
+			session.cacheReads = (session.cacheReads || 0) + updates.cacheReads
+		}
+		if (updates.totalCost !== undefined) {
+			session.totalCost = (session.totalCost || 0) + updates.totalCost
+		}
+		if (updates.toolCalls !== undefined) {
+			session.toolCalls += updates.toolCalls
+		}
+		if (updates.cubentUnits !== undefined) {
+			session.cubentUnits = updates.cubentUnits // This should be set once per message, not accumulated
+		}
 
 		console.log(`🔍 Session after update:`, session)
 

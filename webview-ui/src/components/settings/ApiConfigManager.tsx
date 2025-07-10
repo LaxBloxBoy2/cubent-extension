@@ -6,6 +6,7 @@ import type { ProviderSettingsEntry, OrganizationAllowList } from "@cubent/types
 
 import { useAppTranslation } from "@/i18n/TranslationContext"
 import { cn } from "@/lib/utils"
+import { ApiKeyManagerPopup } from "./ApiKeyManagerPopup"
 import {
 	Button,
 	Input,
@@ -365,6 +366,17 @@ const ApiConfigManager = ({
 						{/* Only show management buttons for BYAK profiles */}
 						{isByakProfile && (
 							<>
+								<ApiKeyManagerPopup
+									trigger={
+										<Button
+											variant="ghost"
+											size="icon"
+											title="Manage API Keys"
+											data-testid="api-key-manager-button">
+											<span className="codicon codicon-key" />
+										</Button>
+									}
+								/>
 								<Button
 									variant="ghost"
 									size="icon"
@@ -396,7 +408,6 @@ const ApiConfigManager = ({
 								</Button>
 							</>
 						)}
-
 					</div>
 					<div className="text-vscode-descriptionForeground text-sm mt-1">
 						{t("settings:providers.description")}

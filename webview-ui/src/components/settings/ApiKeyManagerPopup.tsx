@@ -1,0 +1,328 @@
+import { useState, useEffect, useMemo } from "react"
+import { VSCodeTextField, VSCodeButton } from "@vscode/webview-ui-toolkit/react"
+import { ExternalLink, Key, Settings, Search } from "lucide-react"
+
+import { useAppTranslation } from "@/i18n/TranslationContext"
+import { cn } from "@/lib/utils"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { vscode } from "@/utils/vscode"
+
+interface ApiKeyManagerPopupProps {
+	trigger?: React.ReactNode
+	isOpen?: boolean
+	onOpenChange?: (open: boolean) => void
+}
+
+interface Provider {
+	id: string
+	name: string
+	description: string
+	apiKeyField: string
+	createKeyUrl: string
+	logo: React.ReactNode
+}
+
+interface ApiKeyState {
+	[key: string]: string
+}
+
+const PROVIDERS: Provider[] = [
+	{
+		id: "openai",
+		name: "OpenAI",
+		description: "GPT-4, GPT-4 Turbo, and other OpenAI models",
+		apiKeyField: "openAiApiKey",
+		createKeyUrl: "https://platform.openai.com/api-keys",
+		logo: (
+			<svg className="w-5 h-5 text-vscode-foreground" viewBox="0 0 24 24" fill="currentColor">
+				<path d="M22.2819 9.8211a5.9847 5.9847 0 0 0-.5157-4.9108 6.0462 6.0462 0 0 0-6.5098-2.9A6.0651 6.0651 0 0 0 4.9807 4.1818a5.9847 5.9847 0 0 0-3.9977 2.9 6.0462 6.0462 0 0 0 .7427 7.0966 5.98 5.98 0 0 0 .511 4.9107 6.051 6.051 0 0 0 6.5146 2.9001A5.9847 5.9847 0 0 0 13.2599 24a6.0557 6.0557 0 0 0 5.7718-4.2058 5.9894 5.9894 0 0 0 3.9977-2.9001 6.0557 6.0557 0 0 0-.7475-7.0729zm-9.022 12.6081a4.4755 4.4755 0 0 1-2.8764-1.0408l.1419-.0804 4.7783-2.7582a.7948.7948 0 0 0 .3927-.6813v-6.7369l2.02 1.1686a.071.071 0 0 1 .038.052v5.5826a4.504 4.504 0 0 1-4.4945 4.4944zm-9.6607-4.1254a4.4708 4.4708 0 0 1-.5346-3.0137l.142.0852 4.783 2.7582a.7712.7712 0 0 0 .7806 0l5.8428-3.3685v2.3324a.0804.0804 0 0 1-.0332.0615L9.74 19.9502a4.4992 4.4992 0 0 1-6.1408-1.6464zM2.3408 7.8956a4.485 4.485 0 0 1 2.3655-1.9728V11.6a.7664.7664 0 0 0 .3879.6765l5.8144 3.3543-2.0201 1.1685a.0757.0757 0 0 1-.071 0l-4.8303-2.7865A4.504 4.504 0 0 1 2.3408 7.872zm16.5963 3.8558L13.1038 8.364 15.1192 7.2a.0757.0757 0 0 1 .071 0l4.8303 2.7913a4.4944 4.4944 0 0 1-.6765 8.1042v-5.6772a.79.79 0 0 0-.407-.667zm2.0107-3.0231l-.142-.0852-4.7735-2.7818a.7759.7759 0 0 0-.7854 0L9.409 9.2297V6.8974a.0662.0662 0 0 1 .0284-.0615l4.8303-2.7866a4.4992 4.4992 0 0 1 6.6802 4.66zM8.3065 12.863l-2.02-1.1638a.0804.0804 0 0 1-.038-.0567V6.0742a4.4992 4.4992 0 0 1 7.3757-3.4537l-.142.0805L8.704 5.459a.7948.7948 0 0 0-.3927.6813zm1.0976-2.3654l2.602-1.4998 2.6069 1.4998v2.9994l-2.5974 1.4997-2.6067-1.4997Z" />
+			</svg>
+		),
+	},
+	{
+		id: "anthropic",
+		name: "Anthropic",
+		description: "Claude 3.5 Sonnet, Claude 3 Opus, and other Claude models",
+		apiKeyField: "anthropicApiKey",
+		createKeyUrl: "https://console.anthropic.com/settings/keys",
+		logo: (
+			<svg className="w-5 h-5 text-vscode-foreground" viewBox="0 0 24 24" fill="currentColor">
+				<path d="M7.307 2.5L12 21.5L16.693 2.5H14.307L10.5 17.5L6.693 2.5H7.307Z" />
+				<path d="M9.5 8.5L11 13.5H8L9.5 8.5Z" />
+			</svg>
+		),
+	},
+	{
+		id: "gemini",
+		name: "Google Gemini",
+		description: "Gemini 1.5 Pro, Gemini 1.5 Flash, and other Google models",
+		apiKeyField: "geminiApiKey",
+		createKeyUrl: "https://aistudio.google.com/app/apikey",
+		logo: (
+			<svg className="w-5 h-5 text-vscode-foreground" viewBox="0 0 24 24" fill="currentColor">
+				<path d="M12 2L13.09 8.26L20 9L13.09 9.74L12 16L10.91 9.74L4 9L10.91 8.26L12 2Z" />
+				<path d="M12 8L12.5 10.5L15 11L12.5 11.5L12 14L11.5 11.5L9 11L11.5 10.5L12 8Z" />
+			</svg>
+		),
+	},
+	{
+		id: "xai",
+		name: "xAI",
+		description: "Grok 2, Grok 3, and other xAI models",
+		apiKeyField: "xaiApiKey",
+		createKeyUrl: "https://console.x.ai/",
+		logo: (
+			<svg className="w-5 h-5 text-vscode-foreground" viewBox="0 0 24 24" fill="currentColor">
+				<path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+			</svg>
+		),
+	},
+	{
+		id: "deepseek",
+		name: "DeepSeek",
+		description: "DeepSeek V3, DeepSeek Coder, and other DeepSeek models",
+		apiKeyField: "deepSeekApiKey",
+		createKeyUrl: "https://platform.deepseek.com/api_keys",
+		logo: (
+			<svg className="w-5 h-5 text-vscode-foreground" viewBox="0 0 24 24" fill="currentColor">
+				<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z" />
+				<path d="M12 6c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6-2.69-6-6-6zm0 10c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4z" />
+				<circle cx="12" cy="12" r="2" />
+			</svg>
+		),
+	},
+	{
+		id: "groq",
+		name: "Groq",
+		description: "Llama 3.1, Mixtral, and other models on Groq's fast inference",
+		apiKeyField: "groqApiKey",
+		createKeyUrl: "https://console.groq.com/keys",
+		logo: (
+			<svg className="w-5 h-5 text-vscode-foreground" viewBox="0 0 24 24" fill="currentColor">
+				<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z" />
+				<path d="M7 7h10v2H7V7zm0 4h10v2H7v-2zm0 4h7v2H7v-2z" fill="white" />
+			</svg>
+		),
+	},
+	{
+		id: "mistral",
+		name: "Mistral AI",
+		description: "Mistral Large, Mistral Medium, and other Mistral models",
+		apiKeyField: "mistralApiKey",
+		createKeyUrl: "https://console.mistral.ai/api-keys/",
+		logo: (
+			<svg className="w-5 h-5 text-vscode-foreground" viewBox="0 0 24 24" fill="currentColor">
+				<path d="M12 2L22 8.5L12 15L2 8.5L12 2ZM12 17L22 10.5V17.5L12 24L2 17.5V10.5L12 17Z" />
+			</svg>
+		),
+	},
+]
+
+export const ApiKeyManagerPopup = ({
+	trigger,
+	isOpen: controlledOpen,
+	onOpenChange: controlledOnOpenChange,
+}: ApiKeyManagerPopupProps) => {
+	const { t } = useAppTranslation()
+	const [internalOpen, setInternalOpen] = useState(false)
+	const [apiKeys, setApiKeys] = useState<ApiKeyState>({})
+	const [isLoading, setIsLoading] = useState(false)
+	const [searchQuery, setSearchQuery] = useState("")
+
+	// Use controlled or internal state
+	const isOpen = controlledOpen !== undefined ? controlledOpen : internalOpen
+	const onOpenChange = controlledOnOpenChange || setInternalOpen
+
+	// Filter providers based on search query
+	const filteredProviders = useMemo(() => {
+		if (!searchQuery.trim()) return PROVIDERS
+		const query = searchQuery.toLowerCase()
+		return PROVIDERS.filter(
+			(provider) =>
+				provider.name.toLowerCase().includes(query) || provider.description.toLowerCase().includes(query),
+		)
+	}, [searchQuery])
+
+	// Load existing API keys when popup opens
+	useEffect(() => {
+		if (isOpen) {
+			loadApiKeys()
+		}
+	}, [isOpen])
+
+	const loadApiKeys = () => {
+		// Request current API keys from extension
+		vscode.postMessage({ type: "getByakApiKeys" })
+	}
+
+	// Listen for API key response from extension
+	useEffect(() => {
+		const handleMessage = (event: MessageEvent) => {
+			const message = event.data
+			if (message.type === "byakApiKeysResponse") {
+				// Initialize all provider keys
+				const keys: ApiKeyState = {}
+				PROVIDERS.forEach((provider) => {
+					keys[provider.apiKeyField] = message.keys?.[provider.apiKeyField] || ""
+				})
+				setApiKeys(keys)
+			}
+		}
+
+		window.addEventListener("message", handleMessage)
+		return () => window.removeEventListener("message", handleMessage)
+	}, [])
+
+	const handleApiKeyChange = (apiKeyField: string, value: string) => {
+		setApiKeys((prev) => ({
+			...prev,
+			[apiKeyField]: value,
+		}))
+	}
+
+	const handleConnect = async () => {
+		setIsLoading(true)
+		try {
+			// Send API keys to extension to update all BYAK models
+			vscode.postMessage({
+				type: "updateByakApiKeys",
+				keys: apiKeys,
+			})
+
+			// Close popup after successful update
+			setTimeout(() => {
+				onOpenChange(false)
+				setIsLoading(false)
+			}, 500)
+		} catch (error) {
+			console.error("Failed to update API keys:", error)
+			setIsLoading(false)
+		}
+	}
+
+	const handleLinkClick = (url: string) => {
+		vscode.postMessage({ type: "openExternalUrl", url })
+	}
+
+	const defaultTrigger = (
+		<Button variant="outline" size="sm" className="gap-2">
+			<Key className="w-4 h-4" />
+			API Keys
+		</Button>
+	)
+
+	return (
+		<Dialog open={isOpen} onOpenChange={onOpenChange}>
+			<DialogTrigger asChild>{trigger || defaultTrigger}</DialogTrigger>
+			<DialogContent className="sm:max-w-lg bg-vscode-sideBar-background border-vscode-input-border max-h-[80vh] flex flex-col">
+				<DialogHeader className="pb-2 flex-shrink-0">
+					<DialogTitle className="text-vscode-foreground flex items-center gap-2 text-sm">
+						<Settings className="w-4 h-4" />
+						API Key Management
+					</DialogTitle>
+				</DialogHeader>
+
+				<div className="flex flex-col space-y-3 flex-1 min-h-0">
+					{/* Tabs */}
+					<div className="flex border-b border-vscode-input-border flex-shrink-0">
+						<button className="px-2 py-1 text-xs font-medium text-vscode-foreground border-b-2 border-vscode-focusBorder">
+							<span className="flex items-center gap-1">
+								<Key className="w-3 h-3" />
+								API Key
+							</span>
+						</button>
+						<button className="px-2 py-1 text-xs text-vscode-descriptionForeground opacity-50 cursor-not-allowed">
+							Upgrade
+						</button>
+						<button className="px-2 py-1 text-xs text-vscode-descriptionForeground opacity-50 cursor-not-allowed">
+							Local
+						</button>
+					</div>
+
+					{/* Search Bar */}
+					<div className="relative flex-shrink-0">
+						<Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-3 h-3 text-vscode-descriptionForeground" />
+						<Input
+							type="text"
+							placeholder="Search providers..."
+							value={searchQuery}
+							onChange={(e) => setSearchQuery(e.target.value)}
+							className="pl-7 h-7 text-xs bg-vscode-input-background border-vscode-input-border text-vscode-foreground placeholder-vscode-descriptionForeground"
+						/>
+					</div>
+
+					{/* Scrollable Provider List */}
+					<div className="flex-1 overflow-y-auto space-y-2 min-h-0 pr-1">
+						{filteredProviders.map((provider) => (
+							<div
+								key={provider.id}
+								className="space-y-1 p-2 bg-vscode-editor-background rounded border border-vscode-input-border">
+								<div className="flex items-center gap-2 mb-1">
+									{provider.logo}
+									<div className="flex-1 min-w-0">
+										<h3 className="text-vscode-foreground font-medium text-xs truncate mt-0.5">
+											{provider.name}
+										</h3>
+										<p className="text-vscode-descriptionForeground text-xs truncate">
+											{provider.description}
+										</p>
+									</div>
+								</div>
+								<VSCodeTextField
+									value={apiKeys[provider.apiKeyField] || ""}
+									type="password"
+									onInput={(e) =>
+										handleApiKeyChange(provider.apiKeyField, (e.target as HTMLInputElement).value)
+									}
+									placeholder={`Enter your ${provider.name} API key`}
+									className="w-full text-xs -mt-0.5"
+								/>
+								<button
+									onClick={() => handleLinkClick(provider.createKeyUrl)}
+									className="text-xs text-vscode-foreground hover:text-vscode-descriptionForeground flex items-center gap-1 transition-colors cursor-pointer">
+									Get {provider.name} API key
+									<ExternalLink className="w-3 h-3" />
+								</button>
+							</div>
+						))}
+						{filteredProviders.length === 0 && (
+							<div className="text-center py-4 text-vscode-descriptionForeground text-xs">
+								No providers found matching "{searchQuery}"
+							</div>
+						)}
+					</div>
+
+					{/* Footer */}
+					<div className="flex-shrink-0 space-y-2 pt-2 border-t border-vscode-input-border">
+						{/* Security Notice */}
+						<div className="text-center">
+							<p className="text-xs text-vscode-descriptionForeground">
+								API credentials are protected through secure storage within VSCode.
+							</p>
+						</div>
+
+						{/* Connect Button */}
+						<VSCodeButton
+							onClick={handleConnect}
+							disabled={isLoading}
+							className="w-full bg-vscode-button-background hover:bg-vscode-button-hoverBackground text-vscode-button-foreground py-1 text-xs">
+							{isLoading ? "Connecting..." : "Connect"}
+						</VSCodeButton>
+
+						{/* More providers link */}
+						<div className="text-center">
+							<button
+								onClick={() => handleLinkClick("https://docs.cubent.dev/providers")}
+								className="text-xs text-vscode-foreground hover:text-vscode-descriptionForeground flex items-center gap-1 mx-auto transition-colors cursor-pointer">
+								Click here to view more providers
+								<ExternalLink className="w-3 h-3" />
+							</button>
+						</div>
+					</div>
+				</div>
+			</DialogContent>
+		</Dialog>
+	)
+}

@@ -26,6 +26,7 @@ import {
 	Brain,
 	LucideIcon,
 	User,
+	ChevronDown,
 } from "lucide-react"
 
 import type { ProviderSettings, ExperimentId } from "@cubent/types"
@@ -118,9 +119,7 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 	const [isLoadingConfig, setIsLoadingConfig] = useState(false)
 	const loadingTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 	const [activeTab, setActiveTab] = useState<SectionName | null>(
-		targetSection && sectionNames.includes(targetSection as SectionName)
-			? (targetSection as SectionName)
-			: null,
+		targetSection && sectionNames.includes(targetSection as SectionName) ? (targetSection as SectionName) : null,
 	)
 
 	const prevApiConfigName = useRef(currentApiConfigName)
@@ -470,6 +469,15 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 						data-testid="save-button">
 						{t("settings:common.save")}
 					</Button>
+					<Button
+						variant="ghost"
+						size="sm"
+						className="px-2"
+						title="Close settings"
+						onClick={onDone}
+						data-testid="close-settings-button">
+						<ChevronDown className="w-4 h-4" />
+					</Button>
 				</div>
 			</TabHeader>
 
@@ -616,8 +624,6 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 						</div>
 					)}
 
-
-
 					{/* Auto-Approve Section */}
 					{activeTab === "autoApprove" && (
 						<AutoApproveSettings
@@ -638,8 +644,6 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 						/>
 					)}
 
-
-
 					{/* Checkpoints Section */}
 					{activeTab === "checkpoints" && (
 						<CheckpointSettings
@@ -647,8 +651,6 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 							setCachedStateField={setCachedStateField}
 						/>
 					)}
-
-
 
 					{/* Context Management Section */}
 					{activeTab === "contextManagement" && (
@@ -666,18 +668,8 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 						/>
 					)}
 
-
-
-
-
-
-
-
-
 					{/* User Management Section */}
-					{activeTab === "userManagement" && (
-						<UserManagementSettings />
-					)}
+					{activeTab === "userManagement" && <UserManagementSettings />}
 
 					{/* About Section */}
 					{activeTab === "about" && (

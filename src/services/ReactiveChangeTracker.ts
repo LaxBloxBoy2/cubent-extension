@@ -269,6 +269,15 @@ export class ReactiveChangeTracker {
 	 * Uses the same content normalization and diff algorithm as the tool diff display
 	 */
 	private calculateLineDiff(original: string, current: string): { added: number; removed: number } {
+		// Special handling for new files (empty original content)
+		if (original === "") {
+			// For new files, only count added lines, no removed lines
+			const currentLines = current.split("\n")
+			// Don't count the last empty line if it exists (trailing newline)
+			const added = currentLines[currentLines.length - 1] === "" ? currentLines.length - 1 : currentLines.length
+			return { added: Math.max(0, added), removed: 0 }
+		}
+
 		// Apply the same content normalization as createPrettyPatch
 		const normalizeContent = (content: string): string => {
 			// Strip all BOMs (same logic as DiffViewProvider.stripAllBOMs)
@@ -299,14 +308,19 @@ export class ReactiveChangeTracker {
 		// Parse the unified diff format (same logic as calculateDiffStats)
 		for (const line of lines) {
 			// Skip diff headers and context lines
-			if (line.startsWith('@@') || line.startsWith('diff ') || line.startsWith('index ') ||
-				line.startsWith('Binary files') || line.startsWith('\\ No newline')) {
+			if (
+				line.startsWith("@@") ||
+				line.startsWith("diff ") ||
+				line.startsWith("index ") ||
+				line.startsWith("Binary files") ||
+				line.startsWith("\\ No newline")
+			) {
 				continue
 			}
 
-			if (line.startsWith('+') && !line.startsWith('+++')) {
+			if (line.startsWith("+") && !line.startsWith("+++")) {
 				added++
-			} else if (line.startsWith('-') && !line.startsWith('---')) {
+			} else if (line.startsWith("-") && !line.startsWith("---")) {
 				removed++
 			}
 		}

@@ -1226,6 +1226,121 @@ export class ClineProvider
 		await this.upsertProviderProfile(currentApiConfigName, newConfiguration)
 	}
 
+	// BYAK API Key Management
+
+	async updateByakApiKeys(keys: {
+		openAiApiKey?: string
+		anthropicApiKey?: string
+		geminiApiKey?: string
+		xaiApiKey?: string
+		deepSeekApiKey?: string
+		groqApiKey?: string
+		mistralApiKey?: string
+	}) {
+		try {
+			// Get all BYAK profiles
+			const listApiConfig = await this.providerSettingsManager.listConfig()
+			const byakProfiles = listApiConfig.filter((profile) => profile.name.includes("(BYAK)"))
+
+			// Update each BYAK profile with the corresponding API key
+			for (const profile of byakProfiles) {
+				const { name, ...providerSettings } = await this.providerSettingsManager.getProfile({ id: profile.id })
+
+				let updatedSettings = { ...providerSettings }
+				let hasChanges = false
+
+				// Update API keys based on provider type
+				const apiProvider = providerSettings.apiProvider
+
+				// Update OpenAI BYAK profiles
+				if (
+					apiProvider === "openai-native" ||
+					name.toLowerCase().includes("openai") ||
+					name.toLowerCase().includes("gpt")
+				) {
+					if (keys.openAiApiKey !== undefined) {
+						updatedSettings.openAiApiKey = keys.openAiApiKey
+						hasChanges = true
+					}
+				}
+
+				// Update Anthropic BYAK profiles
+				if (
+					apiProvider === "anthropic" ||
+					name.toLowerCase().includes("anthropic") ||
+					name.toLowerCase().includes("claude")
+				) {
+					if (keys.anthropicApiKey !== undefined) {
+						updatedSettings.apiKey = keys.anthropicApiKey
+						hasChanges = true
+					}
+				}
+
+				// Update Gemini BYAK profiles
+				if (
+					apiProvider === "gemini" ||
+					name.toLowerCase().includes("gemini") ||
+					name.toLowerCase().includes("google")
+				) {
+					if (keys.geminiApiKey !== undefined) {
+						updatedSettings.geminiApiKey = keys.geminiApiKey
+						hasChanges = true
+					}
+				}
+
+				// Update xAI BYAK profiles
+				if (
+					apiProvider === "xai" ||
+					name.toLowerCase().includes("xai") ||
+					name.toLowerCase().includes("grok")
+				) {
+					if (keys.xaiApiKey !== undefined) {
+						updatedSettings.xaiApiKey = keys.xaiApiKey
+						hasChanges = true
+					}
+				}
+
+				// Update DeepSeek BYAK profiles
+				if (apiProvider === "deepseek" || name.toLowerCase().includes("deepseek")) {
+					if (keys.deepSeekApiKey !== undefined) {
+						updatedSettings.deepSeekApiKey = keys.deepSeekApiKey
+						hasChanges = true
+					}
+				}
+
+				// Update Groq BYAK profiles
+				if (apiProvider === "groq" || name.toLowerCase().includes("groq")) {
+					if (keys.groqApiKey !== undefined) {
+						updatedSettings.groqApiKey = keys.groqApiKey
+						hasChanges = true
+					}
+				}
+
+				// Update Mistral BYAK profiles
+				if (apiProvider === "mistral" || name.toLowerCase().includes("mistral")) {
+					if (keys.mistralApiKey !== undefined) {
+						updatedSettings.mistralApiKey = keys.mistralApiKey
+						hasChanges = true
+					}
+				}
+
+				// Save the updated profile if there were changes
+				if (hasChanges) {
+					await this.providerSettingsManager.saveConfig(name, updatedSettings)
+				}
+			}
+
+			// Update the global state
+			await this.updateGlobalState("listApiConfigMeta", await this.providerSettingsManager.listConfig())
+			await this.postStateToWebview()
+
+			this.log("Successfully updated BYAK API keys")
+		} catch (error) {
+			this.log(`Error updating BYAK API keys: ${JSON.stringify(error, Object.getOwnPropertyNames(error), 2)}`)
+			throw error
+		}
+	}
+
 	// Task history
 
 	async getTaskWithId(id: string): Promise<{
