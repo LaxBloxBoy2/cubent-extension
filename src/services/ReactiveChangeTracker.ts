@@ -2,6 +2,7 @@ import * as vscode from "vscode"
 import * as path from "path"
 import * as fs from "fs/promises"
 import stripBom from "strip-bom"
+import * as diff from "diff"
 
 export interface FileSnapshot {
 	originalContent: string
@@ -265,7 +266,7 @@ export class ReactiveChangeTracker {
 
 	/**
 	 * Calculate line differences (like Augment's analysis)
-	 * Uses the same content normalization as the tool diff display
+	 * Uses the same content normalization and diff algorithm as the tool diff display
 	 */
 	private calculateLineDiff(original: string, current: string): { added: number; removed: number } {
 		// Apply the same content normalization as createPrettyPatch
@@ -288,30 +289,25 @@ export class ReactiveChangeTracker {
 		const normalizedOriginal = normalizeContent(original)
 		const normalizedCurrent = normalizeContent(current)
 
-		// Split into lines for comparison
-		const originalLines = normalizedOriginal.split(/\r\n|\n/)
-		const currentLines = normalizedCurrent.split(/\r\n|\n/)
+		// Use the same diff algorithm as createPrettyPatch to ensure consistency
+		const patch = diff.createPatch("file", normalizedOriginal, normalizedCurrent)
+		const lines = patch.split("\n")
 
-		// Simple but accurate line counting
-		const maxLines = Math.max(originalLines.length, currentLines.length)
 		let added = 0
 		let removed = 0
 
-		// Count actual line differences
-		for (let i = 0; i < maxLines; i++) {
-			const origLine = originalLines[i] || ""
-			const currLine = currentLines[i] || ""
+		// Parse the unified diff format (same logic as calculateDiffStats)
+		for (const line of lines) {
+			// Skip diff headers and context lines
+			if (line.startsWith('@@') || line.startsWith('diff ') || line.startsWith('index ') ||
+				line.startsWith('Binary files') || line.startsWith('\\ No newline')) {
+				continue
+			}
 
-			if (origLine !== currLine) {
-				if (!origLine && currLine) {
-					added++ // New line added
-				} else if (origLine && !currLine) {
-					removed++ // Line removed
-				} else if (origLine && currLine) {
-					// Line modified - count as both added and removed
-					added++
-					removed++
-				}
+			if (line.startsWith('+') && !line.startsWith('+++')) {
+				added++
+			} else if (line.startsWith('-') && !line.startsWith('---')) {
+				removed++
 			}
 		}
 

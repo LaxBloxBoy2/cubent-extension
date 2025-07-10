@@ -1080,7 +1080,7 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 								"px-2",
 								"py-1.5",
 								"-mb-1.5",
-								"bg-vscode-input-background",
+								"bg-transparent",
 								"border-l-2",
 								"border-l-blue-500",
 							)}>

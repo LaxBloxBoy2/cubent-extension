@@ -157,7 +157,7 @@ export const StyledPre = styled.div<{
 	max-height: ${({ windowshade, collapsedHeight }) =>
 		windowshade === "true" ? `${collapsedHeight || WINDOW_SHADE_SETTINGS.collapsedHeight}px` : "none"};
 	overflow-y: auto;
-	padding: 12px;
+	padding: 4px 12px 12px 12px;
 	border-radius: 0;
 	${({ preStyle }) => preStyle && { ...preStyle }}
 

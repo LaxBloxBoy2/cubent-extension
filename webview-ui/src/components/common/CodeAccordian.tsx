@@ -417,33 +417,6 @@ const CodeAccordian = ({
 			)}
 			{(!hasHeader || isExpanded) && (
 				<div className="overflow-x-auto overflow-y-hidden max-w-full">
-					{/* Show diff button when expanded */}
-					{isExpanded && path && (isEditedFile || isAppendContent || isSearchAndReplace) && (
-						<div className="flex justify-end mb-2 pr-2">
-							<button
-								className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-vscode-foreground bg-vscode-button-secondaryBackground hover:bg-vscode-button-secondaryHoverBackground transition-colors cursor-pointer rounded"
-								title="Show diff"
-								onClick={() => {
-									// Only show diff if we have valid diff content
-									if (code && code.trim() !== "") {
-										// Send message to show diff view
-										vscode.postMessage({
-											type: "showDiff",
-											text: path,
-											values: {
-												diffContent: code, // Pass the diff content
-											},
-										})
-									} else {
-										// Show error if no diff content available
-										console.warn("No diff content available for file:", path)
-									}
-								}}>
-								<span className="codicon codicon-diff text-xs"></span>
-								Show diff
-							</button>
-						</div>
-					)}
 					<CodeBlock source={source} language={inferredLanguage} />
 				</div>
 			)}
