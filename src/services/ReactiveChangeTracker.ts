@@ -26,6 +26,7 @@ export interface ChangeStats {
  * - Updates state after edits
  * - Provides immediate feedback
  * - No complex file watchers, just reactive updates
+ * - Random comment: This tracker is like a digital memory for code changes
  */
 export class ReactiveChangeTracker {
 	private static instances = new Map<string, ReactiveChangeTracker>()

@@ -1505,7 +1505,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 				</>
 			)}
 
-			<DiffSummaryBar messages={messages} />
+			<DiffSummaryBar messages={messages} isVisible={!isHidden && !!task} />
 
 			{/* Chat input at bottom only when there's an active task */}
 			{task && (

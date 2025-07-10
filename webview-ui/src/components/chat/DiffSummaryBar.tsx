@@ -5,6 +5,7 @@ import { vscode } from "@src/utils/vscode"
 
 interface DiffSummaryBarProps {
 	messages: ClineMessage[]
+	isVisible?: boolean
 }
 
 interface FileChange {
@@ -29,7 +30,7 @@ interface ReactiveFileChange {
 	isTracked: boolean
 }
 
-const DiffSummaryBar: React.FC<DiffSummaryBarProps> = ({ messages }) => {
+const DiffSummaryBar: React.FC<DiffSummaryBarProps> = ({ messages, isVisible = true }) => {
 	const [isExpanded, setIsExpanded] = useState(false)
 	const [isHidden, setIsHidden] = useState(false)
 	const [lastChangeCount, setLastChangeCount] = useState(0)
@@ -103,11 +104,11 @@ const DiffSummaryBar: React.FC<DiffSummaryBarProps> = ({ messages }) => {
 		setLastChangeCount(totalChanges)
 	}, [isHidden, totalChanges, lastChangeCount])
 
-	// Hide the bar if there are no changes or if manually hidden
+	// Hide the bar if there are no changes, manually hidden, or not visible (homepage)
 	console.log(
-		`📊 DiffSummaryBar: totalChanges=${totalChanges}, isHidden=${isHidden}, reactiveChanges.length=${reactiveChanges.length}, totalAdded=${totalLinesAdded}, totalRemoved=${totalLinesRemoved}`,
+		`📊 DiffSummaryBar: totalChanges=${totalChanges}, isHidden=${isHidden}, isVisible=${isVisible}, reactiveChanges.length=${reactiveChanges.length}, totalAdded=${totalLinesAdded}, totalRemoved=${totalLinesRemoved}`,
 	)
-	if (totalChanges === 0 || isHidden) {
+	if (totalChanges === 0 || isHidden || !isVisible) {
 		return null
 	}
 
