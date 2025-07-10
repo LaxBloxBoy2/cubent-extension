@@ -133,7 +133,8 @@ export const Unbound = ({
 
 	return (
 		<>
-			<VSCodeTextField
+			{/* API key input hidden as requested */}
+			{/* <VSCodeTextField
 				value={apiConfiguration?.unboundApiKey || ""}
 				type="password"
 				onInput={handleInputChange("unboundApiKey")}
@@ -148,7 +149,7 @@ export const Unbound = ({
 				<VSCodeButtonLink href="https://gateway.getunbound.ai" appearance="secondary">
 					{t("settings:providers.getUnboundApiKey")}
 				</VSCodeButtonLink>
-			)}
+			)} */}
 			<div className="flex justify-end">
 				<Button variant="outline" onClick={handleRefresh} className="w-1/2 max-w-xs">
 					<div className="flex items-center gap-2 justify-center">

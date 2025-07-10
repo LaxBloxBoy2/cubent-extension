@@ -66,7 +66,8 @@ export const OpenAI = ({ apiConfiguration, setApiConfigurationField, isByakProfi
 					API key is pre-configured for this model.
 				</div>
 			)}
-			{isByakProfile && (
+			{/* API key input hidden for BYAK profiles as requested */}
+			{/* {isByakProfile && (
 				<>
 					<VSCodeTextField
 						value={apiConfiguration?.openAiNativeApiKey || ""}
@@ -85,7 +86,7 @@ export const OpenAI = ({ apiConfiguration, setApiConfigurationField, isByakProfi
 						</VSCodeButtonLink>
 					)}
 				</>
-			)}
+			)} */}
 		</>
 	)
 }

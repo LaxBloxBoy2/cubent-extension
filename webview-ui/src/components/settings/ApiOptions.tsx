@@ -488,11 +488,12 @@ const ApiOptions = ({
 
 			{isByakProfile && (
 				<>
-					<DiffSettingsControl
+					{/* DiffSettingsControl hidden as requested */}
+					{/* <DiffSettingsControl
 						diffEnabled={apiConfiguration.diffEnabled}
 						fuzzyMatchThreshold={apiConfiguration.fuzzyMatchThreshold}
 						onChange={(field, value) => setApiConfigurationField(field, value)}
-					/>
+					/> */}
 					<TemperatureControl
 						value={apiConfiguration.modelTemperature}
 						onChange={handleInputChange("modelTemperature", noTransform)}

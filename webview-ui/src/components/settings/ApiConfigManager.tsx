@@ -363,21 +363,9 @@ const ApiConfigManager = ({
 							</PopoverContent>
 						</Popover>
 
-						{/* Only show management buttons for BYAK profiles */}
-						{isByakProfile && (
+						{/* Profile management buttons hidden as requested */}
+						{/* {isByakProfile && (
 							<>
-								{/* API Key Manager button hidden - now available in dedicated API Keys settings section */}
-								{/* <ApiKeyManagerPopup
-									trigger={
-										<Button
-											variant="ghost"
-											size="icon"
-											title="Manage API Keys"
-											data-testid="api-key-manager-button">
-											<span className="codicon codicon-key" />
-										</Button>
-									}
-								/> */}
 								<Button
 									variant="ghost"
 									size="icon"
@@ -408,7 +396,7 @@ const ApiConfigManager = ({
 									<span className="codicon codicon-trash" />
 								</Button>
 							</>
-						)}
+						)} */}
 					</div>
 					<div className="text-vscode-descriptionForeground text-sm mt-1">
 						{t("settings:providers.description")}

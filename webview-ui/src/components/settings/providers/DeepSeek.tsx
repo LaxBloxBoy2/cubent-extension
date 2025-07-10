@@ -30,7 +30,8 @@ export const DeepSeek = ({ apiConfiguration, setApiConfigurationField, isByakPro
 
 	return (
 		<>
-			{isByakProfile && (
+			{/* API key input hidden for BYAK profiles as requested */}
+			{/* {isByakProfile && (
 				<>
 					<VSCodeTextField
 						value={apiConfiguration?.deepSeekApiKey || ""}
@@ -49,7 +50,7 @@ export const DeepSeek = ({ apiConfiguration, setApiConfigurationField, isByakPro
 						</VSCodeButtonLink>
 					)}
 				</>
-			)}
+			)} */}
 			{!isByakProfile && (
 				<div className="text-sm text-vscode-descriptionForeground">
 					API key is pre-configured for this model.

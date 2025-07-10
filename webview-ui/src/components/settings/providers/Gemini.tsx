@@ -35,7 +35,8 @@ export const Gemini = ({ apiConfiguration, setApiConfigurationField, isByakProfi
 
 	return (
 		<>
-			{isByakProfile && (
+			{/* API key input hidden for BYAK profiles as requested */}
+			{/* {isByakProfile && (
 				<>
 					<VSCodeTextField
 						value={apiConfiguration?.geminiApiKey || ""}
@@ -54,7 +55,7 @@ export const Gemini = ({ apiConfiguration, setApiConfigurationField, isByakProfi
 						</VSCodeButtonLink>
 					)}
 				</>
-			)}
+			)} */}
 			{!isByakProfile && (
 				<div className="text-sm text-vscode-descriptionForeground mb-3">
 					API key is pre-configured for this model.

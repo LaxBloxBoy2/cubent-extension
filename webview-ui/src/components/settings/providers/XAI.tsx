@@ -30,7 +30,8 @@ export const XAI = ({ apiConfiguration, setApiConfigurationField, isByakProfile 
 
 	return (
 		<>
-			{isByakProfile && (
+			{/* API key input hidden for BYAK profiles as requested */}
+			{/* {isByakProfile && (
 				<>
 					<VSCodeTextField
 						value={apiConfiguration?.xaiApiKey || ""}
@@ -49,7 +50,7 @@ export const XAI = ({ apiConfiguration, setApiConfigurationField, isByakProfile 
 						</VSCodeButtonLink>
 					)}
 				</>
-			)}
+			)} */}
 			{!isByakProfile && (
 				<div className="text-sm text-vscode-descriptionForeground">
 					API key is pre-configured for this model.

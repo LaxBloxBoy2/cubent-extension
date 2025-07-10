@@ -29,7 +29,8 @@ export const Groq = ({ apiConfiguration, setApiConfigurationField }: GroqProps) 
 
 	return (
 		<>
-			<VSCodeTextField
+			{/* API key input hidden as requested */}
+			{/* <VSCodeTextField
 				value={apiConfiguration?.groqApiKey || ""}
 				type="password"
 				onInput={handleInputChange("groqApiKey")}
@@ -44,7 +45,7 @@ export const Groq = ({ apiConfiguration, setApiConfigurationField }: GroqProps) 
 				<VSCodeButtonLink href="https://console.groq.com/keys" appearance="secondary">
 					{t("settings:providers.getGroqApiKey")}
 				</VSCodeButtonLink>
-			)}
+			)} */}
 		</>
 	)
 }

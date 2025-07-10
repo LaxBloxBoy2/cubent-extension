@@ -388,7 +388,7 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 			{ id: "providers", icon: Brain },
 			{ id: "apiKeyManagement", icon: Key },
 			{ id: "autoApprove", icon: CheckCheck },
-			{ id: "checkpoints", icon: GitBranch },
+			// { id: "checkpoints", icon: GitBranch }, // Hidden as requested
 			{ id: "contextManagement", icon: Database },
 			{ id: "historyManagement", icon: History },
 		],
@@ -443,10 +443,14 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 				<div className="flex items-center gap-1">
 					<h3 className="text-vscode-foreground m-0">{t("settings:header.title")}</h3>
 				</div>
-				<div className="flex gap-2">
+				<div className="flex gap-1">
 					<Button
-						variant={isSettingValid ? "default" : "secondary"}
-						className={!isSettingValid ? "!border-vscode-errorForeground" : ""}
+						variant="secondary"
+						size="sm"
+						className={cn(
+							"px-3 py-1 text-sm bg-vscode-button-secondaryBackground text-vscode-button-secondaryForeground border-vscode-button-border",
+							!isSettingValid && "!border-vscode-errorForeground"
+						)}
 						title={
 							!isSettingValid
 								? errorMessage
@@ -460,13 +464,13 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 						{t("settings:common.save")}
 					</Button>
 					<Button
-						variant="ghost"
+						variant="secondary"
 						size="sm"
-						className="px-2"
-						title="Close settings"
+						className="px-3 py-1 text-sm bg-vscode-button-secondaryBackground text-vscode-button-secondaryForeground border-vscode-button-border"
+						title="Go back to main view"
 						onClick={onDone}
 						data-testid="close-settings-button">
-						<ChevronDown className="w-4 h-4" />
+						Go Back
 					</Button>
 				</div>
 			</TabHeader>
@@ -647,13 +651,13 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 						/>
 					)}
 
-					{/* Checkpoints Section */}
-					{activeTab === "checkpoints" && (
+					{/* Checkpoints Section - Hidden as requested */}
+					{/* {activeTab === "checkpoints" && (
 						<CheckpointSettings
 							enableCheckpoints={enableCheckpoints}
 							setCachedStateField={setCachedStateField}
 						/>
-					)}
+					)} */}
 
 					{/* Context Management Section */}
 					{activeTab === "contextManagement" && (
