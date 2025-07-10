@@ -43,10 +43,53 @@ import { CondenseContextErrorRow, CondensingContextRow, ContextCondenseRow } fro
 import CodebaseSearchResultsDisplay from "./CodebaseSearchResultsDisplay"
 import { QaptCoderBranding } from "./QaptCoderBranding"
 
-// TODO: Fix error formatting system - previous implementation broke api_req_retry_delayed display
-// Need to handle retry messages properly without breaking the icon/title useMemo structure
-// The issue was mixing JSX elements in the icon/title array vs the main switch statement
-// Also need to fix raw error messages in Task.ts and other source files
+// Utility function to format raw error text into clean, readable error messages
+const formatErrorText = (rawText: string): string => {
+	if (!rawText) return "An error occurred"
+
+	// Clean up common raw error patterns
+	let cleanText = rawText
+		// Remove "got status:" prefixes
+		.replace(/^got status:\s*\d+\s+[^.]*\.\s*/i, "")
+		// Remove JSON error objects and extract the message
+		.replace(/\{"error":\s*\{[^}]*"message":\s*"([^"]+)"[^}]*\}[^}]*\}/g, "$1")
+		// Remove retry attempt messages
+		.replace(/\s*Retry attempt \d+\s*Retrying in \d+ seconds\.\.\.?\s*/g, "")
+		// Clean up multiple newlines and spaces
+		.replace(/\n\s*\n/g, "\n")
+		.replace(/\s+/g, " ")
+		.trim()
+
+	// If we still have JSON-like content, try to extract meaningful parts
+	if (cleanText.includes('{"') || cleanText.includes('"error"')) {
+		try {
+			// Try to parse as JSON and extract error message
+			const jsonMatch = cleanText.match(/\{.*\}/)
+			if (jsonMatch) {
+				const parsed = JSON.parse(jsonMatch[0])
+				if (parsed.error?.message) {
+					cleanText = parsed.error.message
+				} else if (parsed.message) {
+					cleanText = parsed.message
+				}
+			}
+		} catch {
+			// If JSON parsing fails, try to extract quoted messages
+			const messageMatch = cleanText.match(/"message":\s*"([^"]+)"/i)
+			if (messageMatch) {
+				cleanText = messageMatch[1]
+			}
+		}
+	}
+
+	// Capitalize first letter and ensure proper punctuation
+	cleanText = cleanText.charAt(0).toUpperCase() + cleanText.slice(1)
+	if (!cleanText.endsWith(".") && !cleanText.endsWith("!") && !cleanText.endsWith("?")) {
+		cleanText += "."
+	}
+
+	return cleanText
+}
 
 interface ChatRowProps {
 	message: ClineMessage
@@ -222,7 +265,12 @@ export const ChatRowContent = ({
 					null, // No additional title needed
 				]
 			case "api_req_retry_delayed":
-				return []
+				return [
+					<span
+						className="codicon codicon-sync"
+						style={{ color: "var(--vscode-charts-yellow)", marginBottom: "-1.5px" }}></span>,
+					<span style={{ color: "var(--vscode-charts-yellow)", fontWeight: "bold" }}>Retrying</span>,
+				]
 			case "api_req_started":
 				const getIconSpan = (iconName: string, color: string) => (
 					<div
@@ -955,6 +1003,30 @@ export const ChatRowContent = ({
 					return null // Hide API Request sections
 				case "api_req_finished":
 					return null // Hide API Request sections
+				case "api_req_retry_delayed":
+					// Format retry messages cleanly
+					return (
+						<div
+							style={{
+								backgroundColor: "var(--vscode-editor-background)",
+								border: "1px solid var(--vscode-border)",
+								borderRadius: "4px",
+								padding: "6px 8px",
+								fontSize: "12px",
+								lineHeight: "1.3",
+								maxWidth: "100%",
+							}}>
+							{/* Retry Details */}
+							<div
+								style={{
+									color: "var(--vscode-descriptionForeground)",
+									fontSize: "11px",
+									lineHeight: "1.4",
+								}}>
+								{formatErrorText(message.text || "")}
+							</div>
+						</div>
+					)
 				case "text":
 					return (
 						<div>
@@ -1037,7 +1109,7 @@ export const ChatRowContent = ({
 									whiteSpace: "pre-wrap",
 									opacity: 0.9,
 								}}>
-								{message.text}
+								{formatErrorText(message.text || "")}
 							</div>
 						</div>
 					)
@@ -1173,7 +1245,7 @@ export const ChatRowContent = ({
 									whiteSpace: "pre-wrap",
 									opacity: 0.9,
 								}}>
-								{message.text}
+								{formatErrorText(message.text || "")}
 							</div>
 						</div>
 					)
@@ -1380,7 +1452,9 @@ export const ChatRowContent = ({
 								<span className="text-vscode-foreground font-medium">Operation failed</span>
 							</div>
 							{message.text && (
-								<div className="text-vscode-descriptionForeground text-xs mb-3">{message.text}</div>
+								<div className="text-vscode-descriptionForeground text-xs mb-3">
+									{formatErrorText(message.text)}
+								</div>
 							)}
 							<div className="text-vscode-foreground text-xs">
 								<span

@@ -7,6 +7,54 @@ import type { ContextCondense } from "@cubent/types"
 import { Markdown } from "./Markdown"
 import { ProgressIndicator } from "./ProgressIndicator"
 
+// Utility function to format raw error text into clean, readable error messages
+const formatErrorText = (rawText: string): string => {
+	if (!rawText) return "An error occurred"
+
+	// Clean up common raw error patterns
+	let cleanText = rawText
+		// Remove "got status:" prefixes
+		.replace(/^got status:\s*\d+\s+[^.]*\.\s*/i, "")
+		// Remove JSON error objects and extract the message
+		.replace(/\{"error":\s*\{[^}]*"message":\s*"([^"]+)"[^}]*\}[^}]*\}/g, "$1")
+		// Remove retry attempt messages
+		.replace(/\s*Retry attempt \d+\s*Retrying in \d+ seconds\.\.\.?\s*/g, "")
+		// Clean up multiple newlines and spaces
+		.replace(/\n\s*\n/g, "\n")
+		.replace(/\s+/g, " ")
+		.trim()
+
+	// If we still have JSON-like content, try to extract meaningful parts
+	if (cleanText.includes('{"') || cleanText.includes('"error"')) {
+		try {
+			// Try to parse as JSON and extract error message
+			const jsonMatch = cleanText.match(/\{.*\}/)
+			if (jsonMatch) {
+				const parsed = JSON.parse(jsonMatch[0])
+				if (parsed.error?.message) {
+					cleanText = parsed.error.message
+				} else if (parsed.message) {
+					cleanText = parsed.message
+				}
+			}
+		} catch {
+			// If JSON parsing fails, try to extract quoted messages
+			const messageMatch = cleanText.match(/"message":\s*"([^"]+)"/i)
+			if (messageMatch) {
+				cleanText = messageMatch[1]
+			}
+		}
+	}
+
+	// Capitalize first letter and ensure proper punctuation
+	cleanText = cleanText.charAt(0).toUpperCase() + cleanText.slice(1)
+	if (!cleanText.endsWith(".") && !cleanText.endsWith("!") && !cleanText.endsWith("?")) {
+		cleanText += "."
+	}
+
+	return cleanText
+}
+
 export const ContextCondenseRow = ({ cost, prevContextTokens, newContextTokens, summary }: ContextCondense) => {
 	const { t } = useTranslation()
 	const [isExpanded, setIsExpanded] = useState(false)
@@ -68,7 +116,7 @@ export const CondenseContextErrorRow = ({ errorText }: { errorText?: string }) =
 				<span className="codicon codicon-warning text-vscode-editorWarning-foreground opacity-80 text-base -mb-0.5"></span>
 				<span className="font-bold text-vscode-foreground">{t("chat:contextCondense.errorHeader")}</span>
 			</div>
-			<span className="text-vscode-descriptionForeground text-sm">{errorText}</span>
+			<span className="text-vscode-descriptionForeground text-sm">{formatErrorText(errorText || "")}</span>
 		</div>
 	)
 }

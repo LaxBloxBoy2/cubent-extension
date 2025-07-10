@@ -22,7 +22,6 @@ import {
 	FlaskConical,
 	AlertTriangle,
 	Globe,
-	Info,
 	MessageSquare,
 	Brain,
 	LucideIcon,
@@ -32,8 +31,6 @@ import {
 } from "lucide-react"
 
 import type { ProviderSettings, ExperimentId } from "@cubent/types"
-
-import { TelemetrySetting } from "@shared/TelemetrySetting"
 
 import { vscode } from "@src/utils/vscode"
 import { useAppTranslation } from "@src/i18n/TranslationContext"
@@ -71,7 +68,6 @@ import { HistoryManagementSettings } from "./HistoryManagementSettings"
 import { TerminalSettings } from "./TerminalSettings"
 import { ExperimentalSettings } from "./ExperimentalSettings"
 import { LanguageSettings } from "./LanguageSettings"
-import { About } from "./About"
 import { Section } from "./Section"
 import PromptsSettings from "./PromptsSettings"
 import { UserManagementSettings } from "../user/UserManagementSettings"
@@ -103,7 +99,6 @@ const sectionNames = [
 	"experimental",
 	"language",
 	"userManagement",
-	"about",
 ] as const
 
 type SectionName = (typeof sectionNames)[number]
@@ -264,17 +259,6 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 		})
 	}, [])
 
-	const setTelemetrySetting = useCallback((setting: TelemetrySetting) => {
-		setCachedState((prevState) => {
-			if (prevState.telemetrySetting === setting) {
-				return prevState
-			}
-
-			setChangeDetected(true)
-			return { ...prevState, telemetrySetting: setting }
-		})
-	}, [])
-
 	const isSettingValid = !errorMessage
 
 	const handleSubmit = () => {
@@ -410,7 +394,6 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 			{ id: "contextManagement", icon: Database },
 			{ id: "historyManagement", icon: History },
 			{ id: "userManagement", icon: User },
-			{ id: "about", icon: Info },
 		],
 		[], // No dependencies needed now
 	)
@@ -702,11 +685,6 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 
 					{/* User Management Section */}
 					{activeTab === "userManagement" && <UserManagementSettings />}
-
-					{/* About Section */}
-					{activeTab === "about" && (
-						<About telemetrySetting={telemetrySetting} setTelemetrySetting={setTelemetrySetting} />
-					)}
 				</TabContent>
 			</div>
 
