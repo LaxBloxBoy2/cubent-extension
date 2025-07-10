@@ -1816,8 +1816,26 @@ export class Task extends EventEmitter<ClineEvents> {
 			this.isWaitingForFirstChunk = false
 		} catch (error) {
 			this.isWaitingForFirstChunk = false
+
+			// Check if this is a quota exhaustion error (429) or authentication error - don't auto-retry these
+			const isQuotaError = error.status === 429 && (
+				error.message?.includes("quota") ||
+				error.message?.includes("RESOURCE_EXHAUSTED") ||
+				error.message?.includes("Too Many Requests")
+			)
+
+			const isAuthError = error.message?.includes("authentication") ||
+				error.message?.includes("apiKey") ||
+				error.message?.includes("authToken") ||
+				error.message?.includes("Authorization") ||
+				error.message?.includes("X-Api-Key") ||
+				error.status === 401 ||
+				error.status === 403
+
+			const shouldSkipAutoRetry = isQuotaError || isAuthError
+
 			// note that this api_req_failed ask is unique in that we only present this option if the api hasn't streamed any content yet (ie it fails on the first chunk due), as it would allow them to hit a retry button. However if the api failed mid-stream, it could be in any arbitrary state where some tools may have executed, so that error is handled differently and requires cancelling the task entirely.
-			if (autoApprovalEnabled && alwaysApproveResubmit) {
+			if (autoApprovalEnabled && alwaysApproveResubmit && !shouldSkipAutoRetry) {
 				let errorMsg
 
 				if (error.error?.metadata?.raw) {
@@ -1871,11 +1889,25 @@ export class Task extends EventEmitter<ClineEvents> {
 
 				return
 			} else {
-				// Add error message to chat conversation
-				await this.say(
-					"error",
-					`Operation failed: ${error.message ?? JSON.stringify(serializeError(error), null, 2)}\n\n[try operation again](command:retry)`,
-				)
+				// For quota errors, show a specific message without automatic retry
+				if (isQuotaError) {
+					await this.say(
+						"error",
+						`API quota exceeded. Please check your billing and quota limits.\n\n${error.message ?? JSON.stringify(serializeError(error), null, 2)}`,
+					)
+				} else if (isAuthError) {
+					// For authentication errors, show a specific message without automatic retry
+					await this.say(
+						"error",
+						`Authentication failed. Please check your API key configuration.\n\n${error.message ?? JSON.stringify(serializeError(error), null, 2)}`,
+					)
+				} else {
+					// Add error message to chat conversation
+					await this.say(
+						"error",
+						`Operation failed: ${error.message ?? JSON.stringify(serializeError(error), null, 2)}`,
+					)
+				}
 
 				const { response } = await this.ask(
 					"api_req_failed",

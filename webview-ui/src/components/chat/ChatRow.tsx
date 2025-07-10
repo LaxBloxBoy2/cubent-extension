@@ -943,42 +943,7 @@ export const ChatRowContent = ({
 						</div>
 					)
 				case "subtask_result":
-					return (
-						<div>
-							<div
-								style={{
-									marginTop: "0px",
-									backgroundColor: "var(--vscode-badge-background)",
-									border: "1px solid var(--vscode-badge-background)",
-									borderRadius: "0 0 4px 4px",
-									overflow: "hidden",
-									marginBottom: "8px",
-								}}>
-								<div
-									style={{
-										padding: "9px 10px 9px 14px",
-										backgroundColor: "var(--vscode-badge-background)",
-										borderBottom: "1px solid var(--vscode-editorGroup-border)",
-										fontWeight: "bold",
-										fontSize: "var(--vscode-font-size)",
-										color: "var(--vscode-badge-foreground)",
-										display: "flex",
-										alignItems: "center",
-										gap: "6px",
-									}}>
-									<span className="codicon codicon-arrow-left"></span>
-									{t("chat:subtasks.resultContent")}
-								</div>
-								<div
-									style={{
-										padding: "12px 16px",
-										backgroundColor: "var(--vscode-editor-background)",
-									}}>
-									<MarkdownBlock markdown={message.text} />
-								</div>
-							</div>
-						</div>
-					)
+					return null // Hide subtask results dialog
 				case "reasoning":
 					return null // Hide reasoning/thinking blocks
 				case "api_req_started":
@@ -1031,15 +996,49 @@ export const ChatRowContent = ({
 					)
 				case "error":
 					return (
-						<>
-							{title && (
-								<div style={headerStyle}>
-									{icon}
-									{title}
-								</div>
-							)}
-							<p style={{ ...pStyle, color: "var(--vscode-errorForeground)" }}>{message.text}</p>
-						</>
+						<div
+							style={{
+								backgroundColor: "var(--vscode-editor-background)",
+								border: "1px solid var(--vscode-border)",
+								borderRadius: "4px",
+								padding: "6px 8px",
+								fontSize: "12px",
+								lineHeight: "1.3",
+								maxWidth: "100%"
+							}}
+						>
+							{/* Error Header */}
+							<div
+								style={{
+									display: "flex",
+									alignItems: "center",
+									gap: "4px",
+									marginBottom: "4px",
+									color: "var(--vscode-errorForeground)",
+									fontWeight: "500"
+								}}
+							>
+								<span
+									className="codicon codicon-error"
+									style={{ fontSize: "12px" }}
+								/>
+								<span>Error</span>
+							</div>
+
+							{/* Error Details */}
+							<div
+								style={{
+									color: "var(--vscode-foreground)",
+									fontSize: "11px",
+									lineHeight: "1.4",
+									wordBreak: "break-word",
+									whiteSpace: "pre-wrap",
+									opacity: 0.9
+								}}
+							>
+								{message.text}
+							</div>
+						</div>
 					)
 				case "completion_result":
 					return (
@@ -1137,13 +1136,49 @@ export const ChatRowContent = ({
 			switch (message.ask) {
 				case "mistake_limit_reached":
 					return (
-						<>
-							<div style={headerStyle}>
-								{icon}
-								{title}
+						<div
+							style={{
+								backgroundColor: "var(--vscode-editor-background)",
+								border: "1px solid var(--vscode-border)",
+								borderRadius: "4px",
+								padding: "6px 8px",
+								fontSize: "12px",
+								lineHeight: "1.3",
+								maxWidth: "100%"
+							}}
+						>
+							{/* Error Header */}
+							<div
+								style={{
+									display: "flex",
+									alignItems: "center",
+									gap: "4px",
+									marginBottom: "4px",
+									color: "var(--vscode-errorForeground)",
+									fontWeight: "500"
+								}}
+							>
+								<span
+									className="codicon codicon-error"
+									style={{ fontSize: "12px" }}
+								/>
+								<span>Error</span>
 							</div>
-							<p style={{ ...pStyle, color: "var(--vscode-errorForeground)" }}>{message.text}</p>
-						</>
+
+							{/* Error Details */}
+							<div
+								style={{
+									color: "var(--vscode-foreground)",
+									fontSize: "11px",
+									lineHeight: "1.4",
+									wordBreak: "break-word",
+									whiteSpace: "pre-wrap",
+									opacity: 0.9
+								}}
+							>
+								{message.text}
+							</div>
+						</div>
 					)
 				case "command":
 					return (
