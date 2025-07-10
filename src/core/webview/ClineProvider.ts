@@ -227,6 +227,16 @@ export class ClineProvider
 		return this.clineStack[this.clineStack.length - 1]
 	}
 
+	// clears the current cline from the stack
+	clearCurrentCline(): void {
+		if (this.clineStack.length > 0) {
+			const currentTask = this.clineStack.pop()
+			if (currentTask) {
+				currentTask.abandoned = true
+			}
+		}
+	}
+
 	// returns the current clineStack length (how many cline objects are in the stack)
 	getClineStackSize(): number {
 		return this.clineStack.length
@@ -1667,6 +1677,8 @@ export class ClineProvider
 			terminalCompressProgressBar: terminalCompressProgressBar ?? true,
 			hasSystemPromptOverride,
 			historyPreviewCollapsed: historyPreviewCollapsed ?? false,
+			maxChatHistoryLimit: this.getGlobalState("maxChatHistoryLimit") ?? 15,
+			autoDeleteOldChats: this.getGlobalState("autoDeleteOldChats") ?? true,
 			cloudUserInfo,
 			organizationAllowList,
 			condensingApiConfigId,
@@ -1826,8 +1838,81 @@ export class ClineProvider
 			history.push(item)
 		}
 
-		await this.updateGlobalState("taskHistory", history)
-		return history
+		// Apply history limit cleanup if auto-delete is enabled
+		const cleanedHistory = await this.applyHistoryLimit(history)
+
+		await this.updateGlobalState("taskHistory", cleanedHistory)
+		return cleanedHistory
+	}
+
+	private async applyHistoryLimit(history: HistoryItem[]): Promise<HistoryItem[]> {
+		const autoDeleteOldChats = this.getGlobalState("autoDeleteOldChats") ?? true
+		const maxChatHistoryLimit = this.getGlobalState("maxChatHistoryLimit") ?? 15
+
+		if (!autoDeleteOldChats || history.length <= maxChatHistoryLimit) {
+			return history
+		}
+
+		// Sort by timestamp (newest first) and separate pinned from unpinned
+		const sortedHistory = [...history].sort((a, b) => b.ts - a.ts)
+		const pinnedChats = sortedHistory.filter((item) => item.pinned)
+		const unpinnedChats = sortedHistory.filter((item) => !item.pinned)
+
+		// Keep all pinned chats and limit unpinned chats
+		const maxUnpinnedChats = Math.max(0, maxChatHistoryLimit - pinnedChats.length)
+		const chatsToKeep = [...pinnedChats, ...unpinnedChats.slice(0, maxUnpinnedChats)]
+		const chatsToDelete = unpinnedChats.slice(maxUnpinnedChats)
+
+		// Delete the task files for chats that are being removed
+		for (const chat of chatsToDelete) {
+			try {
+				await this.deleteTaskFiles(chat.id)
+			} catch (error) {
+				console.error(`Failed to delete task files for ${chat.id}:`, error)
+			}
+		}
+
+		return chatsToKeep
+	}
+
+	async applyHistoryLimitToExisting(history: HistoryItem[]): Promise<HistoryItem[]> {
+		return await this.applyHistoryLimit(history)
+	}
+
+	private async deleteTaskFiles(taskId: string): Promise<void> {
+		try {
+			const { getTaskDirectoryPath } = await import("../../utils/storage")
+			const globalStoragePath = this.contextProxy.globalStorageUri.fsPath
+			const taskDirPath = await getTaskDirectoryPath(globalStoragePath, taskId)
+
+			// Delete the entire task directory
+			const fs = await import("fs/promises")
+			const path = await import("path")
+
+			if (await this.fileExists(taskDirPath)) {
+				await fs.rm(taskDirPath, { recursive: true, force: true })
+			}
+
+			// Delete associated shadow repository or branch
+			const { ShadowCheckpointService } = await import("../../services/checkpoints/ShadowCheckpointService")
+			await ShadowCheckpointService.deleteTask({
+				taskId,
+				globalStorageDir: globalStoragePath,
+				workspaceDir: this.cwd,
+			})
+		} catch (error) {
+			console.error(`Failed to delete task files for ${taskId}:`, error)
+		}
+	}
+
+	private async fileExists(filePath: string): Promise<boolean> {
+		try {
+			const fs = await import("fs/promises")
+			await fs.access(filePath)
+			return true
+		} catch {
+			return false
+		}
 	}
 
 	// ContextProxy

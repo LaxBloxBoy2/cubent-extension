@@ -32,6 +32,7 @@
 		"checkpoints": "Checkpoints",
 		"notifications": "Notifications",
 		"contextManagement": "Context",
+		"historyManagement": "History",
 		"modes": "Modes",
 		"terminal": "Terminal",
 		"prompts": "Prompts",
@@ -614,5 +615,23 @@
 	"labels": {
 		"customArn": "Custom ARN",
 		"useCustomArn": "Use custom ARN..."
+	},
+	"historyManagement": {
+		"autoDelete": {
+			"label": "Automatically delete old chats",
+			"description": "When enabled, old chats will be automatically deleted when the history limit is reached."
+		},
+		"maxLimit": {
+			"label": "Maximum chat history limit",
+			"description": "Set the maximum number of chats to keep in history. When this limit is reached, the oldest chats will be automatically deleted."
+		},
+		"clearAll": {
+			"label": "Clear All History",
+			"clearing": "Clearing...",
+			"description": "Permanently delete all chat history. This action cannot be undone.",
+			"confirm": "Are you sure you want to delete all chat history? This action cannot be undone.",
+			"success": "All chat history has been cleared.",
+			"error": "Failed to clear chat history."
+		}
 	}
 }

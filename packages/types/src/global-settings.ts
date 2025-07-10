@@ -48,7 +48,7 @@ export const globalSettingsSchema = z.object({
 	allowedMaxRequests: z.number().nullish(),
 	autoCondenseContext: z.boolean().optional(),
 	autoCondenseContextPercent: z.number().optional(),
- 	maxConcurrentFileReads: z.number().optional(),
+	maxConcurrentFileReads: z.number().optional(),
 
 	browserToolEnabled: z.boolean().optional(),
 	browserViewportSize: z.string().optional(),
@@ -102,6 +102,10 @@ export const globalSettingsSchema = z.object({
 	customSupportPrompts: customSupportPromptsSchema.optional(),
 	enhancementApiConfigId: z.string().optional(),
 	historyPreviewCollapsed: z.boolean().optional(),
+
+	// History Management Settings
+	maxChatHistoryLimit: z.number().optional(),
+	autoDeleteOldChats: z.boolean().optional(),
 })
 
 export type GlobalSettings = z.infer<typeof globalSettingsSchema>
@@ -188,6 +192,9 @@ export const GLOBAL_SETTINGS_KEYS = keysOf<GlobalSettings>()([
 	"enhancementApiConfigId",
 	"cachedChromeHostUrl",
 	"historyPreviewCollapsed",
+
+	"maxChatHistoryLimit",
+	"autoDeleteOldChats",
 ])
 
 /**

@@ -120,6 +120,10 @@ export interface ExtensionStateContextType extends ExtensionState {
 	autoCondenseContextPercent: number
 	setAutoCondenseContextPercent: (value: number) => void
 	routerModels?: RouterModels
+	maxChatHistoryLimit?: number
+	setMaxChatHistoryLimit: (value: number) => void
+	autoDeleteOldChats?: boolean
+	setAutoDeleteOldChats: (value: boolean) => void
 }
 
 export const ExtensionStateContext = createContext<ExtensionStateContextType | undefined>(undefined)
@@ -208,6 +212,8 @@ export const ExtensionStateContextProvider: React.FC<{ children: React.ReactNode
 		currentUser: null,
 		autoCondenseContext: true,
 		autoCondenseContextPercent: 100,
+		maxChatHistoryLimit: 15,
+		autoDeleteOldChats: true,
 		codebaseIndexConfig: {
 			codebaseIndexEnabled: false,
 			codebaseIndexQdrantUrl: "http://localhost:6333",
@@ -408,6 +414,8 @@ export const ExtensionStateContextProvider: React.FC<{ children: React.ReactNode
 		setCondensingApiConfigId: (value) => setState((prevState) => ({ ...prevState, condensingApiConfigId: value })),
 		setCustomCondensingPrompt: (value) =>
 			setState((prevState) => ({ ...prevState, customCondensingPrompt: value })),
+		setMaxChatHistoryLimit: (value) => setState((prevState) => ({ ...prevState, maxChatHistoryLimit: value })),
+		setAutoDeleteOldChats: (value) => setState((prevState) => ({ ...prevState, autoDeleteOldChats: value })),
 	}
 
 	return <ExtensionStateContext.Provider value={contextValue}>{children}</ExtensionStateContext.Provider>

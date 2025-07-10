@@ -285,6 +285,55 @@ export const webviewMessageHandler = async (provider: ClineProvider, message: We
 			}
 			break
 		}
+		case "clearAllChatHistory": {
+			console.log("clearAllChatHistory message received")
+			try {
+				const taskHistory = getGlobalState("taskHistory") ?? []
+				console.log(`Found ${taskHistory.length} tasks to delete`)
+
+				if (taskHistory.length === 0) {
+					console.log("No tasks to delete")
+					vscode.window.showInformationMessage("No chat history to clear.")
+					break
+				}
+
+				const taskIds = taskHistory.map((task: any) => task.id)
+
+				// Delete all tasks one by one
+				let deletedCount = 0
+				for (const taskId of taskIds) {
+					try {
+						console.log(`Deleting task: ${taskId}`)
+						await provider.deleteTaskWithId(taskId)
+						deletedCount++
+						console.log(`Successfully deleted task: ${taskId}`)
+					} catch (error) {
+						console.error(`Failed to delete task ${taskId}:`, error)
+					}
+				}
+
+				// Force clear the task history from global state
+				console.log("Force clearing task history from global state")
+				await updateGlobalState("taskHistory", [])
+
+				// Also clear any current task
+				if (provider.getCurrentCline()) {
+					provider.clearCurrentCline()
+				}
+
+				// Post updated state to webview
+				await provider.postStateToWebview()
+
+				console.log(`All chat history cleared successfully. Deleted ${deletedCount} tasks.`)
+				vscode.window.showInformationMessage(
+					`All chat history has been cleared. Deleted ${deletedCount} tasks.`,
+				)
+			} catch (error) {
+				console.error("Failed to clear all chat history:", error)
+				vscode.window.showErrorMessage("Failed to clear chat history.")
+			}
+			break
+		}
 		case "exportChatWithId":
 			provider.exportTaskWithId(message.text!)
 			break
@@ -1086,6 +1135,24 @@ export const webviewMessageHandler = async (provider: ClineProvider, message: We
 		case "setHistoryPreviewCollapsed": // Add the new case handler
 			await updateGlobalState("historyPreviewCollapsed", message.bool ?? false)
 			// No need to call postStateToWebview here as the UI already updated optimistically
+			break
+		case "maxChatHistoryLimit":
+			await updateGlobalStateWithBroadcast("maxChatHistoryLimit", message.value)
+			// Apply the new limit immediately if auto-delete is enabled
+			const autoDeleteOldChats = getGlobalState("autoDeleteOldChats") ?? true
+			if (autoDeleteOldChats) {
+				const taskHistory = getGlobalState("taskHistory") ?? []
+				if (taskHistory.length > 0) {
+					console.log(`Applying new chat history limit: ${message.value}`)
+					const updatedHistory = await provider.applyHistoryLimitToExisting(taskHistory)
+					await updateGlobalState("taskHistory", updatedHistory)
+				}
+			}
+			await provider.postStateToWebview()
+			break
+		case "autoDeleteOldChats":
+			await updateGlobalStateWithBroadcast("autoDeleteOldChats", message.bool ?? true)
+			await provider.postStateToWebview()
 			break
 		case "toggleApiConfigPin":
 			if (message.text) {

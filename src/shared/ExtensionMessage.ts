@@ -199,6 +199,8 @@ export type ExtensionState = Pick<
 	| "customCondensingPrompt"
 	| "codebaseIndexConfig"
 	| "codebaseIndexModels"
+	| "maxChatHistoryLimit"
+	| "autoDeleteOldChats"
 > & {
 	version: string
 	clineMessages: ClineMessage[]

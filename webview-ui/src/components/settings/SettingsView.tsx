@@ -17,6 +17,7 @@ import {
 	GitBranch,
 	Bell,
 	Database,
+	History,
 	SquareTerminal,
 	FlaskConical,
 	AlertTriangle,
@@ -63,6 +64,7 @@ import { BrowserSettings } from "./BrowserSettings"
 import { CheckpointSettings } from "./CheckpointSettings"
 import { NotificationSettings } from "./NotificationSettings"
 import { ContextManagementSettings } from "./ContextManagementSettings"
+import { HistoryManagementSettings } from "./HistoryManagementSettings"
 
 import { TerminalSettings } from "./TerminalSettings"
 import { ExperimentalSettings } from "./ExperimentalSettings"
@@ -91,6 +93,7 @@ const sectionNames = [
 	"checkpoints",
 	"notifications",
 	"contextManagement",
+	"historyManagement",
 	"modes",
 	"terminal",
 	"prompts",
@@ -179,6 +182,8 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 		customCondensingPrompt,
 		codebaseIndexConfig,
 		codebaseIndexModels,
+		maxChatHistoryLimit,
+		autoDeleteOldChats,
 	} = cachedState
 
 	const apiConfiguration = useMemo(() => cachedState.apiConfiguration ?? {}, [cachedState.apiConfiguration])
@@ -399,6 +404,7 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 			{ id: "autoApprove", icon: CheckCheck },
 			{ id: "checkpoints", icon: GitBranch },
 			{ id: "contextManagement", icon: Database },
+			{ id: "historyManagement", icon: History },
 			{ id: "userManagement", icon: User },
 			{ id: "about", icon: Info },
 		],
@@ -664,6 +670,15 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 							maxWorkspaceFiles={maxWorkspaceFiles ?? 200}
 							showRooIgnoredFiles={showRooIgnoredFiles}
 							maxReadFileLine={maxReadFileLine}
+							setCachedStateField={setCachedStateField}
+						/>
+					)}
+
+					{/* History Management Section */}
+					{activeTab === "historyManagement" && (
+						<HistoryManagementSettings
+							maxChatHistoryLimit={maxChatHistoryLimit}
+							autoDeleteOldChats={autoDeleteOldChats}
 							setCachedStateField={setCachedStateField}
 						/>
 					)}

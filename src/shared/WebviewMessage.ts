@@ -174,6 +174,9 @@ export interface WebviewMessage {
 		| "acknowledgeUsageAlert"
 		| "showUsage"
 		| "getMessageUsageData"
+		| "clearAllChatHistory"
+		| "maxChatHistoryLimit"
+		| "autoDeleteOldChats"
 	text?: string
 	disabled?: boolean
 	askResponse?: ClineAskResponse
