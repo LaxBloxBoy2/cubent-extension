@@ -224,16 +224,6 @@
 					"when": "view == cubent.SidebarProvider"
 				},
 				{
-					"command": "cubent.historyButtonClicked",
-					"group": "navigation@3",
-					"when": "view == cubent.SidebarProvider"
-				},
-				{
-					"command": "cubent.popoutButtonClicked",
-					"group": "navigation@4",
-					"when": "view == cubent.SidebarProvider"
-				},
-				{
 					"command": "cubent.accountButtonClicked",
 					"group": "navigation@6",
 					"when": "view == cubent.SidebarProvider"
@@ -253,16 +243,6 @@
 				{
 					"command": "cubent.mcpButtonClicked",
 					"group": "navigation@2",
-					"when": "activeWebviewPanelId == cubent.TabPanelProvider"
-				},
-				{
-					"command": "cubent.historyButtonClicked",
-					"group": "navigation@3",
-					"when": "activeWebviewPanelId == cubent.TabPanelProvider"
-				},
-				{
-					"command": "cubent.popoutButtonClicked",
-					"group": "navigation@4",
 					"when": "activeWebviewPanelId == cubent.TabPanelProvider"
 				},
 				{
@@ -383,6 +363,21 @@
 					"type": "string",
 					"default": "",
 					"description": "Stored user session data (internal use)"
+				},
+				"cubent.mcp.enabled": {
+					"type": "boolean",
+					"default": false,
+					"description": "Enable Model Context Protocol (MCP) to access external tools and services"
+				},
+				"cubent.mcp.serverCreationEnabled": {
+					"type": "boolean",
+					"default": false,
+					"description": "Allow Cubent to create new MCP servers on demand"
+				},
+				"cubent.mcp.alwaysAllow": {
+					"type": "boolean",
+					"default": false,
+					"description": "Always allow MCP tool usage without prompting"
 				}
 			}
 		}

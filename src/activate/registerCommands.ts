@@ -103,7 +103,8 @@ const getCommandsMap = ({ context, outputChannel, provider }: RegisterCommandOpt
 
 		TelemetryService.instance.captureTitleButtonClicked("mcp")
 
-		visibleProvider.postMessageToWebview({ type: "action", action: "mcpButtonClicked" })
+		// Redirect to settings with MCP section
+		visibleProvider.postMessageToWebview({ type: "action", action: "settingsButtonClicked", section: "mcp" })
 	},
 	promptsButtonClicked: () => {
 		const visibleProvider = getVisibleProviderOrLog(outputChannel)

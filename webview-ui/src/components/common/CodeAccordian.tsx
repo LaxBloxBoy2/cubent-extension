@@ -101,7 +101,7 @@ const CodeAccordian = ({
 						<div className="flex items-center">
 							<span className={`codicon codicon-${isFeedback ? "feedback" : "codicon-output"} mr-1.5`} />
 							<span className="whitespace-nowrap overflow-hidden text-ellipsis mr-2 rtl">
-								{isFeedback ? "User Edits" : "Console Logs"}
+								{isFeedback ? "Your Changes" : "Console Logs"}
 							</span>
 						</div>
 					) : isEditedFile ? (

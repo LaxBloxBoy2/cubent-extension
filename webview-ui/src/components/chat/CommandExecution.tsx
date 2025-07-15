@@ -16,6 +16,8 @@ import { cn } from "@src/lib/utils"
 import { Button } from "@src/components/ui"
 import CodeBlock from "../common/CodeBlock"
 import { ToolUseBlock, ToolUseBlockHeader } from "../common/ToolUseBlock"
+import { StatusDot } from "../common/StatusDot"
+import { CustomSpinner } from "../common/CustomSpinner"
 
 interface CommandExecutionProps {
 	executionId: string
@@ -41,13 +43,13 @@ export const CommandExecution = ({
 	const { terminalShellIntegrationDisabled = false } = useExtensionState()
 	const { t } = useTranslation()
 
-	const { command, output: parsedOutput } = useMemo(() => parseCommandAndOutput(text), [text])
+	const { command, output: parsedOutput, persistedStatus } = useMemo(() => parseCommandAndOutput(text), [text])
 
 	// If we aren't opening the VSCode terminal for this command then we default
 	// to expanding the command execution output.
 	const [isExpanded, setIsExpanded] = useState(terminalShellIntegrationDisabled)
 	const [streamingOutput, setStreamingOutput] = useState("")
-	const [status, setStatus] = useState<CommandExecutionStatus | null>(null)
+	const [status, setStatus] = useState<CommandExecutionStatus | null>(persistedStatus)
 
 	// The command's output can either come from the text associated with the
 	// task message (this is the case for completed commands) or from the
@@ -99,26 +101,14 @@ export const CommandExecution = ({
 							<span className="codicon codicon-terminal mr-1.5" />
 							<span className="font-medium mr-2 whitespace-nowrap">Terminal</span>
 							{status?.status === "started" && (
-								<span
-									className="text-xs mr-2 flex-shrink-0"
-									style={{
-										color: "var(--vscode-descriptionForeground)",
-										fontWeight: "normal",
-									}}>
-									<span style={{ color: "#4ade80" }}>Running</span>
-									{status.pid && <span> (PID: {status.pid})</span>}
+								<span className="flex items-center gap-1 mr-2">
+									<StatusDot state="building" />
+									<CustomSpinner size={10} className="text-vscode-descriptionForeground" />
 								</span>
 							)}
 							{status?.status === "exited" && (
-								<span
-									className="text-xs mr-2 flex-shrink-0"
-									style={{
-										color: "var(--vscode-descriptionForeground)",
-										fontWeight: "normal",
-									}}>
-									<span style={{ color: status.exitCode === 0 ? "#4ade80" : "#f87171" }}>
-										Exited ({status.exitCode})
-									</span>
+								<span className="flex items-center mr-2">
+									<StatusDot state={status.exitCode === 0 ? "success" : "error"} />
 								</span>
 							)}
 						</div>
@@ -133,9 +123,6 @@ export const CommandExecution = ({
 					<div className="flex items-center">
 						{status?.status === "started" && (
 							<>
-								<span
-									className="codicon codicon-loading codicon-modifier-spin mr-1"
-									style={{ fontSize: "12px", color: "var(--vscode-descriptionForeground)" }}></span>
 								<Button
 									variant="ghost"
 									size="sm"
@@ -219,17 +206,32 @@ const OutputContainer = memo(OutputContainerInternal)
 
 const parseCommandAndOutput = (text: string | undefined) => {
 	if (!text) {
-		return { command: "", output: "" }
+		return { command: "", output: "", persistedStatus: null }
 	}
 
-	const index = text.indexOf(COMMAND_OUTPUT_STRING)
+	// Check for persisted status at the beginning of the text
+	const statusMatch = text.match(/^STATUS:(\{[^}]+\})\n/)
+	let persistedStatus: CommandExecutionStatus | null = null
+	let textWithoutStatus = text
+
+	if (statusMatch) {
+		try {
+			persistedStatus = JSON.parse(statusMatch[1])
+			textWithoutStatus = text.slice(statusMatch[0].length)
+		} catch {
+			// Invalid JSON, ignore
+		}
+	}
+
+	const index = textWithoutStatus.indexOf(COMMAND_OUTPUT_STRING)
 
 	if (index === -1) {
-		return { command: text, output: "" }
+		return { command: textWithoutStatus, output: "", persistedStatus }
 	}
 
 	return {
-		command: text.slice(0, index),
-		output: text.slice(index + COMMAND_OUTPUT_STRING.length),
+		command: textWithoutStatus.slice(0, index),
+		output: textWithoutStatus.slice(index + COMMAND_OUTPUT_STRING.length),
+		persistedStatus,
 	}
 }

@@ -184,10 +184,13 @@ export async function executeCommand(
 			const status: CommandExecutionStatus = { executionId, status: "started", pid, command }
 			clineProvider?.postMessageToWebview({ type: "commandExecutionStatus", text: JSON.stringify(status) })
 		},
-		onShellExecutionComplete: (details: ExitCodeDetails) => {
+		onShellExecutionComplete: async (details: ExitCodeDetails) => {
 			const status: CommandExecutionStatus = { executionId, status: "exited", exitCode: details.exitCode }
 			clineProvider?.postMessageToWebview({ type: "commandExecutionStatus", text: JSON.stringify(status) })
 			exitDetails = details
+
+			// Update the command message with status information for persistence
+			await updateCommandMessageWithStatus(cline, executionId, status)
 		},
 	}
 
@@ -284,5 +287,52 @@ export async function executeCommand(
 				"You will be updated on the terminal status and new output in the future.",
 			].join("\n"),
 		]
+	}
+}
+
+/**
+ * Updates the command message with status information for persistence
+ */
+async function updateCommandMessageWithStatus(
+	cline: Task,
+	executionId: string,
+	status: CommandExecutionStatus,
+): Promise<void> {
+	try {
+		// Find the command message by execution ID (which is based on timestamp)
+		const commandMessage = cline.clineMessages.find(
+			(msg) => msg.type === "ask" && msg.ask === "command" && msg.ts.toString() === executionId,
+		)
+
+		if (commandMessage && commandMessage.text) {
+			// Check if status is already embedded
+			if (!commandMessage.text.startsWith("STATUS:")) {
+				// Create a copy of the messages array
+				const updatedMessages = [...cline.clineMessages]
+				const messageIndex = updatedMessages.findIndex(
+					(msg) => msg.type === "ask" && msg.ask === "command" && msg.ts.toString() === executionId,
+				)
+
+				if (messageIndex !== -1) {
+					// Prepend status information to the command text
+					const statusPrefix = `STATUS:${JSON.stringify(status)}\n`
+					updatedMessages[messageIndex] = {
+						...updatedMessages[messageIndex],
+						text: statusPrefix + (updatedMessages[messageIndex].text || ""),
+					}
+
+					// Save the updated messages using the public method
+					await cline.overwriteClineMessages(updatedMessages)
+
+					// Update the webview
+					const provider = cline.providerRef.deref()
+					if (provider) {
+						await provider.postStateToWebview()
+					}
+				}
+			}
+		}
+	} catch (error) {
+		console.error("Failed to update command message with status:", error)
 	}
 }

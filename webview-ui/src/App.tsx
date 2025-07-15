@@ -12,20 +12,19 @@ import ChatView, { ChatViewRef } from "./components/chat/ChatView"
 import HistoryView from "./components/history/HistoryView"
 import SettingsView, { SettingsViewRef } from "./components/settings/SettingsView"
 import WelcomeView from "./components/welcome/WelcomeView"
-import McpView from "./components/mcp/McpView"
+
 import ModesView from "./components/modes/ModesView"
 import { HumanRelayDialog } from "./components/human-relay/HumanRelayDialog"
 import { AccountView } from "./components/account/AccountView"
 import { AuthenticationRequired } from "./components/auth/AuthenticationRequired"
 import { AuthProvider } from "./context/AuthContext"
 
-type Tab = "settings" | "history" | "mcp" | "modes" | "chat" | "account"
+type Tab = "settings" | "history" | "modes" | "chat" | "account"
 
 const tabsByMessageAction: Partial<Record<NonNullable<ExtensionMessage["action"]>, Tab>> = {
 	chatButtonClicked: "chat",
 	settingsButtonClicked: "settings",
 	promptsButtonClicked: "modes",
-	mcpButtonClicked: "mcp",
 	historyButtonClicked: "history",
 	accountButtonClicked: "account",
 }
@@ -51,7 +50,6 @@ const App = () => {
 		if (initialTab === "settings") return "settings"
 		if (initialTab === "history") return "history"
 		if (initialTab === "modes") return "modes"
-		if (initialTab === "mcp") return "mcp"
 		if (initialTab === "account") return "account"
 		return "chat" // default
 	}
@@ -145,7 +143,6 @@ const App = () => {
 	) : (
 		<>
 			{tab === "modes" && <ModesView onDone={() => switchTab("chat")} />}
-			{tab === "mcp" && <McpView onDone={() => switchTab("chat")} />}
 			{tab === "history" && <HistoryView onDone={() => switchTab("chat")} />}
 			{tab === "settings" && (
 				<SettingsView ref={settingsRef} onDone={() => setTab("chat")} targetSection={currentSection} />

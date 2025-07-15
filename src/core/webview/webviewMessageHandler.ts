@@ -44,7 +44,12 @@ import { generateSystemPrompt } from "./generateSystemPrompt"
 import { getCommand } from "../../utils/commands"
 import { getUserManagementIntegration } from "../../extension"
 
-const ALLOWED_VSCODE_SETTINGS = new Set(["terminal.integrated.inheritEnv"])
+const ALLOWED_VSCODE_SETTINGS = new Set([
+	"terminal.integrated.inheritEnv",
+	"cubent.mcp.enabled",
+	"cubent.mcp.serverCreationEnabled",
+	"cubent.mcp.alwaysAllow",
+])
 
 export const webviewMessageHandler = async (provider: ClineProvider, message: WebviewMessage) => {
 	// Utility functions provided for concise get/update of global state via contextProxy API.
@@ -826,11 +831,12 @@ export const webviewMessageHandler = async (provider: ClineProvider, message: We
 			await provider.postStateToWebview()
 			break
 		case "updateVSCodeSetting": {
-			const { setting, value } = message
+			const { setting, value, bool } = message
+			const settingValue = value !== undefined ? value : bool
 
-			if (setting !== undefined && value !== undefined) {
+			if (setting !== undefined && settingValue !== undefined) {
 				if (ALLOWED_VSCODE_SETTINGS.has(setting)) {
-					await vscode.workspace.getConfiguration().update(setting, value, true)
+					await vscode.workspace.getConfiguration().update(setting, settingValue, true)
 				} else {
 					vscode.window.showErrorMessage(`Cannot update restricted VSCode setting: ${setting}`)
 				}

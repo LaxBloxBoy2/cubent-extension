@@ -27,6 +27,7 @@ import {
 	LucideIcon,
 	User,
 	Key,
+	Server,
 	ChevronDown,
 } from "lucide-react"
 
@@ -64,6 +65,7 @@ import { CheckpointSettings } from "./CheckpointSettings"
 import { NotificationSettings } from "./NotificationSettings"
 import { ContextManagementSettings } from "./ContextManagementSettings"
 import { HistoryManagementSettings } from "./HistoryManagementSettings"
+import { McpSettings } from "./McpSettings"
 
 import { TerminalSettings } from "./TerminalSettings"
 import { ExperimentalSettings } from "./ExperimentalSettings"
@@ -87,6 +89,7 @@ const sectionNames = [
 	"providers",
 	"apiKeyManagement",
 	"autoApprove",
+	"mcp",
 	"browser",
 	"checkpoints",
 	"notifications",
@@ -388,6 +391,7 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 			{ id: "providers", icon: Brain },
 			{ id: "apiKeyManagement", icon: Key },
 			{ id: "autoApprove", icon: CheckCheck },
+			{ id: "mcp", icon: Server },
 			// { id: "checkpoints", icon: GitBranch }, // Hidden as requested
 			{ id: "contextManagement", icon: Database },
 			{ id: "historyManagement", icon: History },
@@ -449,7 +453,7 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 						size="sm"
 						className={cn(
 							"px-3 py-1 text-sm bg-vscode-button-secondaryBackground text-vscode-button-secondaryForeground border-vscode-button-border",
-							!isSettingValid && "!border-vscode-errorForeground"
+							!isSettingValid && "!border-vscode-errorForeground",
 						)}
 						title={
 							!isSettingValid
@@ -650,6 +654,9 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 							}}
 						/>
 					)}
+
+					{/* MCP Settings Section */}
+					{activeTab === "mcp" && <McpSettings />}
 
 					{/* Checkpoints Section - Hidden as requested */}
 					{/* {activeTab === "checkpoints" && (

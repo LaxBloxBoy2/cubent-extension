@@ -29,6 +29,7 @@ import { ReasoningBlock } from "./ReasoningBlock"
 import Thumbnails from "../common/Thumbnails"
 import McpResourceRow from "../mcp/McpResourceRow"
 import McpToolRow from "../mcp/McpToolRow"
+import { CompactMcpToolDisplay } from "./CompactMcpToolDisplay"
 
 import { Mention } from "./Mention"
 // CheckpointSaved import removed - checkpoints hidden from chat interface
@@ -1274,97 +1275,46 @@ export const ChatRowContent = ({
 
 					return (
 						<>
-							<div style={headerStyle}>
-								{icon}
-								{title}
-							</div>
-							<div
-								style={{
-									background: "var(--vscode-textCodeBlock-background)",
-									borderRadius: "3px",
-									padding: "8px 10px",
-									marginTop: "8px",
-								}}>
-								{useMcpServer.type === "access_mcp_resource" && (
-									<McpResourceRow
-										item={{
-											// Use the matched resource/template details, with fallbacks
-											...(findMatchingResourceOrTemplate(
-												useMcpServer.uri || "",
-												server?.resources,
-												server?.resourceTemplates,
-											) || {
-												name: "",
-												mimeType: "",
-												description: "",
-											}),
-											// Always use the actual URI from the request
-											uri: useMcpServer.uri || "",
-										}}
-									/>
-								)}
-								{useMcpServer.type === "use_mcp_tool" && (
-									<>
-										<div
-											style={{
-												display: "flex",
-												alignItems: "center",
-												justifyContent: "space-between",
-												marginBottom: "8px",
-											}}>
-											<div style={{ display: "flex", alignItems: "center" }}>
-												<span
-													className="codicon codicon-symbol-method"
-													style={{ marginRight: "6px" }}></span>
-												<span style={{ fontWeight: 500 }}>{useMcpServer.toolName}</span>
-											</div>
-											{tool?.alwaysAllow && (
-												<div
-													style={{
-														background: "var(--vscode-testing-iconPassed)",
-														color: "white",
-														padding: "2px 6px",
-														borderRadius: "3px",
-														fontSize: "10px",
-														fontWeight: "500",
-														textTransform: "uppercase",
-														letterSpacing: "0.5px",
-													}}>
-													Always Allow
-												</div>
-											)}
-										</div>
-										<div
-											style={{
-												marginLeft: "22px",
-												fontSize: "12px",
-												opacity: 0.8,
-												marginBottom: "8px",
-											}}>
-											{useMcpServer.serverName}
-										</div>
-										{useMcpServer.arguments && useMcpServer.arguments !== "{}" && (
-											<div style={{ marginTop: "8px" }}>
-												<div
-													style={{
-														marginBottom: "4px",
-														opacity: 0.8,
-														fontSize: "12px",
-														textTransform: "uppercase",
-													}}>
-													{t("chat:arguments")}
-												</div>
-												<CodeAccordian
-													code={useMcpServer.arguments}
-													language="json"
-													isExpanded={true}
-													onToggleExpand={handleToggleExpand}
-												/>
-											</div>
-										)}
-									</>
-								)}
-							</div>
+							{useMcpServer.type === "access_mcp_resource" && (
+								<>
+									<div style={headerStyle}>
+										{icon}
+										{title}
+									</div>
+									<div
+										style={{
+											background: "var(--vscode-textCodeBlock-background)",
+											borderRadius: "3px",
+											padding: "8px 10px",
+											marginTop: "8px",
+										}}>
+										<McpResourceRow
+											item={{
+												// Use the matched resource/template details, with fallbacks
+												...(findMatchingResourceOrTemplate(
+													useMcpServer.uri || "",
+													server?.resources,
+													server?.resourceTemplates,
+												) || {
+													name: "",
+													mimeType: "",
+													description: "",
+												}),
+												// Always use the actual URI from the request
+												uri: useMcpServer.uri || "",
+											}}
+										/>
+									</div>
+								</>
+							)}
+							{useMcpServer.type === "use_mcp_tool" && (
+								<CompactMcpToolDisplay
+									toolName={useMcpServer.toolName || ""}
+									serverName={useMcpServer.serverName || ""}
+									arguments={useMcpServer.arguments}
+									alwaysAllow={tool?.alwaysAllow}
+								/>
+							)}
 							{/* Approval buttons for MCP server requests */}
 							{showApprovalButtons && (
 								<div className="flex items-center justify-center gap-2 mt-2 p-1 bg-vscode-editor-background border border-vscode-widget-border rounded">

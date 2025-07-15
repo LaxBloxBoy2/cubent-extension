@@ -145,7 +145,7 @@
 		"tokens": "tokens"
 	},
 	"instructions": {
-		"wantsToFetch": "cubent wants to fetch detailed instructions to assist with the current task"
+		"wantsToFetch": "Detail Pull"
 	},
 	"fileOperations": {
 		"wantsToRead": "cubent wants to read this file:",
@@ -181,8 +181,8 @@
 	"response": "Response",
 	"arguments": "Arguments",
 	"mcp": {
-		"wantsToUseTool": "Cubent wants to use a tool on the {{serverName}} MCP server:",
-		"wantsToAccessResource": "Cubent wants to access a resource on the {{serverName}} MCP server:"
+		"wantsToUseTool": "Detail Pull",
+		"wantsToAccessResource": "Detail Pull"
 	},
 	"modes": {
 		"wantsToSwitch": "cubent wants to switch to {{mode}} mode",

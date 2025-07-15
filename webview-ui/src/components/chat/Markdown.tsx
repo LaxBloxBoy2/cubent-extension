@@ -8,7 +8,7 @@ export const Markdown = memo(({ markdown, partial }: { markdown?: string; partia
 	}
 
 	return (
-		<div style={{ wordBreak: "break-word", overflowWrap: "anywhere", marginBottom: -15, marginTop: -15 }}>
+		<div style={{ wordBreak: "break-word", overflowWrap: "anywhere" }}>
 			<MarkdownBlock markdown={markdown} />
 		</div>
 	)
