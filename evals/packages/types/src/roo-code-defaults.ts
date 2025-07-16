@@ -62,5 +62,9 @@ export const rooCodeDefaults: RooCodeSettings = {
 
 	mode: "code",
 
+	showContextButton: true,
+	showEnhancePromptButton: true,
+	showAddImagesButton: true,
+
 	customModes: [],
 }

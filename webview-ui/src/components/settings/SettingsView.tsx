@@ -28,6 +28,7 @@ import {
 	User,
 	Key,
 	Server,
+	Settings,
 	ChevronDown,
 } from "lucide-react"
 
@@ -66,6 +67,8 @@ import { NotificationSettings } from "./NotificationSettings"
 import { ContextManagementSettings } from "./ContextManagementSettings"
 import { HistoryManagementSettings } from "./HistoryManagementSettings"
 import { McpSettings } from "./McpSettings"
+import GeneralSettings from "./GeneralSettings"
+import CodebaseIndexingVisual from "./CodebaseIndexingVisual"
 
 import { TerminalSettings } from "./TerminalSettings"
 import { ExperimentalSettings } from "./ExperimentalSettings"
@@ -76,9 +79,9 @@ import { cn } from "@/lib/utils"
 
 export const settingsTabsContainer = "flex flex-1 overflow-hidden flex-col [&.narrow_.tab-label]:hidden"
 export const settingsTabList =
-	"h-12 data-[compact=true]:h-12 flex-shrink-0 flex flex-row justify-center overflow-x-auto overflow-y-hidden border-b border-vscode-sideBar-background bg-vscode-editor-background/50"
+	"h-10 data-[compact=true]:h-10 flex-shrink-0 flex flex-row justify-center overflow-x-auto overflow-y-hidden border-b border-vscode-sideBar-background bg-vscode-editor-background/50"
 export const settingsTabTrigger =
-	"whitespace-nowrap overflow-hidden min-w-0 h-12 px-4 py-3 box-border flex items-center border-b-2 border-transparent text-vscode-foreground opacity-70 hover:bg-vscode-list-hoverBackground data-[compact=true]:min-w-12 data-[compact=true]:p-4"
+	"whitespace-nowrap overflow-hidden min-w-0 h-10 px-4 py-2 box-border flex items-center border-b-2 border-transparent text-vscode-foreground opacity-70 hover:bg-vscode-list-hoverBackground data-[compact=true]:min-w-10 data-[compact=true]:p-3"
 export const settingsTabTriggerActive = "opacity-100 border-gray-500 bg-gray-100 dark:bg-gray-800"
 
 export interface SettingsViewRef {
@@ -86,13 +89,14 @@ export interface SettingsViewRef {
 }
 
 const sectionNames = [
+	"general",
 	"providers",
 	"apiKeyManagement",
 	"autoApprove",
 	"mcp",
+	"indexing",
 	"browser",
 	"checkpoints",
-	"notifications",
 	"contextManagement",
 	"historyManagement",
 	"modes",
@@ -183,6 +187,9 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 		codebaseIndexModels,
 		maxChatHistoryLimit,
 		autoDeleteOldChats,
+		showContextButton,
+		showEnhancePromptButton,
+		showAddImagesButton,
 	} = cachedState
 
 	const apiConfiguration = useMemo(() => cachedState.apiConfiguration ?? {}, [cachedState.apiConfiguration])
@@ -319,6 +326,9 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 			vscode.postMessage({ type: "upsertApiConfiguration", text: currentApiConfigName, apiConfiguration })
 			vscode.postMessage({ type: "telemetrySetting", text: telemetrySetting })
 			vscode.postMessage({ type: "codebaseIndexConfig", values: codebaseIndexConfig })
+			vscode.postMessage({ type: "showContextButton", bool: showContextButton })
+			vscode.postMessage({ type: "showEnhancePromptButton", bool: showEnhancePromptButton })
+			vscode.postMessage({ type: "showAddImagesButton", bool: showAddImagesButton })
 			setChangeDetected(false)
 		}
 	}
@@ -388,10 +398,12 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 
 	const sections: { id: SectionName; icon: LucideIcon }[] = useMemo(
 		() => [
+			{ id: "general", icon: Settings },
 			{ id: "providers", icon: Brain },
 			{ id: "apiKeyManagement", icon: Key },
 			{ id: "autoApprove", icon: CheckCheck },
 			{ id: "mcp", icon: Server },
+			{ id: "indexing", icon: Database },
 			// { id: "checkpoints", icon: GitBranch }, // Hidden as requested
 			{ id: "contextManagement", icon: Database },
 			{ id: "historyManagement", icon: History },
@@ -622,6 +634,20 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 						</div>
 					)}
 
+					{/* General Settings Section */}
+					{activeTab === "general" && (
+						<GeneralSettings
+							showContextButton={showContextButton}
+							showEnhancePromptButton={showEnhancePromptButton}
+							showAddImagesButton={showAddImagesButton}
+							ttsEnabled={ttsEnabled}
+							ttsSpeed={ttsSpeed}
+							soundEnabled={soundEnabled}
+							soundVolume={soundVolume}
+							setCachedStateField={setCachedStateField}
+						/>
+					)}
+
 					{/* Auto-Approve Section */}
 					{activeTab === "autoApprove" && (
 						<AutoApproveSettings
@@ -657,6 +683,9 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 
 					{/* MCP Settings Section */}
 					{activeTab === "mcp" && <McpSettings />}
+
+					{/* Indexing Section */}
+					{activeTab === "indexing" && <CodebaseIndexingVisual />}
 
 					{/* Checkpoints Section - Hidden as requested */}
 					{/* {activeTab === "checkpoints" && (

@@ -130,14 +130,7 @@ const McpView = ({ onDone }: McpViewProps) => {
 						className="w-full justify-start gap-2"
 						onClick={() => vscode.postMessage({ type: "openMcpSettings" })}>
 						<Edit className="w-4 h-4" />
-						{t("mcp:editGlobalMCP")}
-					</Button>
-					<Button
-						variant="outline"
-						className="w-full justify-start gap-2"
-						onClick={() => vscode.postMessage({ type: "openProjectMcpSettings" })}>
-						<Edit className="w-4 h-4" />
-						{t("mcp:editProjectMCP")}
+						Edit MCP Settings
 					</Button>
 				</div>
 			)}

@@ -102,6 +102,9 @@ export const globalSettingsSchema = z.object({
 	customSupportPrompts: customSupportPromptsSchema.optional(),
 	enhancementApiConfigId: z.string().optional(),
 	historyPreviewCollapsed: z.boolean().optional(),
+	showContextButton: z.boolean().optional(),
+	showEnhancePromptButton: z.boolean().optional(),
+	showAddImagesButton: z.boolean().optional(),
 
 	// History Management Settings
 	maxChatHistoryLimit: z.number().optional(),
@@ -192,6 +195,9 @@ export const GLOBAL_SETTINGS_KEYS = keysOf<GlobalSettings>()([
 	"enhancementApiConfigId",
 	"cachedChromeHostUrl",
 	"historyPreviewCollapsed",
+	"showContextButton",
+	"showEnhancePromptButton",
+	"showAddImagesButton",
 
 	"maxChatHistoryLimit",
 	"autoDeleteOldChats",

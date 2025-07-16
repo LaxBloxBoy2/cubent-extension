@@ -25,9 +25,11 @@
 		"description": "Select a category below to configure your preferences."
 	},
 	"sections": {
+		"general": "General Settings",
 		"providers": "Models",
 		"models": "Models",
 		"apiKeyManagement": "API Keys",
+		"indexing": "Indexing & Docs",
 		"autoApprove": "Auto-Approve",
 		"mcp": "MCP Tools",
 		"browser": "Browser",
@@ -634,6 +636,23 @@
 			"confirm": "Are you sure you want to delete all chat history? This action cannot be undone.",
 			"success": "All chat history has been cleared.",
 			"error": "Failed to clear chat history."
+		}
+	},
+	"general": {
+		"toolbar": {
+			"title": "Chat Toolbar",
+			"contextButton": {
+				"label": "Show context button (@)",
+				"description": "Display the context button in the chat toolbar to add context to your messages."
+			},
+			"enhancePrompt": {
+				"label": "Show enhance prompt button",
+				"description": "Display the enhance prompt button in the chat toolbar to improve your prompts."
+			},
+			"addImages": {
+				"label": "Show add images button",
+				"description": "Display the add images button in the chat toolbar to attach images to your messages."
+			}
 		}
 	}
 }

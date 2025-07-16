@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from "react"
 import { useEvent } from "react-use"
-import { VSCodeCheckbox, VSCodeLink } from "@vscode/webview-ui-toolkit/react"
+import { VSCodeLink } from "@vscode/webview-ui-toolkit/react"
 import { Server, CheckSquare, HelpCircle, Edit } from "lucide-react"
 
 import { ExtensionMessage } from "@shared/ExtensionMessage"
@@ -13,7 +13,57 @@ import { buildDocLink } from "@src/utils/docLinks"
 import { Button } from "@src/components/ui"
 
 import { SectionHeader } from "./SectionHeader"
-import { Section } from "./Section"
+
+// Thin toggle switch component - rebuilt from scratch
+const ToggleSwitch = ({
+	checked,
+	onChange,
+	testId,
+}: {
+	checked: boolean
+	onChange: (checked: boolean) => void
+	testId?: string
+}) => (
+	<label className="relative inline-flex h-5 w-9 cursor-pointer select-none items-center">
+		<input
+			type="checkbox"
+			className="sr-only"
+			checked={checked}
+			onChange={(e) => onChange(e.target.checked)}
+			data-testid={testId}
+		/>
+		{/* Track - thinner design */}
+		<div className={`relative h-5 w-9 rounded-full transition-colors duration-200 ${checked ? 'bg-[#007acc]' : 'bg-[#3a3a3a]'}`}>
+			{/* Knob - smaller and thinner */}
+			<div className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow-sm transition-transform duration-200 ${checked ? 'translate-x-4' : 'translate-x-0.5'}`} />
+		</div>
+	</label>
+)
+
+// Row component matching the General Settings design
+const SettingRow = ({
+	title,
+	description,
+	checked,
+	onChange,
+	testId,
+}: {
+	title: string
+	description: string
+	checked: boolean
+	onChange: (checked: boolean) => void
+	testId?: string
+}) => (
+	<div className="flex items-start justify-between py-3">
+		{/* Text content */}
+		<div className="pr-4">
+			<p className="text-sm font-medium text-[#e4e4e4]">{title}</p>
+			<p className="mt-1 text-xs leading-snug text-[#9c9c9c] max-w-xs">{description}</p>
+		</div>
+		{/* Toggle switch */}
+		<ToggleSwitch checked={checked} onChange={onChange} testId={testId} />
+	</div>
+)
 
 type McpSettingsProps = {
 	className?: string
@@ -29,6 +79,8 @@ export const McpSettings = ({ className, ...props }: McpSettingsProps) => {
 		setMcpEnabled,
 		setAlwaysAllowMcp,
 	} = useExtensionState()
+
+
 
 	const { t } = useAppTranslation()
 
@@ -71,35 +123,17 @@ export const McpSettings = ({ className, ...props }: McpSettingsProps) => {
 	useEvent("message", onMessage)
 
 	const handleMcpEnabledChange = (checked: boolean) => {
-		setVsCodeMcpEnabled(checked)
 		setMcpEnabled(checked)
-		vscode.postMessage({
-			type: "updateVSCodeSetting",
-			setting: "cubent.mcp.enabled",
-			bool: checked,
-		})
 		vscode.postMessage({ type: "mcpEnabled", bool: checked })
 	}
 
 	const handleServerCreationChange = (checked: boolean) => {
-		setVsCodeServerCreationEnabled(checked)
 		setEnableMcpServerCreation(checked)
-		vscode.postMessage({
-			type: "updateVSCodeSetting",
-			setting: "cubent.mcp.serverCreationEnabled",
-			bool: checked,
-		})
 		vscode.postMessage({ type: "enableMcpServerCreation", bool: checked })
 	}
 
 	const handleAlwaysAllowChange = (checked: boolean) => {
-		setVsCodeAlwaysAllow(checked)
 		setAlwaysAllowMcp(checked)
-		vscode.postMessage({
-			type: "updateVSCodeSetting",
-			setting: "cubent.mcp.alwaysAllow",
-			bool: checked,
-		})
 		vscode.postMessage({ type: "alwaysAllowMcp", bool: checked })
 	}
 
@@ -112,62 +146,47 @@ export const McpSettings = ({ className, ...props }: McpSettingsProps) => {
 				</div>
 			</SectionHeader>
 
-			<Section>
-				{/* Main MCP Toggle */}
-				<div className="space-y-4">
-					<div>
-						<VSCodeCheckbox
-							checked={vsCodeMcpEnabled}
-							onChange={(e: any) => handleMcpEnabledChange(e.target.checked)}>
-							<span className="font-medium text-vscode-foreground text-sm">Enable MCP Servers</span>
-						</VSCodeCheckbox>
-						<div className="text-xs text-vscode-descriptionForeground mt-1">
-							Access connected MCP servers. Turn off to save tokens.
-						</div>
-					</div>
+			{/* Content without Section wrapper - no card background */}
+			<div className="w-full p-6">
+				{/* MCP Settings */}
+				<div className="divide-y divide-[#2e2e2e]">
+					<SettingRow
+						title="Enable MCP Servers"
+						description="Access connected MCP servers. Turn off to save tokens."
+						checked={mcpEnabled}
+						onChange={handleMcpEnabledChange}
+					/>
 
 					{/* Server Creation Toggle */}
-					{vsCodeMcpEnabled && (
-						<div>
-							<VSCodeCheckbox
-								checked={vsCodeServerCreationEnabled}
-								onChange={(e: any) => handleServerCreationChange(e.target.checked)}>
-								<span className="font-medium text-vscode-foreground text-sm">
-									Enable MCP Server Creation
-								</span>
-							</VSCodeCheckbox>
-							<div className="text-xs text-vscode-descriptionForeground mt-1">
-								Allow cubent to create new servers on demand.
-							</div>
-						</div>
+					{mcpEnabled && (
+						<SettingRow
+							title="Enable MCP Server Creation"
+							description="Allow cubent to create new servers on demand."
+							checked={enableMcpServerCreation}
+							onChange={handleServerCreationChange}
+						/>
 					)}
 
 					{/* Always Allow Toggle */}
-					{vsCodeMcpEnabled && (
-						<div>
-							<VSCodeCheckbox
-								checked={vsCodeAlwaysAllow}
-								onChange={(e: any) => handleAlwaysAllowChange(e.target.checked)}>
-								<span className="font-medium text-vscode-foreground text-sm">
-									Always Allow MCP Tools
-								</span>
-							</VSCodeCheckbox>
-							<div className="text-xs text-vscode-descriptionForeground mt-1">
-								Automatically approve MCP tool usage without prompting.
-							</div>
-						</div>
+					{mcpEnabled && (
+						<SettingRow
+							title="Always Allow MCP Tools"
+							description="Automatically approve MCP tool usage without prompting."
+							checked={alwaysAllowMcp || false}
+							onChange={handleAlwaysAllowChange}
+						/>
 					)}
 				</div>
 
 				{/* Server List */}
-				{vsCodeMcpEnabled && servers.length > 0 && (
+				{mcpEnabled && servers.length > 0 && (
 					<div className="mt-6">
-						<h3 className="text-sm font-medium text-vscode-foreground mb-3">Connected Servers</h3>
+						<h3 className="text-sm font-medium text-[#f1f1f1] mb-3">Connected Servers</h3>
 						<div className="space-y-2">
 							{servers.map((server) => (
 								<div
 									key={`${server.name}-${server.source || "global"}`}
-									className="flex items-center justify-between p-2 bg-vscode-textCodeBlock-background rounded">
+									className="flex items-center justify-between p-2 bg-[#1e1e1e] rounded">
 									<div className="flex items-center gap-2">
 										<div
 											className="w-2 h-2 rounded-full"
@@ -180,14 +199,14 @@ export const McpSettings = ({ className, ...props }: McpSettingsProps) => {
 															: "var(--vscode-testing-iconFailed)",
 											}}
 										/>
-										<span className="text-sm text-vscode-foreground">{server.name}</span>
+										<span className="text-sm text-[#e4e4e4]">{server.name}</span>
 										{server.source && (
-											<span className="px-2 py-0.5 text-xs rounded bg-vscode-badge-background text-vscode-badge-foreground">
+											<span className="px-2 py-0.5 text-xs rounded bg-[#3a3a3a] text-[#e4e4e4]">
 												{server.source}
 											</span>
 										)}
 									</div>
-									<div className="text-xs text-vscode-descriptionForeground">{server.status}</div>
+									<div className="text-xs text-[#9c9c9c]">{server.status}</div>
 								</div>
 							))}
 						</div>
@@ -195,33 +214,26 @@ export const McpSettings = ({ className, ...props }: McpSettingsProps) => {
 				)}
 
 				{/* Action Buttons */}
-				{vsCodeMcpEnabled && (
-					<div className="mt-6 space-y-2">
+				{mcpEnabled && (
+					<div className="mt-6">
 						<Button
 							variant="outline"
 							className="w-full justify-start gap-2"
 							onClick={() => vscode.postMessage({ type: "openMcpSettings" })}>
 							<Edit className="w-4 h-4" />
-							Edit Global MCP Settings
-						</Button>
-						<Button
-							variant="outline"
-							className="w-full justify-start gap-2"
-							onClick={() => vscode.postMessage({ type: "openProjectMcpSettings" })}>
-							<Edit className="w-4 h-4" />
-							Edit Project MCP Settings
+							Edit MCP Settings
 						</Button>
 					</div>
 				)}
 
 				{/* Help Section */}
 				{vsCodeMcpEnabled && (
-					<div className="mt-6 p-3 bg-vscode-textCodeBlock-background rounded">
+					<div className="mt-6 p-3 bg-[#1e1e1e] rounded">
 						<div className="flex items-center gap-2 mb-2">
 							<HelpCircle className="w-4 h-4" />
-							<span className="text-sm font-medium text-vscode-foreground">Need help?</span>
+							<span className="text-sm font-medium text-[#e4e4e4]">Need help?</span>
 						</div>
-						<p className="text-xs text-vscode-descriptionForeground mb-2">
+						<p className="text-xs text-[#9c9c9c] mb-2">
 							Explore our guide to MCP configuration and best practices.
 						</p>
 						<VSCodeLink
@@ -231,7 +243,7 @@ export const McpSettings = ({ className, ...props }: McpSettingsProps) => {
 						</VSCodeLink>
 					</div>
 				)}
-			</Section>
+			</div>
 		</div>
 	)
 }

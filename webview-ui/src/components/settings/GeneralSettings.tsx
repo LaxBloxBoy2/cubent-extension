@@ -24,7 +24,7 @@ interface GeneralSettingsProps extends HTMLAttributes<HTMLDivElement> {
 	>
 }
 
-// Custom toggle component matching the reference design
+// Thin toggle switch component - matching MCP settings design
 const ToggleSwitch = ({
 	checked,
 	onChange,
@@ -34,18 +34,19 @@ const ToggleSwitch = ({
 	onChange: (checked: boolean) => void
 	testId?: string
 }) => (
-	<label className="relative inline-flex h-6 w-11 cursor-pointer select-none">
+	<label className="relative inline-flex h-5 w-9 cursor-pointer select-none items-center">
 		<input
 			type="checkbox"
-			className="peer sr-only"
+			className="sr-only"
 			checked={checked}
 			onChange={(e) => onChange(e.target.checked)}
 			data-testid={testId}
 		/>
-		{/* Track */}
-		<span className="absolute inset-0 rounded-full bg-[#3a3a3a] transition-colors peer-checked:bg-[#8a8a8a]" />
-		{/* Knob */}
-		<span className="absolute ml-0.5 mt-0.5 h-5 w-5 rounded-full bg-white transition-transform peer-checked:translate-x-5" />
+		{/* Track - thinner design */}
+		<div className={`relative h-5 w-9 rounded-full transition-colors duration-200 ${checked ? 'bg-[#007acc]' : 'bg-[#3a3a3a]'}`}>
+			{/* Knob - smaller and thinner */}
+			<div className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow-sm transition-transform duration-200 ${checked ? 'translate-x-4' : 'translate-x-0.5'}`} />
+		</div>
 	</label>
 )
 
@@ -63,7 +64,7 @@ const SettingRow = ({
 	onChange: (checked: boolean) => void
 	testId?: string
 }) => (
-	<div className="flex items-start justify-between py-4">
+	<div className="flex items-start justify-between py-3">
 		{/* Text content */}
 		<div className="pr-4">
 			<p className="text-sm font-medium text-[#e4e4e4]">{title}</p>
@@ -134,7 +135,7 @@ export default function GeneralSettings({
 
 					{/* TTS Speed Slider */}
 					{ttsEnabled && (
-						<div className="py-4 pl-4 border-l-2 border-[#3a3a3a]">
+						<div className="py-3 pl-4 border-l-2 border-[#3a3a3a]">
 							<label className="block text-sm font-medium text-[#e4e4e4] mb-2">
 								{t("settings:notifications.tts.speedLabel")}
 							</label>
@@ -164,7 +165,7 @@ export default function GeneralSettings({
 
 					{/* Sound Volume Slider */}
 					{soundEnabled && (
-						<div className="py-4 pl-4 border-l-2 border-[#3a3a3a]">
+						<div className="py-3 pl-4 border-l-2 border-[#3a3a3a]">
 							<label className="block text-sm font-medium text-[#e4e4e4] mb-2">
 								{t("settings:notifications.sound.volumeLabel")}
 							</label>

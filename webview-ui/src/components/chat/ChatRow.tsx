@@ -655,17 +655,43 @@ export const ChatRowContent = ({
 			case "fetchInstructions":
 				return (
 					<>
-						<div style={headerStyle}>
-							{toolIcon("file-code")}
-							<span style={{ fontWeight: "bold" }}>{t("chat:instructions.wantsToFetch")}</span>
+						<div
+							className="rounded-lg text-gray-200 px-3 pt-3 pb-2 shadow-lg relative cursor-pointer"
+							style={{ backgroundColor: "var(--vscode-editor-background)" }}
+							onClick={handleToggleExpand}>
+							{/* Status dot in top right */}
+							<StatusDot state={message.partial ? "building" : tool.content ? "success" : "error"} />
+
+							{/* Header */}
+							<div className="flex items-center justify-between mb-2">
+								<div className="flex items-center gap-2">
+									{/* Simple menu icon */}
+									<svg
+										className="w-3 h-3 text-gray-400"
+										fill="none"
+										stroke="currentColor"
+										strokeWidth="2"
+										viewBox="0 0 24 24">
+										<path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+									</svg>
+									<span className="text-xs font-semibold">Detail Pull</span>
+								</div>
+							</div>
+
+							{/* Method name */}
+							<div className="flex items-center justify-between text-xs mb-2">
+								<code className="font-mono text-amber-400 text-[11px]">create_mcp_server</code>
+							</div>
+
+							{/* Collapsible markdown content */}
+							{isExpanded && tool.content && (
+								<div className="text-xs leading-tight mt-3">
+									<div className="relative bg-[#1e1e1e] p-3 rounded border border-gray-700/30 max-h-96 overflow-auto">
+										<Markdown markdown={tool.content} />
+									</div>
+								</div>
+							)}
 						</div>
-						<CodeAccordian
-							code={tool.content}
-							language="markdown"
-							isLoading={message.partial}
-							isExpanded={isExpanded}
-							onToggleExpand={handleToggleExpand}
-						/>
 						{/* Approval buttons */}
 						{showApprovalButtons && message.type === "ask" && (
 							<div className="flex items-center justify-center gap-2 mt-2 p-1 bg-vscode-editor-background border border-vscode-widget-border rounded">
