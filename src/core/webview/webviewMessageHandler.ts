@@ -1535,6 +1535,21 @@ export const webviewMessageHandler = async (provider: ClineProvider, message: We
 			await provider.postStateToWebview()
 			break
 		}
+		case "showContextButton": {
+			await updateGlobalState("showContextButton", message.bool)
+			await provider.postStateToWebview()
+			break
+		}
+		case "showEnhancePromptButton": {
+			await updateGlobalState("showEnhancePromptButton", message.bool)
+			await provider.postStateToWebview()
+			break
+		}
+		case "showAddImagesButton": {
+			await updateGlobalState("showAddImagesButton", message.bool)
+			await provider.postStateToWebview()
+			break
+		}
 		case "accountButtonClicked": {
 			// Navigate to the account tab.
 			provider.postMessageToWebview({ type: "action", action: "accountButtonClicked" })

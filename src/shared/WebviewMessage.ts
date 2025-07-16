@@ -177,6 +177,9 @@ export interface WebviewMessage {
 		| "clearAllChatHistory"
 		| "maxChatHistoryLimit"
 		| "autoDeleteOldChats"
+		| "showContextButton"
+		| "showEnhancePromptButton"
+		| "showAddImagesButton"
 	text?: string
 	disabled?: boolean
 	askResponse?: ClineAskResponse

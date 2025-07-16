@@ -123,6 +123,17 @@ export async function activate(context: vscode.ExtensionContext) {
 		context.globalState.update("allowedCommands", defaultCommands)
 	}
 
+	// Initialize new general settings with default values if not already set
+	if (context.globalState.get("showContextButton") === undefined) {
+		context.globalState.update("showContextButton", true)
+	}
+	if (context.globalState.get("showEnhancePromptButton") === undefined) {
+		context.globalState.update("showEnhancePromptButton", true)
+	}
+	if (context.globalState.get("showAddImagesButton") === undefined) {
+		context.globalState.update("showAddImagesButton", true)
+	}
+
 	const contextProxy = await ContextProxy.getInstance(context)
 	const codeIndexManager = CodeIndexManager.getInstance(context)
 

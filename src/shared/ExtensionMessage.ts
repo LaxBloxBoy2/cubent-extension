@@ -201,6 +201,9 @@ export type ExtensionState = Pick<
 	| "codebaseIndexModels"
 	| "maxChatHistoryLimit"
 	| "autoDeleteOldChats"
+	| "showContextButton"
+	| "showEnhancePromptButton"
+	| "showAddImagesButton"
 > & {
 	version: string
 	clineMessages: ClineMessage[]
@@ -237,6 +240,9 @@ export type ExtensionState = Pick<
 	renderContext: "sidebar" | "editor"
 	settingsImportedAt?: number
 	historyPreviewCollapsed?: boolean
+	showContextButton?: boolean
+	showEnhancePromptButton?: boolean
+	showAddImagesButton?: boolean
 
 	cloudUserInfo: CloudUserInfo | null
 	organizationAllowList: OrganizationAllowList
