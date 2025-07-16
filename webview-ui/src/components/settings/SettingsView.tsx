@@ -23,13 +23,15 @@ import {
 	AlertTriangle,
 	Globe,
 	MessageSquare,
-	Brain,
 	LucideIcon,
 	User,
 	Key,
 	Server,
 	Settings,
 	ChevronDown,
+	LogOut,
+	TrendingUp,
+	BookOpen,
 } from "lucide-react"
 
 import type { ProviderSettings, ExperimentId } from "@cubent/types"
@@ -117,7 +119,8 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 	const { t } = useAppTranslation()
 
 	const extensionState = useExtensionState()
-	const { currentApiConfigName, listApiConfigMeta, uriScheme, settingsImportedAt } = extensionState
+	const { currentApiConfigName, listApiConfigMeta, uriScheme, settingsImportedAt, isAuthenticated, currentUser } =
+		extensionState
 
 	const [isDiscardDialogShow, setDiscardDialogShow] = useState(false)
 	const [isChangeDetected, setChangeDetected] = useState(false)
@@ -127,6 +130,8 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 	const [activeTab, setActiveTab] = useState<SectionName | null>(
 		targetSection && sectionNames.includes(targetSection as SectionName) ? (targetSection as SectionName) : null,
 	)
+	const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false)
+	const profileDropdownRef = useRef<HTMLDivElement>(null)
 
 	const prevApiConfigName = useRef(currentApiConfigName)
 	const confirmDialogHandler = useRef<() => void>()
@@ -222,6 +227,23 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 			}
 		}
 	}, [])
+
+	// Handle clicking outside profile dropdown to close it
+	useEffect(() => {
+		const handleClickOutside = (event: MouseEvent) => {
+			if (profileDropdownRef.current && !profileDropdownRef.current.contains(event.target as Node)) {
+				setIsProfileDropdownOpen(false)
+			}
+		}
+
+		if (isProfileDropdownOpen) {
+			document.addEventListener("mousedown", handleClickOutside)
+		}
+
+		return () => {
+			document.removeEventListener("mousedown", handleClickOutside)
+		}
+	}, [isProfileDropdownOpen])
 
 	// Bust the cache when settings are imported.
 	useEffect(() => {
@@ -360,6 +382,32 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 		[extensionState], // Depend on extensionState to get the latest original state
 	)
 
+	// Profile dropdown handlers
+	const handleProfileClick = () => {
+		setIsProfileDropdownOpen(!isProfileDropdownOpen)
+	}
+
+	const handleSignOut = () => {
+		setIsProfileDropdownOpen(false)
+		vscode.postMessage({ type: "rooCloudSignOut" })
+	}
+
+	const handleViewUsage = () => {
+		setIsProfileDropdownOpen(false)
+		vscode.postMessage({
+			type: "openExternal",
+			url: "https://app.cubent.dev/dashboard",
+		})
+	}
+
+	const handleManageAccount = () => {
+		setIsProfileDropdownOpen(false)
+		vscode.postMessage({
+			type: "openExternal",
+			url: "https://app.cubent.dev/profile",
+		})
+	}
+
 	// Handle tab changes with unsaved changes check
 	const handleTabChange = useCallback(
 		(newTab: SectionName) => {
@@ -399,7 +447,7 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 	const sections: { id: SectionName; icon: LucideIcon }[] = useMemo(
 		() => [
 			{ id: "general", icon: Settings },
-			{ id: "providers", icon: Brain },
+			{ id: "providers", icon: Settings },
 			{ id: "apiKeyManagement", icon: Key },
 			{ id: "autoApprove", icon: CheckCheck },
 			{ id: "mcp", icon: Server },
@@ -456,9 +504,90 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 	return (
 		<Tab>
 			<TabHeader className="flex justify-between items-center gap-2">
-				<div className="flex items-center gap-1">
-					<h3 className="text-vscode-foreground m-0">{t("settings:header.title")}</h3>
-				</div>
+				{/* Profile Section */}
+				{isAuthenticated && currentUser ? (
+					<div className="relative" ref={profileDropdownRef}>
+						<div
+							className="flex items-center gap-1 cursor-pointer rounded-md px-0.5 py-0"
+							onClick={handleProfileClick}>
+							{/* User Avatar */}
+							{currentUser.picture ? (
+								<img
+									src={currentUser.picture}
+									alt="User avatar"
+									className="h-7 w-7 rounded-full object-cover"
+								/>
+							) : (
+								<div className="h-7 w-7 rounded-full bg-gradient-to-br from-pink-500 to-purple-600 flex items-center justify-center text-white text-xs font-bold">
+									{(() => {
+										const displayName = currentUser.name || currentUser.email || "User"
+										return displayName && typeof displayName === "string"
+											? displayName.charAt(0).toUpperCase()
+											: "P"
+									})()}
+								</div>
+							)}
+
+							{/* User Info */}
+							<div className="min-w-0">
+								<p className="text-xs font-medium text-vscode-foreground truncate leading-none">
+									{currentUser.email || "No email"}
+								</p>
+								<p className="text-xs text-vscode-descriptionForeground leading-none -mt-1">
+									{(() => {
+										const tier = currentUser.subscriptionTier || "free_trial"
+										switch (tier.toLowerCase()) {
+											case "free_trial":
+												return "Free Trial"
+											case "basic":
+												return "Basic"
+											case "pro":
+												return "Pro"
+											case "enterprise":
+												return "Enterprise"
+											default:
+												return "Free Trial"
+										}
+									})()}
+								</p>
+							</div>
+
+							{/* Dropdown Arrow */}
+							<ChevronDown
+								className={`h-3 w-3 text-vscode-descriptionForeground transition-transform ml-1 ${isProfileDropdownOpen ? "rotate-180" : ""}`}
+							/>
+						</div>
+
+						{/* Dropdown Menu */}
+						{isProfileDropdownOpen && (
+							<div className="absolute top-full left-0 mt-1 w-48 bg-vscode-sideBar-background border border-vscode-panel-border rounded-md shadow-lg z-50">
+								<div className="py-1">
+									<button
+										className="w-full px-3 py-2 text-left text-xs text-vscode-sideBar-foreground hover:bg-vscode-list-hoverBackground cursor-pointer flex items-center gap-2 transition-colors"
+										onClick={handleViewUsage}>
+										<TrendingUp className="h-3 w-3" />
+										View Usage Details
+									</button>
+									<button
+										className="w-full px-3 py-2 text-left text-xs text-vscode-sideBar-foreground hover:bg-vscode-list-hoverBackground cursor-pointer flex items-center gap-2 transition-colors"
+										onClick={handleManageAccount}>
+										<BookOpen className="h-3 w-3" />
+										Manage Account Online
+									</button>
+									<div className="border-t border-vscode-panel-border my-1"></div>
+									<button
+										className="w-full px-3 py-2 text-left text-xs text-vscode-sideBar-foreground hover:bg-vscode-list-hoverBackground cursor-pointer flex items-center gap-2 transition-colors"
+										onClick={handleSignOut}>
+										<LogOut className="h-3 w-3" />
+										Sign Out
+									</button>
+								</div>
+							</div>
+						)}
+					</div>
+				) : (
+					<div></div>
+				)}
 				<div className="flex gap-1">
 					<Button
 						variant="secondary"
@@ -554,7 +683,6 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 					{/* Default content when no tab is selected */}
 					{activeTab === null && (
 						<div className="flex flex-col items-center justify-center h-full text-center p-8">
-							<Brain className="w-16 h-16 text-vscode-descriptionForeground mb-4" />
 							<h3 className="text-lg font-medium text-vscode-foreground mb-2">
 								{t("settings:welcome.title")}
 							</h3>
@@ -581,7 +709,7 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 						<div>
 							<SectionHeader>
 								<div className="flex items-center gap-2">
-									<Brain className="w-4" />
+									<Settings className="w-4" />
 									<div>{t("settings:sections.providers")}</div>
 								</div>
 							</SectionHeader>

@@ -96,11 +96,6 @@
 				"icon": "$(link-external)"
 			},
 			{
-				"command": "cubent.accountButtonClicked",
-				"title": "Account",
-				"icon": "$(account)"
-			},
-			{
 				"command": "cubent.settingsButtonClicked",
 				"title": "%command.settings.title%",
 				"icon": "$(settings-gear)"
@@ -219,11 +214,6 @@
 					"when": "view == cubent.SidebarProvider"
 				},
 				{
-					"command": "cubent.accountButtonClicked",
-					"group": "navigation@6",
-					"when": "view == cubent.SidebarProvider"
-				},
-				{
 					"command": "cubent.settingsButtonClicked",
 					"group": "navigation@7",
 					"when": "view == cubent.SidebarProvider"
@@ -233,11 +223,6 @@
 				{
 					"command": "cubent.promptsButtonClicked",
 					"group": "navigation@1",
-					"when": "activeWebviewPanelId == cubent.TabPanelProvider"
-				},
-				{
-					"command": "cubent.accountButtonClicked",
-					"group": "navigation@6",
 					"when": "activeWebviewPanelId == cubent.TabPanelProvider"
 				},
 				{
