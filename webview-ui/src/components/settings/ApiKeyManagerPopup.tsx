@@ -135,6 +135,8 @@ export const ApiKeyManagerContent = ({
 }) => {
 	const [apiKeys, setApiKeys] = useState<ApiKeyState>({})
 	const [searchQuery, setSearchQuery] = useState("")
+	const [byakSearchQuery, setByakSearchQuery] = useState("")
+	const [builtinSearchQuery, setBuiltinSearchQuery] = useState("")
 	const [activeTab, setActiveTab] = useState<"api-key" | "byak-models" | "builtin-models">("api-key")
 	const [localHiddenProfiles, setLocalHiddenProfiles] = useState<Set<string>>(new Set())
 
@@ -171,6 +173,35 @@ export const ApiKeyManagerContent = ({
 				provider.name.toLowerCase().includes(query) || provider.description.toLowerCase().includes(query),
 		)
 	}, [searchQuery])
+
+	// Filter BYAK models based on search query
+	const filteredByakModels = useMemo(() => {
+		if (!byakSearchQuery.trim()) return listApiConfigMeta?.filter((config) => config.name.includes("(BYAK)")) || []
+		const query = byakSearchQuery.toLowerCase()
+		return (
+			listApiConfigMeta?.filter(
+				(config) =>
+					config.name.includes("(BYAK)") &&
+					(config.name.toLowerCase().includes(query) ||
+						(config.apiProvider?.toLowerCase().includes(query) ?? false)),
+			) || []
+		)
+	}, [byakSearchQuery, listApiConfigMeta])
+
+	// Filter Built-in models based on search query
+	const filteredBuiltinModels = useMemo(() => {
+		if (!builtinSearchQuery.trim())
+			return listApiConfigMeta?.filter((config) => !config.name.includes("(BYAK)")) || []
+		const query = builtinSearchQuery.toLowerCase()
+		return (
+			listApiConfigMeta?.filter(
+				(config) =>
+					!config.name.includes("(BYAK)") &&
+					(config.name.toLowerCase().includes(query) ||
+						(config.apiProvider?.toLowerCase().includes(query) ?? false)),
+			) || []
+		)
+	}, [builtinSearchQuery, listApiConfigMeta])
 
 	// Load existing API keys when component mounts
 	useEffect(() => {
@@ -334,10 +365,20 @@ export const ApiKeyManagerContent = ({
 
 			{/* BYAK Models Tab Content */}
 			{activeTab === "byak-models" && (
-				<div className="flex-1 overflow-y-auto min-h-0 pr-1">
-					{listApiConfigMeta
-						?.filter((config) => config.name.includes("(BYAK)"))
-						.map((config, index, array) => (
+				<>
+					{/* Search Bar for BYAK Models */}
+					<div className="relative flex-shrink-0">
+						<Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-3 h-3 text-vscode-descriptionForeground" />
+						<Input
+							type="text"
+							placeholder="Search BYAK models..."
+							value={byakSearchQuery}
+							onChange={(e) => setByakSearchQuery(e.target.value)}
+							className="pl-7 h-7 text-xs bg-vscode-input-background border-vscode-input-border text-vscode-foreground placeholder-vscode-descriptionForeground"
+						/>
+					</div>
+					<div className="flex-1 overflow-y-auto min-h-0 pr-1">
+						{filteredByakModels.map((config, index, array) => (
 							<div key={config.id}>
 								<div className="flex items-center justify-between py-2 px-1">
 									<div className="flex-1 min-w-0">
@@ -380,68 +421,96 @@ export const ApiKeyManagerContent = ({
 								)}
 							</div>
 						))}
-					{!listApiConfigMeta?.some((config) => config.name.includes("(BYAK)")) && (
-						<div className="text-center py-4 text-vscode-descriptionForeground text-xs">
-							No BYAK models found
-						</div>
-					)}
-				</div>
+						{filteredByakModels.length === 0 && (
+							<div className="text-center py-4 text-vscode-descriptionForeground text-xs">
+								{byakSearchQuery.trim() ? "No BYAK models match your search" : "No BYAK models found"}
+							</div>
+						)}
+					</div>
+				</>
 			)}
 
 			{/* Built In Models Tab Content */}
 			{activeTab === "builtin-models" && (
-				<div className="flex-1 overflow-y-auto min-h-0 pr-1">
-					{listApiConfigMeta
-						?.filter((config) => !config.name.includes("(BYAK)"))
-						.map((config, index, array) => (
+				<>
+					{/* Search Bar for Built In Models */}
+					<div className="relative flex-shrink-0">
+						<Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-3 h-3 text-vscode-descriptionForeground" />
+						<Input
+							type="text"
+							placeholder="Search built-in models..."
+							value={builtinSearchQuery}
+							onChange={(e) => setBuiltinSearchQuery(e.target.value)}
+							className="pl-7 h-7 text-xs bg-vscode-input-background border-vscode-input-border text-vscode-foreground placeholder-vscode-descriptionForeground"
+						/>
+					</div>
+					<div className="flex-1 overflow-y-auto min-h-0 pr-1">
+						{filteredBuiltinModels.map((config, index, array) => (
 							<div key={config.id}>
 								<div className="flex items-center justify-between py-2 px-1">
 									<div className="flex-1 min-w-0">
-										<h3 className="text-vscode-foreground font-medium text-xs truncate">
-											{config.name}
-										</h3>
-										<p className="text-vscode-descriptionForeground text-xs truncate">
-											{config.apiProvider}
-										</p>
+										{/* Check if this is a provider title (starts with "---") */}
+										{config.name.startsWith("---") ? (
+											<h3 className="text-vscode-foreground font-medium text-sm truncate">
+												{config.name.replace(/^--- | ---$/g, "")}
+											</h3>
+										) : (
+											<>
+												<h3 className="text-vscode-foreground font-medium text-xs truncate">
+													{config.name}
+												</h3>
+												<p className="text-vscode-descriptionForeground text-xs truncate">
+													{config.apiProvider}
+												</p>
+											</>
+										)}
 									</div>
-									<button
-										onClick={() => {
-											// Simple toggle - just update local state
-											const isCurrentlyHidden = hiddenProfiles.has(config.id)
-											const newHidden = new Set(hiddenProfiles)
+									{/* Only show toggle for actual models, not provider titles */}
+									{!config.name.startsWith("---") && (
+										<button
+											onClick={() => {
+												// Simple toggle - just update local state
+												const isCurrentlyHidden = hiddenProfiles.has(config.id)
+												const newHidden = new Set(hiddenProfiles)
 
-											if (isCurrentlyHidden) {
-												// Make visible (remove from hidden)
-												newHidden.delete(config.id)
-											} else {
-												// Hide (add to hidden)
-												newHidden.add(config.id)
-											}
+												if (isCurrentlyHidden) {
+													// Make visible (remove from hidden)
+													newHidden.delete(config.id)
+												} else {
+													// Hide (add to hidden)
+													newHidden.add(config.id)
+												}
 
-											setHiddenProfiles(newHidden)
-										}}
-										className={`relative inline-flex h-4 w-7 items-center rounded-full transition-colors focus:outline-none ${
-											!hiddenProfiles.has(config.id) ? "bg-blue-600" : "bg-gray-600"
-										}`}
-										title={hiddenProfiles.has(config.id) ? "Show in chat" : "Hide from chat"}>
-										<span
-											className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${
-												!hiddenProfiles.has(config.id) ? "translate-x-3.5" : "translate-x-0.5"
+												setHiddenProfiles(newHidden)
+											}}
+											className={`relative inline-flex h-4 w-7 items-center rounded-full transition-colors focus:outline-none ${
+												!hiddenProfiles.has(config.id) ? "bg-blue-600" : "bg-gray-600"
 											}`}
-										/>
-									</button>
+											title={hiddenProfiles.has(config.id) ? "Show in chat" : "Hide from chat"}>
+											<span
+												className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${
+													!hiddenProfiles.has(config.id)
+														? "translate-x-3.5"
+														: "translate-x-0.5"
+												}`}
+											/>
+										</button>
+									)}
 								</div>
 								{index < array.length - 1 && (
 									<div className="border-b border-vscode-input-border opacity-30 mx-1" />
 								)}
 							</div>
 						))}
-					{!listApiConfigMeta?.some((config) => !config.name.includes("(BYAK)")) && (
-						<div className="text-center py-4 text-vscode-descriptionForeground text-xs">
-							No built-in models found
-						</div>
-					)}
-				</div>
+						{filteredBuiltinModels.length === 0 && (
+							<div className="text-center py-4 text-vscode-descriptionForeground text-xs">
+								{builtinSearchQuery.trim()
+									? "No built-in models match your search"
+									: "No built-in models found"}
+							</div>
+						)}
+					</div>
+				</>
 			)}
 		</div>
 	)
@@ -452,6 +521,8 @@ const ApiKeyManagerPopupContent = () => {
 	const [apiKeys, setApiKeys] = useState<ApiKeyState>({})
 	const [isLoading, setIsLoading] = useState(false)
 	const [searchQuery, setSearchQuery] = useState("")
+	const [byakSearchQuery, setByakSearchQuery] = useState("")
+	const [builtinSearchQuery, setBuiltinSearchQuery] = useState("")
 	const [activeTab, setActiveTab] = useState<"api-key" | "byak-models" | "builtin-models">("api-key")
 	const [hiddenProfiles, setHiddenProfiles] = useState<Set<string>>(new Set())
 
@@ -477,6 +548,35 @@ const ApiKeyManagerPopupContent = () => {
 				provider.name.toLowerCase().includes(query) || provider.description.toLowerCase().includes(query),
 		)
 	}, [searchQuery])
+
+	// Filter BYAK models based on search query
+	const filteredByakModels = useMemo(() => {
+		if (!byakSearchQuery.trim()) return listApiConfigMeta?.filter((config) => config.name.includes("(BYAK)")) || []
+		const query = byakSearchQuery.toLowerCase()
+		return (
+			listApiConfigMeta?.filter(
+				(config) =>
+					config.name.includes("(BYAK)") &&
+					(config.name.toLowerCase().includes(query) ||
+						(config.apiProvider?.toLowerCase().includes(query) ?? false)),
+			) || []
+		)
+	}, [byakSearchQuery, listApiConfigMeta])
+
+	// Filter Built-in models based on search query
+	const filteredBuiltinModels = useMemo(() => {
+		if (!builtinSearchQuery.trim())
+			return listApiConfigMeta?.filter((config) => !config.name.includes("(BYAK)")) || []
+		const query = builtinSearchQuery.toLowerCase()
+		return (
+			listApiConfigMeta?.filter(
+				(config) =>
+					!config.name.includes("(BYAK)") &&
+					(config.name.toLowerCase().includes(query) ||
+						(config.apiProvider?.toLowerCase().includes(query) ?? false)),
+			) || []
+		)
+	}, [builtinSearchQuery, listApiConfigMeta])
 
 	// Load existing API keys when component mounts
 	useEffect(() => {
@@ -661,10 +761,20 @@ const ApiKeyManagerPopupContent = () => {
 
 			{/* BYAK Models Tab Content */}
 			{activeTab === "byak-models" && (
-				<div className="flex-1 overflow-y-auto min-h-0 pr-1">
-					{listApiConfigMeta
-						?.filter((config) => config.name.includes("(BYAK)"))
-						.map((config, index, array) => (
+				<>
+					{/* Search Bar for BYAK Models */}
+					<div className="relative flex-shrink-0">
+						<Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-3 h-3 text-vscode-descriptionForeground" />
+						<Input
+							type="text"
+							placeholder="Search BYAK models..."
+							value={byakSearchQuery}
+							onChange={(e) => setByakSearchQuery(e.target.value)}
+							className="pl-7 h-7 text-xs bg-vscode-input-background border-vscode-input-border text-vscode-foreground placeholder-vscode-descriptionForeground"
+						/>
+					</div>
+					<div className="flex-1 overflow-y-auto min-h-0 pr-1">
+						{filteredByakModels.map((config, index, array) => (
 							<div key={config.id}>
 								<div className="flex items-center justify-between py-2 px-1">
 									<div className="flex-1 min-w-0">
@@ -721,82 +831,110 @@ const ApiKeyManagerPopupContent = () => {
 								)}
 							</div>
 						))}
-					{!listApiConfigMeta?.some((config) => config.name.includes("(BYAK)")) && (
-						<div className="text-center py-4 text-vscode-descriptionForeground text-xs">
-							No BYAK models found
-						</div>
-					)}
-				</div>
+						{filteredByakModels.length === 0 && (
+							<div className="text-center py-4 text-vscode-descriptionForeground text-xs">
+								{byakSearchQuery.trim() ? "No BYAK models match your search" : "No BYAK models found"}
+							</div>
+						)}
+					</div>
+				</>
 			)}
 
 			{/* Built In Models Tab Content */}
 			{activeTab === "builtin-models" && (
-				<div className="flex-1 overflow-y-auto min-h-0 pr-1">
-					{listApiConfigMeta
-						?.filter((config) => !config.name.includes("(BYAK)"))
-						.map((config, index, array) => (
+				<>
+					{/* Search Bar for Built In Models */}
+					<div className="relative flex-shrink-0">
+						<Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-3 h-3 text-vscode-descriptionForeground" />
+						<Input
+							type="text"
+							placeholder="Search built-in models..."
+							value={builtinSearchQuery}
+							onChange={(e) => setBuiltinSearchQuery(e.target.value)}
+							className="pl-7 h-7 text-xs bg-vscode-input-background border-vscode-input-border text-vscode-foreground placeholder-vscode-descriptionForeground"
+						/>
+					</div>
+					<div className="flex-1 overflow-y-auto min-h-0 pr-1">
+						{filteredBuiltinModels.map((config, index, array) => (
 							<div key={config.id}>
 								<div className="flex items-center justify-between py-2 px-1">
 									<div className="flex-1 min-w-0">
-										<h3 className="text-vscode-foreground font-medium text-xs truncate">
-											{config.name}
-										</h3>
-										<p className="text-vscode-descriptionForeground text-xs truncate">
-											{config.apiProvider}
-										</p>
+										{/* Check if this is a provider title (starts with "---") */}
+										{config.name.startsWith("---") ? (
+											<h3 className="text-vscode-foreground font-medium text-sm truncate">
+												{config.name.replace(/^--- | ---$/g, "")}
+											</h3>
+										) : (
+											<>
+												<h3 className="text-vscode-foreground font-medium text-xs truncate">
+													{config.name}
+												</h3>
+												<p className="text-vscode-descriptionForeground text-xs truncate">
+													{config.apiProvider}
+												</p>
+											</>
+										)}
 									</div>
-									<button
-										onClick={() => {
-											const isCurrentlyHidden = hiddenProfiles.has(config.id)
-											const newVisibility = !isCurrentlyHidden
+									{/* Only show toggle for actual models, not provider titles */}
+									{!config.name.startsWith("---") && (
+										<button
+											onClick={() => {
+												const isCurrentlyHidden = hiddenProfiles.has(config.id)
+												const newVisibility = !isCurrentlyHidden
 
-											console.log(`Toggle clicked for ${config.name}:`, {
-												profileId: config.id,
-												isCurrentlyHidden,
-												newVisibility,
-												currentHiddenProfiles: Array.from(hiddenProfiles),
-											})
+												console.log(`Toggle clicked for ${config.name}:`, {
+													profileId: config.id,
+													isCurrentlyHidden,
+													newVisibility,
+													currentHiddenProfiles: Array.from(hiddenProfiles),
+												})
 
-											// Send message to extension first
-											vscode.postMessage({
-												type: "setProfileVisibility",
-												profileId: config.id,
-												visible: newVisibility,
-											})
+												// Send message to extension first
+												vscode.postMessage({
+													type: "setProfileVisibility",
+													profileId: config.id,
+													visible: newVisibility,
+												})
 
-											// Update local state immediately for UI responsiveness
-											const newHidden = new Set(hiddenProfiles)
-											if (newVisibility) {
-												// Make visible (remove from hidden)
-												newHidden.delete(config.id)
-											} else {
-												// Hide (add to hidden)
-												newHidden.add(config.id)
-											}
-											setHiddenProfiles(newHidden)
-										}}
-										className={`relative inline-flex h-4 w-7 items-center rounded-full transition-colors focus:outline-none ${
-											!hiddenProfiles.has(config.id) ? "bg-blue-600" : "bg-gray-600"
-										}`}
-										title={hiddenProfiles.has(config.id) ? "Show in chat" : "Hide from chat"}>
-										<span
-											className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${
-												!hiddenProfiles.has(config.id) ? "translate-x-3.5" : "translate-x-0.5"
+												// Update local state immediately for UI responsiveness
+												const newHidden = new Set(hiddenProfiles)
+												if (newVisibility) {
+													// Make visible (remove from hidden)
+													newHidden.delete(config.id)
+												} else {
+													// Hide (add to hidden)
+													newHidden.add(config.id)
+												}
+												setHiddenProfiles(newHidden)
+											}}
+											className={`relative inline-flex h-4 w-7 items-center rounded-full transition-colors focus:outline-none ${
+												!hiddenProfiles.has(config.id) ? "bg-blue-600" : "bg-gray-600"
 											}`}
-										/>
-									</button>
+											title={hiddenProfiles.has(config.id) ? "Show in chat" : "Hide from chat"}>
+											<span
+												className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${
+													!hiddenProfiles.has(config.id)
+														? "translate-x-3.5"
+														: "translate-x-0.5"
+												}`}
+											/>
+										</button>
+									)}
 								</div>
 								{index < array.length - 1 && (
 									<div className="border-b border-vscode-input-border opacity-30 mx-1" />
 								)}
 							</div>
 						))}
-					{!listApiConfigMeta?.some((config) => !config.name.includes("(BYAK)")) && (
-						<div className="text-center py-4 text-vscode-descriptionForeground text-xs">
-							No built-in models found
-						</div>
-					)}
-				</div>
+						{filteredBuiltinModels.length === 0 && (
+							<div className="text-center py-4 text-vscode-descriptionForeground text-xs">
+								{builtinSearchQuery.trim()
+									? "No built-in models match your search"
+									: "No built-in models found"}
+							</div>
+						)}
+					</div>
+				</>
 			)}
 		</div>
 	)
