@@ -1067,7 +1067,7 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 						"outline-none",
 						"box-border",
 						"focus-within:outline-none",
-						"focus-within:border-vscode-focusBorder",
+						"focus-within:border-vscode-input-border",
 						"w-full",
 					)}
 					style={{
@@ -1356,7 +1356,7 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 					<div
 						className={cn("flex", "justify-between", "items-center", "mt-auto", "p-1", "rounded-lg")}
 						style={{
-							backgroundColor: "color-mix(in srgb, var(--vscode-input-background) 85%, black)",
+							backgroundColor: "color-mix(in srgb, var(--vscode-input-background) 50%, transparent)",
 							borderRadius: "8px",
 						}}>
 						<div className={cn("flex", "items-center", "gap-1", "min-w-0")}>
@@ -1451,8 +1451,9 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 											.filter((config) => {
 												// Always show section headers
 												if (config.id?.startsWith("header-")) return true
-												// Hide profiles that are in the hidden list
-												return !hiddenProfiles?.includes(config.id)
+												// Hide profiles that are in the hidden list (using profile name)
+												const isHidden = hiddenProfiles?.includes(config.name)
+												return !isHidden
 											})
 											.map((config) => {
 												// Check if this is a section header
@@ -1500,8 +1501,9 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 											.filter((config) => {
 												// Always show section headers
 												if (config.id?.startsWith("header-")) return true
-												// Hide profiles that are in the hidden list
-												return !hiddenProfiles?.includes(config.id)
+												// Hide profiles that are in the hidden list (using profile name)
+												const isHidden = hiddenProfiles?.includes(config.name)
+												return !isHidden
 											})
 											.map((config) => {
 												// Check if this is a section header
@@ -1619,7 +1621,7 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 									disabled={sendingDisabled}
 									style={{
 										fontSize: 12,
-										color: "var(--vscode-button-foreground)",
+										color: "var(--vscode-foreground)",
 									}}
 									onClick={() => {
 										// Append @ to the current input value
@@ -1673,7 +1675,7 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 									disabled={sendingDisabled}
 									isLoading={isEnhancingPrompt}
 									onClick={handleEnhancePrompt}
-									style={{ fontSize: 9, color: "var(--vscode-button-foreground)" }}
+									style={{ fontSize: 9, color: "var(--vscode-foreground)" }}
 								/>
 							)}
 							{showAddImagesButton && (
@@ -1682,7 +1684,7 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 									title={t("chat:addImages")}
 									disabled={shouldDisableImages}
 									onClick={onSelectImages}
-									style={{ fontSize: 9, color: "var(--vscode-button-foreground)" }}
+									style={{ fontSize: 9, color: "var(--vscode-foreground)" }}
 								/>
 							)}
 							{showRetry && (
@@ -1691,7 +1693,7 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 									title={t("chat:retry.tooltip")}
 									disabled={false}
 									onClick={onRetry}
-									style={{ fontSize: 9, color: "var(--vscode-button-foreground)" }}
+									style={{ fontSize: 9, color: "var(--vscode-foreground)" }}
 								/>
 							)}
 							{isStreaming ? (

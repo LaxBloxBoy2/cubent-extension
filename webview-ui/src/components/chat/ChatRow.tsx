@@ -656,7 +656,7 @@ export const ChatRowContent = ({
 				return (
 					<>
 						<div
-							className="rounded-lg text-gray-200 px-3 pt-3 pb-2 shadow-lg relative cursor-pointer"
+							className="rounded-lg text-vscode-foreground px-3 pt-3 pb-2 shadow-lg relative cursor-pointer"
 							style={{ backgroundColor: "var(--vscode-editor-background)" }}
 							onClick={handleToggleExpand}>
 							{/* Status dot in top right */}
@@ -667,12 +667,16 @@ export const ChatRowContent = ({
 								<div className="flex items-center gap-2">
 									{/* Simple menu icon */}
 									<svg
-										className="w-3 h-3 text-gray-400"
+										className="w-3 h-3 text-vscode-descriptionForeground"
 										fill="none"
 										stroke="currentColor"
 										strokeWidth="2"
 										viewBox="0 0 24 24">
-										<path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+										<path
+											strokeLinecap="round"
+											strokeLinejoin="round"
+											d="M4 6h16M4 12h16M4 18h16"
+										/>
 									</svg>
 									<span className="text-xs font-semibold">Detail Pull</span>
 								</div>
@@ -680,7 +684,9 @@ export const ChatRowContent = ({
 
 							{/* Method name */}
 							<div className="flex items-center justify-between text-xs mb-2">
-								<code className="font-mono text-amber-400 text-[11px]">create_mcp_server</code>
+								<code className="font-mono text-vscode-charts-yellow text-[11px]">
+									create_mcp_server
+								</code>
 							</div>
 
 							{/* Collapsible markdown content */}
@@ -1063,8 +1069,10 @@ export const ChatRowContent = ({
 				case "user_feedback":
 					return (
 						<div className="flex flex-col items-end mb-4 group">
-							<div className="text-xs text-gray-400 mb-1 mr-2">{formatDate(message.ts)}</div>
-							<div className="max-w-[80%] bg-neutral-700 rounded-lg p-3 relative overflow-hidden whitespace-pre-wrap word-break-break-word overflow-wrap-anywhere">
+							<div className="text-xs text-vscode-descriptionForeground mb-1 mr-2">
+								{formatDate(message.ts)}
+							</div>
+							<div className="max-w-[80%] bg-vscode-input-background rounded-lg p-3 relative overflow-hidden whitespace-pre-wrap word-break-break-word overflow-wrap-anywhere">
 								<div className="pr-2 text-right">
 									<Mention text={message.text} withShadow />
 								</div>

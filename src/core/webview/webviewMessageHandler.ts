@@ -2310,7 +2310,7 @@ export const webviewMessageHandler = async (provider: ClineProvider, message: We
 		}
 		case "setProfileVisibility": {
 			try {
-				if (!message.profileId || typeof message.visible !== "boolean") {
+				if (!message.profileName || typeof message.visible !== "boolean") {
 					break
 				}
 
@@ -2320,12 +2320,12 @@ export const webviewMessageHandler = async (provider: ClineProvider, message: We
 
 				if (message.visible) {
 					// Remove from hidden profiles (make visible)
-					updatedHiddenProfiles = hiddenProfiles.filter((id: string) => id !== message.profileId)
+					updatedHiddenProfiles = hiddenProfiles.filter((name: string) => name !== message.profileName)
 				} else {
 					// Add to hidden profiles (hide)
-					updatedHiddenProfiles = hiddenProfiles.includes(message.profileId)
+					updatedHiddenProfiles = hiddenProfiles.includes(message.profileName)
 						? hiddenProfiles
-						: [...hiddenProfiles, message.profileId]
+						: [...hiddenProfiles, message.profileName]
 				}
 
 				// Update global state

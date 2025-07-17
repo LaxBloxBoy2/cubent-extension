@@ -392,26 +392,26 @@ export const ApiKeyManagerContent = ({
 									<button
 										onClick={() => {
 											// Simple toggle - just update local state
-											const isCurrentlyHidden = hiddenProfiles.has(config.id)
+											const isCurrentlyHidden = hiddenProfiles.has(config.name)
 											const newHidden = new Set(hiddenProfiles)
 
 											if (isCurrentlyHidden) {
 												// Make visible (remove from hidden)
-												newHidden.delete(config.id)
+												newHidden.delete(config.name)
 											} else {
 												// Hide (add to hidden)
-												newHidden.add(config.id)
+												newHidden.add(config.name)
 											}
 
 											setHiddenProfiles(newHidden)
 										}}
 										className={`relative inline-flex h-4 w-7 items-center rounded-full transition-colors focus:outline-none ${
-											!hiddenProfiles.has(config.id) ? "bg-blue-600" : "bg-gray-600"
+											!hiddenProfiles.has(config.name) ? "bg-blue-600" : "bg-gray-600"
 										}`}
-										title={hiddenProfiles.has(config.id) ? "Show in chat" : "Hide from chat"}>
+										title={hiddenProfiles.has(config.name) ? "Show in chat" : "Hide from chat"}>
 										<span
 											className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${
-												!hiddenProfiles.has(config.id) ? "translate-x-3.5" : "translate-x-0.5"
+												!hiddenProfiles.has(config.name) ? "translate-x-3.5" : "translate-x-0.5"
 											}`}
 										/>
 									</button>
@@ -470,26 +470,26 @@ export const ApiKeyManagerContent = ({
 										<button
 											onClick={() => {
 												// Simple toggle - just update local state
-												const isCurrentlyHidden = hiddenProfiles.has(config.id)
+												const isCurrentlyHidden = hiddenProfiles.has(config.name)
 												const newHidden = new Set(hiddenProfiles)
 
 												if (isCurrentlyHidden) {
 													// Make visible (remove from hidden)
-													newHidden.delete(config.id)
+													newHidden.delete(config.name)
 												} else {
 													// Hide (add to hidden)
-													newHidden.add(config.id)
+													newHidden.add(config.name)
 												}
 
 												setHiddenProfiles(newHidden)
 											}}
 											className={`relative inline-flex h-4 w-7 items-center rounded-full transition-colors focus:outline-none ${
-												!hiddenProfiles.has(config.id) ? "bg-blue-600" : "bg-gray-600"
+												!hiddenProfiles.has(config.name) ? "bg-blue-600" : "bg-gray-600"
 											}`}
-											title={hiddenProfiles.has(config.id) ? "Show in chat" : "Hide from chat"}>
+											title={hiddenProfiles.has(config.name) ? "Show in chat" : "Hide from chat"}>
 											<span
 												className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${
-													!hiddenProfiles.has(config.id)
+													!hiddenProfiles.has(config.name)
 														? "translate-x-3.5"
 														: "translate-x-0.5"
 												}`}
@@ -787,11 +787,11 @@ const ApiKeyManagerPopupContent = () => {
 									</div>
 									<button
 										onClick={() => {
-											const isCurrentlyHidden = hiddenProfiles.has(config.id)
+											const isCurrentlyHidden = hiddenProfiles.has(config.name)
 											const newVisibility = !isCurrentlyHidden
 
 											console.log(`Toggle clicked for ${config.name}:`, {
-												profileId: config.id,
+												profileName: config.name,
 												isCurrentlyHidden,
 												newVisibility,
 												currentHiddenProfiles: Array.from(hiddenProfiles),
@@ -800,7 +800,7 @@ const ApiKeyManagerPopupContent = () => {
 											// Send message to extension first
 											vscode.postMessage({
 												type: "setProfileVisibility",
-												profileId: config.id,
+												profileName: config.name,
 												visible: newVisibility,
 											})
 
@@ -808,20 +808,20 @@ const ApiKeyManagerPopupContent = () => {
 											const newHidden = new Set(hiddenProfiles)
 											if (newVisibility) {
 												// Make visible (remove from hidden)
-												newHidden.delete(config.id)
+												newHidden.delete(config.name)
 											} else {
 												// Hide (add to hidden)
-												newHidden.add(config.id)
+												newHidden.add(config.name)
 											}
 											setHiddenProfiles(newHidden)
 										}}
 										className={`relative inline-flex h-4 w-7 items-center rounded-full transition-colors focus:outline-none ${
-											!hiddenProfiles.has(config.id) ? "bg-blue-600" : "bg-gray-600"
+											!hiddenProfiles.has(config.name) ? "bg-blue-600" : "bg-gray-600"
 										}`}
-										title={hiddenProfiles.has(config.id) ? "Show in chat" : "Hide from chat"}>
+										title={hiddenProfiles.has(config.name) ? "Show in chat" : "Hide from chat"}>
 										<span
 											className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${
-												!hiddenProfiles.has(config.id) ? "translate-x-3.5" : "translate-x-0.5"
+												!hiddenProfiles.has(config.name) ? "translate-x-3.5" : "translate-x-0.5"
 											}`}
 										/>
 									</button>
@@ -879,11 +879,11 @@ const ApiKeyManagerPopupContent = () => {
 									{!config.name.startsWith("---") && (
 										<button
 											onClick={() => {
-												const isCurrentlyHidden = hiddenProfiles.has(config.id)
+												const isCurrentlyHidden = hiddenProfiles.has(config.name)
 												const newVisibility = !isCurrentlyHidden
 
 												console.log(`Toggle clicked for ${config.name}:`, {
-													profileId: config.id,
+													profileName: config.name,
 													isCurrentlyHidden,
 													newVisibility,
 													currentHiddenProfiles: Array.from(hiddenProfiles),
@@ -892,7 +892,7 @@ const ApiKeyManagerPopupContent = () => {
 												// Send message to extension first
 												vscode.postMessage({
 													type: "setProfileVisibility",
-													profileId: config.id,
+													profileName: config.name,
 													visible: newVisibility,
 												})
 
@@ -900,20 +900,20 @@ const ApiKeyManagerPopupContent = () => {
 												const newHidden = new Set(hiddenProfiles)
 												if (newVisibility) {
 													// Make visible (remove from hidden)
-													newHidden.delete(config.id)
+													newHidden.delete(config.name)
 												} else {
 													// Hide (add to hidden)
-													newHidden.add(config.id)
+													newHidden.add(config.name)
 												}
 												setHiddenProfiles(newHidden)
 											}}
 											className={`relative inline-flex h-4 w-7 items-center rounded-full transition-colors focus:outline-none ${
-												!hiddenProfiles.has(config.id) ? "bg-blue-600" : "bg-gray-600"
+												!hiddenProfiles.has(config.name) ? "bg-blue-600" : "bg-gray-600"
 											}`}
-											title={hiddenProfiles.has(config.id) ? "Show in chat" : "Hide from chat"}>
+											title={hiddenProfiles.has(config.name) ? "Show in chat" : "Hide from chat"}>
 											<span
 												className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${
-													!hiddenProfiles.has(config.id)
+													!hiddenProfiles.has(config.name)
 														? "translate-x-3.5"
 														: "translate-x-0.5"
 												}`}

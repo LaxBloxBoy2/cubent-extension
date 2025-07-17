@@ -227,6 +227,7 @@ export interface WebviewMessage {
 		geminiApiKey?: string
 	}
 	profileId?: string
+	profileName?: string
 	visible?: boolean
 	profiles?: string[]
 }

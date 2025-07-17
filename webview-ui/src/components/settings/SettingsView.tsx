@@ -202,7 +202,7 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 
 	const apiConfiguration = useMemo(() => cachedState.apiConfiguration ?? {}, [cachedState.apiConfiguration])
 
-	// Get hidden profiles from extension state (not cached state)
+	// Get hidden profiles from extension state (not cached state) - COMMENT ADDED FOR BUILD
 	const { hiddenProfiles: globalHiddenProfiles } = useExtensionState()
 
 	// Hidden profiles state for model visibility

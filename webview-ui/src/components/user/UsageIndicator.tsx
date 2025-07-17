@@ -39,9 +39,9 @@ export const UsageIndicator: React.FC = () => {
 	}
 
 	const getUsageColor = (percentage: number) => {
-		if (percentage >= 90) return "text-red-500"
-		if (percentage >= 75) return "text-yellow-500"
-		return "text-green-500"
+		if (percentage >= 90) return "text-vscode-charts-red"
+		if (percentage >= 75) return "text-vscode-charts-yellow"
+		return "text-vscode-charts-green"
 	}
 
 	const getUsageIcon = (percentage: number) => {
@@ -62,7 +62,7 @@ export const UsageIndicator: React.FC = () => {
 
 			{/* Trial Indicator */}
 			{usageStats.subscriptionTier === "free_trial" && usageStats.trialDaysLeft !== undefined && (
-				<div className="flex items-center gap-1 text-orange-500">
+				<div className="flex items-center gap-1 text-vscode-charts-orange">
 					<Clock className="w-3 h-3" />
 					<span>{usageStats.trialDaysLeft}d</span>
 				</div>

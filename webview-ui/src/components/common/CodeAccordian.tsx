@@ -119,11 +119,15 @@ const CodeAccordian = ({
 											fontWeight: "normal",
 										}}>
 										{diffStats.added > 0 && (
-											<span style={{ color: "#4ade80" }}>+{diffStats.added}</span>
+											<span style={{ color: "var(--vscode-charts-green)" }}>
+												+{diffStats.added}
+											</span>
 										)}
 										{diffStats.added > 0 && diffStats.removed > 0 && " "}
 										{diffStats.removed > 0 && (
-											<span style={{ color: "#f87171" }}>-{diffStats.removed}</span>
+											<span style={{ color: "var(--vscode-charts-red)" }}>
+												-{diffStats.removed}
+											</span>
 										)}
 									</span>
 								)}
@@ -160,11 +164,15 @@ const CodeAccordian = ({
 											fontWeight: "normal",
 										}}>
 										{diffStats.added > 0 && (
-											<span style={{ color: "#4ade80" }}>+{diffStats.added}</span>
+											<span style={{ color: "var(--vscode-charts-green)" }}>
+												+{diffStats.added}
+											</span>
 										)}
 										{diffStats.added > 0 && diffStats.removed > 0 && " "}
 										{diffStats.removed > 0 && (
-											<span style={{ color: "#f87171" }}>-{diffStats.removed}</span>
+											<span style={{ color: "var(--vscode-charts-red)" }}>
+												-{diffStats.removed}
+											</span>
 										)}
 									</span>
 								)}
@@ -198,7 +206,9 @@ const CodeAccordian = ({
 											color: "var(--vscode-descriptionForeground)",
 											fontWeight: "normal",
 										}}>
-										<span style={{ color: "#4ade80" }}>+{code.split("\n").length}</span>
+										<span style={{ color: "var(--vscode-charts-green)" }}>
+											+{code.split("\n").length}
+										</span>
 									</span>
 								)}
 							</div>
@@ -232,11 +242,15 @@ const CodeAccordian = ({
 											fontWeight: "normal",
 										}}>
 										{diffStats.added > 0 && (
-											<span style={{ color: "#4ade80" }}>+{diffStats.added}</span>
+											<span style={{ color: "var(--vscode-charts-green)" }}>
+												+{diffStats.added}
+											</span>
 										)}
 										{diffStats.added > 0 && diffStats.removed > 0 && " "}
 										{diffStats.removed > 0 && (
-											<span style={{ color: "#f87171" }}>-{diffStats.removed}</span>
+											<span style={{ color: "var(--vscode-charts-red)" }}>
+												-{diffStats.removed}
+											</span>
 										)}
 									</span>
 								)}
@@ -305,11 +319,11 @@ const CodeAccordian = ({
 										fontWeight: "normal",
 									}}>
 									{diffStats.added > 0 && (
-										<span style={{ color: "#4ade80" }}>+{diffStats.added}</span>
+										<span style={{ color: "var(--vscode-charts-green)" }}>+{diffStats.added}</span>
 									)}
 									{diffStats.added > 0 && diffStats.removed > 0 && " "}
 									{diffStats.removed > 0 && (
-										<span style={{ color: "#f87171" }}>-{diffStats.removed}</span>
+										<span style={{ color: "var(--vscode-charts-red)" }}>-{diffStats.removed}</span>
 									)}
 								</span>
 							)}

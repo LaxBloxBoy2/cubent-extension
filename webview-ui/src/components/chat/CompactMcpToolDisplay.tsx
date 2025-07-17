@@ -27,7 +27,7 @@ export function CompactMcpToolDisplay({
 
 	return (
 		<div
-			className="rounded-lg text-gray-200 p-3 shadow-lg relative"
+			className="rounded-lg text-vscode-foreground p-3 shadow-lg relative"
 			style={{ backgroundColor: "var(--vscode-editor-background)" }}>
 			{/* Status dot in top right */}
 			<StatusDot state="success" />
@@ -37,7 +37,7 @@ export function CompactMcpToolDisplay({
 				<div className="flex items-center gap-2">
 					{/* Simple menu icon */}
 					<svg
-						className="w-3 h-3 text-gray-400"
+						className="w-3 h-3 text-vscode-descriptionForeground"
 						fill="none"
 						stroke="currentColor"
 						strokeWidth="2"
@@ -55,24 +55,30 @@ export function CompactMcpToolDisplay({
 
 			{/* Method name & server */}
 			<div className="flex items-center justify-between text-xs mb-2">
-				<code className="font-mono text-amber-400 text-[11px]">{toolName}</code>
-				<span className="bg-gray-700/70 px-1.5 py-0.5 rounded text-[9px] text-gray-300">{serverName}</span>
+				<code className="font-mono text-vscode-charts-yellow text-[11px]">{toolName}</code>
+				<span className="bg-vscode-input-border/70 px-1.5 py-0.5 rounded text-[9px] text-vscode-descriptionForeground">
+					{serverName}
+				</span>
 			</div>
 
 			{/* Collapsible JSON block */}
 			{mcpArguments && mcpArguments !== "{}" && (
 				<details className="text-xs leading-tight">
-					<summary className="cursor-pointer select-none text-gray-400 mb-1 text-[11px]">Arguments</summary>
-					<div className="relative bg-[#2a2a2a] p-2 rounded border border-gray-700/30 max-h-32 overflow-auto">
-						<pre className="whitespace-pre text-[10px] leading-snug text-gray-300">{mcpArguments}</pre>
+					<summary className="cursor-pointer select-none text-vscode-descriptionForeground mb-1 text-[11px]">
+						Arguments
+					</summary>
+					<div className="relative bg-vscode-input-background p-2 rounded border border-vscode-input-border/30 max-h-32 overflow-auto">
+						<pre className="whitespace-pre text-[10px] leading-snug text-vscode-foreground">
+							{mcpArguments}
+						</pre>
 						<button
 							onClick={handleCopy}
-							className="absolute top-1 right-1 p-0.5 rounded hover:bg-gray-700/50 text-gray-400 transition-colors"
+							className="absolute top-1 right-1 p-0.5 rounded hover:bg-vscode-input-border/50 text-vscode-descriptionForeground transition-colors"
 							title="Copy JSON">
 							<Copy className="w-3 h-3" />
 						</button>
 						{copied && (
-							<span className="absolute -top-6 right-2 text-[10px] text-green-400 font-medium">
+							<span className="absolute -top-6 right-2 text-[10px] text-vscode-charts-green font-medium">
 								Copied!
 							</span>
 						)}

@@ -163,7 +163,7 @@ const DiffSummaryBar: React.FC<DiffSummaryBarProps> = ({ messages, isVisible = t
 			className="mt-4 mx-2 bg-vscode-editor-background rounded border border-vscode-input-border/60 text-sm"
 			style={{
 				boxShadow:
-					"0 -8px 24px rgba(0, 0, 0, 0.2), 0 -4px 12px rgba(0, 0, 0, 0.15), 0 -2px 6px rgba(0, 0, 0, 0.1)",
+					"0 -8px 24px var(--vscode-widget-shadow), 0 -4px 12px var(--vscode-widget-shadow), 0 -2px 6px var(--vscode-widget-shadow)",
 			}}
 			onClick={(e) => e.stopPropagation()}
 			onMouseDown={(e) => e.stopPropagation()}>
@@ -182,11 +182,11 @@ const DiffSummaryBar: React.FC<DiffSummaryBarProps> = ({ messages, isVisible = t
 
 					{/* Diff stats - will wrap below when no space */}
 					<div className="flex items-center gap-1 px-1.5 py-0.5 bg-vscode-input-background rounded text-[10px]">
-						{totalLinesAdded > 0 && <span className="text-green-400">+{totalLinesAdded}</span>}
+						{totalLinesAdded > 0 && <span className="text-vscode-charts-green">+{totalLinesAdded}</span>}
 						{totalLinesAdded > 0 && totalLinesRemoved > 0 && (
 							<span className="text-vscode-descriptionForeground">/</span>
 						)}
-						{totalLinesRemoved > 0 && <span className="text-red-400">-{totalLinesRemoved}</span>}
+						{totalLinesRemoved > 0 && <span className="text-vscode-charts-red">-{totalLinesRemoved}</span>}
 					</div>
 				</div>
 
@@ -220,19 +220,19 @@ const DiffSummaryBar: React.FC<DiffSummaryBarProps> = ({ messages, isVisible = t
 										{change.relativePath}
 									</span>
 									{change.isTracked && (
-										<span className="px-1 py-0.5 bg-blue-500/20 text-blue-400 text-[9px] rounded font-medium">
+										<span className="px-1 py-0.5 bg-vscode-charts-blue/20 text-vscode-charts-blue text-[9px] rounded font-medium">
 											TRACKED
 										</span>
 									)}
 									<div className="flex items-center gap-1 px-1 py-0.5 bg-vscode-input-background rounded text-[10px]">
 										{change.linesAdded > 0 && (
-											<span className="text-green-400">+{change.linesAdded}</span>
+											<span className="text-vscode-charts-green">+{change.linesAdded}</span>
 										)}
 										{change.linesAdded > 0 && change.linesRemoved > 0 && (
 											<span className="text-vscode-descriptionForeground">/</span>
 										)}
 										{change.linesRemoved > 0 && (
-											<span className="text-red-400">-{change.linesRemoved}</span>
+											<span className="text-vscode-charts-red">-{change.linesRemoved}</span>
 										)}
 									</div>
 								</div>
@@ -253,7 +253,7 @@ const DiffSummaryBar: React.FC<DiffSummaryBarProps> = ({ messages, isVisible = t
 
 									<button
 										onClick={() => handleDeleteFile(change.fullPath)}
-										className="p-1 text-vscode-foreground hover:text-red-400 transition-colors cursor-pointer"
+										className="p-1 text-vscode-foreground hover:text-vscode-charts-red transition-colors cursor-pointer"
 										title="Delete file">
 										<span className="codicon codicon-trash text-[11px]"></span>
 									</button>

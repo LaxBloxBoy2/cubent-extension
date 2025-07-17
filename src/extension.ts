@@ -133,6 +133,9 @@ export async function activate(context: vscode.ExtensionContext) {
 	if (context.globalState.get("showAddImagesButton") === undefined) {
 		context.globalState.update("showAddImagesButton", true)
 	}
+	if (context.globalState.get("hiddenProfiles") === undefined) {
+		context.globalState.update("hiddenProfiles", [])
+	}
 
 	const contextProxy = await ContextProxy.getInstance(context)
 	const codeIndexManager = CodeIndexManager.getInstance(context)
