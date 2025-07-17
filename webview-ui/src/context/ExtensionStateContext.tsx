@@ -211,6 +211,7 @@ export const ExtensionStateContextProvider: React.FC<{ children: React.ReactNode
 		showContextButton: true, // Default to show context button
 		showEnhancePromptButton: true, // Default to show enhance prompt button
 		showAddImagesButton: true, // Default to show add images button
+		hiddenProfiles: [], // Default to no hidden profiles
 		cloudUserInfo: null,
 		organizationAllowList: ORGANIZATION_ALLOW_ALL,
 		// Authentication state
@@ -220,6 +221,7 @@ export const ExtensionStateContextProvider: React.FC<{ children: React.ReactNode
 		autoCondenseContextPercent: 100,
 		maxChatHistoryLimit: 15,
 		autoDeleteOldChats: true,
+		customInstructions: "", // Default empty custom instructions
 		codebaseIndexConfig: {
 			codebaseIndexEnabled: false,
 			codebaseIndexQdrantUrl: "http://localhost:6333",
@@ -260,7 +262,18 @@ export const ExtensionStateContextProvider: React.FC<{ children: React.ReactNode
 			switch (message.type) {
 				case "state": {
 					const newState = message.state!
-					setState((prevState) => mergeExtensionState(prevState, newState))
+					console.log("🔄 State message received:", {
+						hiddenProfilesInNewState: newState.hiddenProfiles,
+						newStateKeys: Object.keys(newState),
+					})
+					setState((prevState) => {
+						const merged = mergeExtensionState(prevState, newState)
+						console.log("🔄 State merged:", {
+							hiddenProfilesInMerged: merged.hiddenProfiles,
+							prevHiddenProfiles: prevState.hiddenProfiles,
+						})
+						return merged
+					})
 					// Only show welcome screen if user is not authenticated AND no API config exists
 					setShowWelcome(!newState.isAuthenticated && !checkExistKey(newState.apiConfiguration))
 					setDidHydrateState(true)

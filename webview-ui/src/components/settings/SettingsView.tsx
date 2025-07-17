@@ -32,6 +32,7 @@ import {
 	LogOut,
 	TrendingUp,
 	BookOpen,
+	Ruler,
 } from "lucide-react"
 
 import type { ProviderSettings, ExperimentId } from "@cubent/types"
@@ -70,6 +71,7 @@ import { ContextManagementSettings } from "./ContextManagementSettings"
 import { HistoryManagementSettings } from "./HistoryManagementSettings"
 import { McpSettings } from "./McpSettings"
 import GeneralSettings from "./GeneralSettings"
+import UserGuidelinesSettings from "./UserGuidelinesSettings"
 import CodebaseIndexingVisual from "./CodebaseIndexingVisual"
 
 import { TerminalSettings } from "./TerminalSettings"
@@ -94,7 +96,7 @@ const sectionNames = [
 	"general",
 	"providers",
 	"apiKeyManagement",
-	"autoApprove",
+	"userGuidelines",
 	"mcp",
 	"indexing",
 	"browser",
@@ -195,9 +197,23 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 		showContextButton,
 		showEnhancePromptButton,
 		showAddImagesButton,
+		customInstructions,
 	} = cachedState
 
 	const apiConfiguration = useMemo(() => cachedState.apiConfiguration ?? {}, [cachedState.apiConfiguration])
+
+	// Get hidden profiles from extension state (not cached state)
+	const { hiddenProfiles: globalHiddenProfiles } = useExtensionState()
+
+	// Hidden profiles state for model visibility
+	const [hiddenProfiles, setHiddenProfiles] = useState<string[]>([])
+
+	// Initialize hidden profiles from extension state
+	useEffect(() => {
+		if (globalHiddenProfiles) {
+			setHiddenProfiles(globalHiddenProfiles)
+		}
+	}, [globalHiddenProfiles])
 
 	useEffect(() => {
 		// Update only when currentApiConfigName is changed.
@@ -292,6 +308,7 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 	const isSettingValid = !errorMessage
 
 	const handleSubmit = () => {
+		console.log("🚀 SAVE BUTTON CLICKED! hiddenProfiles:", hiddenProfiles)
 		if (isSettingValid) {
 			vscode.postMessage({ type: "language", text: language })
 			vscode.postMessage({ type: "alwaysAllowReadOnly", bool: alwaysAllowReadOnly })
@@ -351,6 +368,9 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 			vscode.postMessage({ type: "showContextButton", bool: showContextButton })
 			vscode.postMessage({ type: "showEnhancePromptButton", bool: showEnhancePromptButton })
 			vscode.postMessage({ type: "showAddImagesButton", bool: showAddImagesButton })
+			vscode.postMessage({ type: "customInstructions", text: customInstructions })
+
+			vscode.postMessage({ type: "setHiddenProfiles", profiles: hiddenProfiles })
 			setChangeDetected(false)
 		}
 	}
@@ -449,7 +469,7 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 			{ id: "general", icon: Settings },
 			{ id: "providers", icon: Settings },
 			{ id: "apiKeyManagement", icon: Key },
-			{ id: "autoApprove", icon: CheckCheck },
+			{ id: "userGuidelines", icon: Ruler },
 			{ id: "mcp", icon: Server },
 			{ id: "indexing", icon: Database },
 			// { id: "checkpoints", icon: GitBranch }, // Hidden as requested
@@ -776,22 +796,10 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 						/>
 					)}
 
-					{/* Auto-Approve Section */}
-					{activeTab === "autoApprove" && (
-						<AutoApproveSettings
-							alwaysAllowReadOnly={alwaysAllowReadOnly}
-							alwaysAllowReadOnlyOutsideWorkspace={alwaysAllowReadOnlyOutsideWorkspace}
-							alwaysAllowWrite={alwaysAllowWrite}
-							alwaysAllowWriteOutsideWorkspace={alwaysAllowWriteOutsideWorkspace}
-							writeDelayMs={writeDelayMs}
-							alwaysAllowBrowser={alwaysAllowBrowser}
-							alwaysApproveResubmit={alwaysApproveResubmit}
-							requestDelaySeconds={requestDelaySeconds}
-							alwaysAllowMcp={alwaysAllowMcp}
-							alwaysAllowModeSwitch={alwaysAllowModeSwitch}
-							alwaysAllowSubtasks={alwaysAllowSubtasks}
-							alwaysAllowExecute={alwaysAllowExecute}
-							allowedCommands={allowedCommands}
+					{/* User Guidelines Section */}
+					{activeTab === "userGuidelines" && (
+						<UserGuidelinesSettings
+							customInstructions={customInstructions}
 							setCachedStateField={setCachedStateField}
 						/>
 					)}
@@ -805,6 +813,11 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 									setChangeDetected(true)
 									return { ...prevState, apiConfiguration: newConfig }
 								})
+							}}
+							hiddenProfiles={hiddenProfiles}
+							onHiddenProfilesChange={(profiles) => {
+								setHiddenProfiles(profiles)
+								setChangeDetected(true)
 							}}
 						/>
 					)}

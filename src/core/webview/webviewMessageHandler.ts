@@ -2308,6 +2308,52 @@ export const webviewMessageHandler = async (provider: ClineProvider, message: We
 			}
 			break
 		}
+		case "setProfileVisibility": {
+			try {
+				if (!message.profileId || typeof message.visible !== "boolean") {
+					break
+				}
+
+				// Get current hidden profiles from global state
+				const hiddenProfiles = getGlobalState("hiddenProfiles") || []
+				let updatedHiddenProfiles: string[]
+
+				if (message.visible) {
+					// Remove from hidden profiles (make visible)
+					updatedHiddenProfiles = hiddenProfiles.filter((id: string) => id !== message.profileId)
+				} else {
+					// Add to hidden profiles (hide)
+					updatedHiddenProfiles = hiddenProfiles.includes(message.profileId)
+						? hiddenProfiles
+						: [...hiddenProfiles, message.profileId]
+				}
+
+				// Update global state
+				await updateGlobalState("hiddenProfiles", updatedHiddenProfiles)
+				await provider.postStateToWebview()
+
+				// Broadcast the change to other instances
+				ClineProvider.broadcastStateChange(provider, "configProfile")
+			} catch (error) {
+				console.error("Error setting profile visibility:", error)
+			}
+			break
+		}
+		case "setHiddenProfiles": {
+			try {
+				if (message.profiles && Array.isArray(message.profiles)) {
+					// Update global state with the new hidden profiles list
+					await updateGlobalState("hiddenProfiles", message.profiles)
+					await provider.postStateToWebview()
+
+					// Broadcast the change to other instances
+					ClineProvider.broadcastStateChange(provider, "configProfile")
+				}
+			} catch (error) {
+				console.error("Error setting hidden profiles:", error)
+			}
+			break
+		}
 		case "openExternalUrl": {
 			try {
 				if (message.url) {

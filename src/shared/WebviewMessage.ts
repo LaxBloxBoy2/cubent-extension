@@ -180,6 +180,8 @@ export interface WebviewMessage {
 		| "showContextButton"
 		| "showEnhancePromptButton"
 		| "showAddImagesButton"
+		| "setProfileVisibility"
+		| "setHiddenProfiles"
 	text?: string
 	disabled?: boolean
 	askResponse?: ClineAskResponse
@@ -224,6 +226,9 @@ export interface WebviewMessage {
 		anthropicApiKey?: string
 		geminiApiKey?: string
 	}
+	profileId?: string
+	visible?: boolean
+	profiles?: string[]
 }
 
 export const checkoutDiffPayloadSchema = z.object({

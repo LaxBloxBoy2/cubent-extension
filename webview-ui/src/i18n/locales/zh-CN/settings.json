@@ -21,8 +21,9 @@
 		"discardButton": "放弃更改"
 	},
 	"sections": {
+		"general": "通用设置",
 		"providers": "提供商",
-		"autoApprove": "自动批准",
+		"userGuidelines": "用户指导原则",
 		"browser": "计算机交互",
 		"checkpoints": "存档点",
 		"notifications": "通知",
@@ -591,5 +592,28 @@
 	"labels": {
 		"customArn": "自定义 ARN",
 		"useCustomArn": "使用自定义 ARN..."
+	},
+	"general": {
+		"toolbar": {
+			"title": "聊天工具栏",
+			"contextButton": {
+				"label": "显示上下文按钮 (@)",
+				"description": "在聊天工具栏中显示上下文按钮，以便向消息添加上下文。"
+			},
+			"enhancePrompt": {
+				"label": "显示增强提示按钮",
+				"description": "在聊天工具栏中显示增强提示按钮，以改进您的提示。"
+			},
+			"addImages": {
+				"label": "显示添加图片按钮",
+				"description": "在聊天工具栏中显示添加图片按钮，以便向消息附加图片。"
+			}
+		}
+	},
+	"userGuidelines": {
+		"title": "用户指导原则",
+		"description": "用户指导原则允许您通过自然语言指令控制 Cubent 的行为。这些指导原则将全局应用于所有交互。",
+		"placeholder": "在此输入您的自定义指令...\n\n示例：\n- 始终使用 TypeScript 而不是 JavaScript\n- 偏好函数式编程模式\n- 在代码中包含详细注释",
+		"learnMore": "了解更多"
 	}
 }

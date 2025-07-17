@@ -204,6 +204,7 @@ export type ExtensionState = Pick<
 	| "showContextButton"
 	| "showEnhancePromptButton"
 	| "showAddImagesButton"
+	| "hiddenProfiles"
 > & {
 	version: string
 	clineMessages: ClineMessage[]

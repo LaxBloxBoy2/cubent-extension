@@ -30,7 +30,7 @@
 		"models": "Models",
 		"apiKeyManagement": "API Keys",
 		"indexing": "Indexing & Docs",
-		"autoApprove": "Auto-Approve",
+		"userGuidelines": "User Guidelines",
 		"mcp": "MCP Tools",
 		"browser": "Browser",
 		"checkpoints": "Checkpoints",
@@ -654,5 +654,11 @@
 				"description": "Display the add images button in the chat toolbar to attach images to your messages."
 			}
 		}
+	},
+	"userGuidelines": {
+		"title": "User Guidelines",
+		"description": "User Guidelines allow you to control Cubent's behavior through natural language instructions. These guidelines are applied globally to all interactions.",
+		"placeholder": "Enter your custom instructions here...\n\nExample:\n- Always use TypeScript instead of JavaScript\n- Prefer functional programming patterns\n- Include detailed comments in code",
+		"learnMore": "Learn More"
 	}
 }

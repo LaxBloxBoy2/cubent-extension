@@ -8,11 +8,15 @@ import { ApiKeyManagerContent } from "./ApiKeyManagerPopup"
 type ApiKeyManagementSettingsProps = HTMLAttributes<HTMLDivElement> & {
 	apiConfiguration?: any
 	onApiConfigurationChange?: (config: any) => void
+	hiddenProfiles?: string[]
+	onHiddenProfilesChange?: (profiles: string[]) => void
 }
 
 export const ApiKeyManagementSettings = ({
 	apiConfiguration,
 	onApiConfigurationChange,
+	hiddenProfiles,
+	onHiddenProfilesChange,
 	...props
 }: ApiKeyManagementSettingsProps) => {
 	return (
@@ -29,6 +33,8 @@ export const ApiKeyManagementSettings = ({
 					<ApiKeyManagerContent
 						apiConfiguration={apiConfiguration}
 						onApiConfigurationChange={onApiConfigurationChange}
+						hiddenProfiles={hiddenProfiles}
+						onHiddenProfilesChange={onHiddenProfilesChange}
 					/>
 				</div>
 			</Section>

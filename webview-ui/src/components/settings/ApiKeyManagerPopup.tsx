@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { vscode } from "@/utils/vscode"
+import { useExtensionState } from "@/context/ExtensionStateContext"
 
 interface ApiKeyManagerPopupProps {
 	trigger?: React.ReactNode
@@ -124,12 +125,42 @@ const PROVIDERS: Provider[] = [
 export const ApiKeyManagerContent = ({
 	apiConfiguration,
 	onApiConfigurationChange,
+	hiddenProfiles: externalHiddenProfiles,
+	onHiddenProfilesChange,
 }: {
 	apiConfiguration?: any
 	onApiConfigurationChange?: (config: any) => void
+	hiddenProfiles?: string[]
+	onHiddenProfilesChange?: (profiles: string[]) => void
 }) => {
 	const [apiKeys, setApiKeys] = useState<ApiKeyState>({})
 	const [searchQuery, setSearchQuery] = useState("")
+	const [activeTab, setActiveTab] = useState<"api-key" | "byak-models" | "builtin-models">("api-key")
+	const [localHiddenProfiles, setLocalHiddenProfiles] = useState<Set<string>>(new Set())
+
+	const { listApiConfigMeta, hiddenProfiles: globalHiddenProfiles } = useExtensionState()
+
+	// Use external hidden profiles if provided (for settings), otherwise use local state
+	const hiddenProfiles = externalHiddenProfiles ? new Set(externalHiddenProfiles) : localHiddenProfiles
+
+	const setHiddenProfiles = (newProfiles: Set<string>) => {
+		if (onHiddenProfilesChange) {
+			// When used in settings, update the external state
+			onHiddenProfilesChange(Array.from(newProfiles))
+		} else {
+			// When used in popup, update local state
+			setLocalHiddenProfiles(newProfiles)
+		}
+	}
+
+	// Initialize hidden profiles from global state only once (for popup mode)
+	useEffect(() => {
+		if (!externalHiddenProfiles && localHiddenProfiles.size === 0) {
+			if (globalHiddenProfiles) {
+				setLocalHiddenProfiles(new Set(globalHiddenProfiles))
+			}
+		}
+	}, []) // Only run once on mount
 
 	// Filter providers based on search query
 	const filteredProviders = useMemo(() => {
@@ -202,81 +233,216 @@ export const ApiKeyManagerContent = ({
 		<div className="flex flex-col space-y-3 flex-1 min-h-0">
 			{/* Tabs */}
 			<div className="flex border-b border-vscode-input-border flex-shrink-0">
-				<button className="px-2 py-1 text-xs font-medium text-vscode-foreground border-b-2 border-vscode-focusBorder">
+				<button
+					className={`px-2 py-1 text-xs font-medium ${
+						activeTab === "api-key"
+							? "text-vscode-foreground border-b-2 border-vscode-focusBorder"
+							: "text-vscode-descriptionForeground"
+					}`}
+					onClick={() => setActiveTab("api-key")}>
 					<span className="flex items-center gap-1">
 						<Key className="w-3 h-3" />
 						API Key
 					</span>
 				</button>
-				<button className="px-2 py-1 text-xs text-vscode-descriptionForeground opacity-50 cursor-not-allowed">
-					Upgrade
+				<button
+					className={`px-2 py-1 text-xs font-medium ${
+						activeTab === "byak-models"
+							? "text-vscode-foreground border-b-2 border-vscode-focusBorder"
+							: "text-vscode-descriptionForeground"
+					}`}
+					onClick={() => setActiveTab("byak-models")}>
+					BYAK Models
 				</button>
-				<button className="px-2 py-1 text-xs text-vscode-descriptionForeground opacity-50 cursor-not-allowed">
-					Local
+				<button
+					className={`px-2 py-1 text-xs font-medium ${
+						activeTab === "builtin-models"
+							? "text-vscode-foreground border-b-2 border-vscode-focusBorder"
+							: "text-vscode-descriptionForeground"
+					}`}
+					onClick={() => setActiveTab("builtin-models")}>
+					Built In Models
 				</button>
 			</div>
 
-			{/* Search Bar */}
-			<div className="relative flex-shrink-0">
-				<Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-3 h-3 text-vscode-descriptionForeground" />
-				<Input
-					type="text"
-					placeholder="Search providers..."
-					value={searchQuery}
-					onChange={(e) => setSearchQuery(e.target.value)}
-					className="pl-7 h-7 text-xs bg-vscode-input-background border-vscode-input-border text-vscode-foreground placeholder-vscode-descriptionForeground"
-				/>
-			</div>
-
-			{/* Scrollable Provider List */}
-			<div className="flex-1 overflow-y-auto space-y-2 min-h-0 pr-1">
-				{filteredProviders.map((provider) => (
-					<div
-						key={provider.id}
-						className="space-y-1 p-2 bg-vscode-editor-background rounded border border-vscode-input-border">
-						<div className="flex items-center gap-2 mb-1">
-							{provider.logo}
-							<div className="flex-1 min-w-0">
-								<h3 className="text-vscode-foreground font-medium text-xs truncate mt-0.5">
-									{provider.name}
-								</h3>
-								<p className="text-vscode-descriptionForeground text-xs truncate">
-									{provider.description}
-								</p>
-							</div>
-						</div>
-						<VSCodeTextField
-							value={apiKeys[provider.apiKeyField] || ""}
-							type="password"
-							onInput={(e) =>
-								handleApiKeyChange(provider.apiKeyField, (e.target as HTMLInputElement).value)
-							}
-							placeholder={`Enter your ${provider.name} API key`}
-							className="w-full text-xs -mt-0.5"
+			{/* API Key Tab Content */}
+			{activeTab === "api-key" && (
+				<>
+					{/* Search Bar */}
+					<div className="relative flex-shrink-0">
+						<Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-3 h-3 text-vscode-descriptionForeground" />
+						<Input
+							type="text"
+							placeholder="Search providers..."
+							value={searchQuery}
+							onChange={(e) => setSearchQuery(e.target.value)}
+							className="pl-7 h-7 text-xs bg-vscode-input-background border-vscode-input-border text-vscode-foreground placeholder-vscode-descriptionForeground"
 						/>
-						<button
-							onClick={() => handleLinkClick(provider.createKeyUrl)}
-							className="text-xs text-vscode-foreground hover:text-vscode-descriptionForeground flex items-center gap-1 transition-colors cursor-pointer">
-							Get {provider.name} API key
-							<ExternalLink className="w-3 h-3" />
-						</button>
 					</div>
-				))}
-				{filteredProviders.length === 0 && (
-					<div className="text-center py-4 text-vscode-descriptionForeground text-xs">
-						No providers found matching "{searchQuery}"
-					</div>
-				)}
-			</div>
 
-			{/* Security Notice */}
-			<div className="flex-shrink-0 pt-2 border-t border-vscode-input-border">
-				<div className="text-center">
-					<p className="text-xs text-vscode-descriptionForeground">
-						API credentials are protected through secure storage within VSCode.
-					</p>
+					{/* Scrollable Provider List */}
+					<div className="flex-1 overflow-y-auto space-y-2 min-h-0 pr-1">
+						{filteredProviders.map((provider) => (
+							<div
+								key={provider.id}
+								className="space-y-1 p-2 bg-vscode-editor-background rounded border border-vscode-input-border">
+								<div className="flex items-center gap-2 mb-1">
+									{provider.logo}
+									<div className="flex-1 min-w-0">
+										<h3 className="text-vscode-foreground font-medium text-xs truncate mt-0.5">
+											{provider.name}
+										</h3>
+										<p className="text-vscode-descriptionForeground text-xs truncate">
+											{provider.description}
+										</p>
+									</div>
+								</div>
+								<VSCodeTextField
+									value={apiKeys[provider.apiKeyField] || ""}
+									type="password"
+									onInput={(e) =>
+										handleApiKeyChange(provider.apiKeyField, (e.target as HTMLInputElement).value)
+									}
+									placeholder={`Enter your ${provider.name} API key`}
+									className="w-full text-xs -mt-0.5"
+								/>
+								<button
+									onClick={() => handleLinkClick(provider.createKeyUrl)}
+									className="text-xs text-vscode-foreground hover:text-vscode-descriptionForeground flex items-center gap-1 transition-colors cursor-pointer">
+									Get {provider.name} API key
+									<ExternalLink className="w-3 h-3" />
+								</button>
+							</div>
+						))}
+						{filteredProviders.length === 0 && (
+							<div className="text-center py-4 text-vscode-descriptionForeground text-xs">
+								No providers found matching "{searchQuery}"
+							</div>
+						)}
+					</div>
+
+					{/* Security Notice */}
+					<div className="flex-shrink-0 pt-2 border-t border-vscode-input-border">
+						<div className="text-center">
+							<p className="text-xs text-vscode-descriptionForeground">
+								API credentials are protected through secure storage within VSCode.
+							</p>
+						</div>
+					</div>
+				</>
+			)}
+
+			{/* BYAK Models Tab Content */}
+			{activeTab === "byak-models" && (
+				<div className="flex-1 overflow-y-auto min-h-0 pr-1">
+					{listApiConfigMeta
+						?.filter((config) => config.name.includes("(BYAK)"))
+						.map((config, index, array) => (
+							<div key={config.id}>
+								<div className="flex items-center justify-between py-2 px-1">
+									<div className="flex-1 min-w-0">
+										<h3 className="text-vscode-foreground font-medium text-xs truncate">
+											{config.name}
+										</h3>
+										<p className="text-vscode-descriptionForeground text-xs truncate">
+											{config.apiProvider}
+										</p>
+									</div>
+									<button
+										onClick={() => {
+											// Simple toggle - just update local state
+											const isCurrentlyHidden = hiddenProfiles.has(config.id)
+											const newHidden = new Set(hiddenProfiles)
+
+											if (isCurrentlyHidden) {
+												// Make visible (remove from hidden)
+												newHidden.delete(config.id)
+											} else {
+												// Hide (add to hidden)
+												newHidden.add(config.id)
+											}
+
+											setHiddenProfiles(newHidden)
+										}}
+										className={`relative inline-flex h-4 w-7 items-center rounded-full transition-colors focus:outline-none ${
+											!hiddenProfiles.has(config.id) ? "bg-blue-600" : "bg-gray-600"
+										}`}
+										title={hiddenProfiles.has(config.id) ? "Show in chat" : "Hide from chat"}>
+										<span
+											className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${
+												!hiddenProfiles.has(config.id) ? "translate-x-3.5" : "translate-x-0.5"
+											}`}
+										/>
+									</button>
+								</div>
+								{index < array.length - 1 && (
+									<div className="border-b border-vscode-input-border opacity-30 mx-1" />
+								)}
+							</div>
+						))}
+					{!listApiConfigMeta?.some((config) => config.name.includes("(BYAK)")) && (
+						<div className="text-center py-4 text-vscode-descriptionForeground text-xs">
+							No BYAK models found
+						</div>
+					)}
 				</div>
-			</div>
+			)}
+
+			{/* Built In Models Tab Content */}
+			{activeTab === "builtin-models" && (
+				<div className="flex-1 overflow-y-auto min-h-0 pr-1">
+					{listApiConfigMeta
+						?.filter((config) => !config.name.includes("(BYAK)"))
+						.map((config, index, array) => (
+							<div key={config.id}>
+								<div className="flex items-center justify-between py-2 px-1">
+									<div className="flex-1 min-w-0">
+										<h3 className="text-vscode-foreground font-medium text-xs truncate">
+											{config.name}
+										</h3>
+										<p className="text-vscode-descriptionForeground text-xs truncate">
+											{config.apiProvider}
+										</p>
+									</div>
+									<button
+										onClick={() => {
+											// Simple toggle - just update local state
+											const isCurrentlyHidden = hiddenProfiles.has(config.id)
+											const newHidden = new Set(hiddenProfiles)
+
+											if (isCurrentlyHidden) {
+												// Make visible (remove from hidden)
+												newHidden.delete(config.id)
+											} else {
+												// Hide (add to hidden)
+												newHidden.add(config.id)
+											}
+
+											setHiddenProfiles(newHidden)
+										}}
+										className={`relative inline-flex h-4 w-7 items-center rounded-full transition-colors focus:outline-none ${
+											!hiddenProfiles.has(config.id) ? "bg-blue-600" : "bg-gray-600"
+										}`}
+										title={hiddenProfiles.has(config.id) ? "Show in chat" : "Hide from chat"}>
+										<span
+											className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${
+												!hiddenProfiles.has(config.id) ? "translate-x-3.5" : "translate-x-0.5"
+											}`}
+										/>
+									</button>
+								</div>
+								{index < array.length - 1 && (
+									<div className="border-b border-vscode-input-border opacity-30 mx-1" />
+								)}
+							</div>
+						))}
+					{!listApiConfigMeta?.some((config) => !config.name.includes("(BYAK)")) && (
+						<div className="text-center py-4 text-vscode-descriptionForeground text-xs">
+							No built-in models found
+						</div>
+					)}
+				</div>
+			)}
 		</div>
 	)
 }
@@ -286,6 +452,21 @@ const ApiKeyManagerPopupContent = () => {
 	const [apiKeys, setApiKeys] = useState<ApiKeyState>({})
 	const [isLoading, setIsLoading] = useState(false)
 	const [searchQuery, setSearchQuery] = useState("")
+	const [activeTab, setActiveTab] = useState<"api-key" | "byak-models" | "builtin-models">("api-key")
+	const [hiddenProfiles, setHiddenProfiles] = useState<Set<string>>(new Set())
+
+	const { listApiConfigMeta, hiddenProfiles: globalHiddenProfiles } = useExtensionState()
+
+	// Initialize hidden profiles from global state
+	useEffect(() => {
+		console.log("Popup: Initializing hidden profiles from global state:", globalHiddenProfiles)
+		if (globalHiddenProfiles) {
+			setHiddenProfiles(new Set(globalHiddenProfiles))
+		} else {
+			// Ensure we start with an empty set if no global state
+			setHiddenProfiles(new Set())
+		}
+	}, [globalHiddenProfiles])
 
 	// Filter providers based on search query
 	const filteredProviders = useMemo(() => {
@@ -360,100 +541,263 @@ const ApiKeyManagerPopupContent = () => {
 		<div className="flex flex-col space-y-3 flex-1 min-h-0">
 			{/* Tabs */}
 			<div className="flex border-b border-vscode-input-border flex-shrink-0">
-				<button className="px-2 py-1 text-xs font-medium text-vscode-foreground border-b-2 border-vscode-focusBorder">
+				<button
+					className={`px-2 py-1 text-xs font-medium ${
+						activeTab === "api-key"
+							? "text-vscode-foreground border-b-2 border-vscode-focusBorder"
+							: "text-vscode-descriptionForeground"
+					}`}
+					onClick={() => setActiveTab("api-key")}>
 					<span className="flex items-center gap-1">
 						<Key className="w-3 h-3" />
 						API Key
 					</span>
 				</button>
-				<button className="px-2 py-1 text-xs text-vscode-descriptionForeground opacity-50 cursor-not-allowed">
-					Upgrade
+				<button
+					className={`px-2 py-1 text-xs font-medium ${
+						activeTab === "byak-models"
+							? "text-vscode-foreground border-b-2 border-vscode-focusBorder"
+							: "text-vscode-descriptionForeground"
+					}`}
+					onClick={() => setActiveTab("byak-models")}>
+					BYAK Models
 				</button>
-				<button className="px-2 py-1 text-xs text-vscode-descriptionForeground opacity-50 cursor-not-allowed">
-					Local
+				<button
+					className={`px-2 py-1 text-xs font-medium ${
+						activeTab === "builtin-models"
+							? "text-vscode-foreground border-b-2 border-vscode-focusBorder"
+							: "text-vscode-descriptionForeground"
+					}`}
+					onClick={() => setActiveTab("builtin-models")}>
+					Built In Models
 				</button>
 			</div>
 
-			{/* Search Bar */}
-			<div className="relative flex-shrink-0">
-				<Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-3 h-3 text-vscode-descriptionForeground" />
-				<Input
-					type="text"
-					placeholder="Search providers..."
-					value={searchQuery}
-					onChange={(e) => setSearchQuery(e.target.value)}
-					className="pl-7 h-7 text-xs bg-vscode-input-background border-vscode-input-border text-vscode-foreground placeholder-vscode-descriptionForeground"
-				/>
-			</div>
-
-			{/* Scrollable Provider List */}
-			<div className="flex-1 overflow-y-auto space-y-2 min-h-0 pr-1">
-				{filteredProviders.map((provider) => (
-					<div
-						key={provider.id}
-						className="space-y-1 p-2 bg-vscode-editor-background rounded border border-vscode-input-border">
-						<div className="flex items-center gap-2 mb-1">
-							{provider.logo}
-							<div className="flex-1 min-w-0">
-								<h3 className="text-vscode-foreground font-medium text-xs truncate mt-0.5">
-									{provider.name}
-								</h3>
-								<p className="text-vscode-descriptionForeground text-xs truncate">
-									{provider.description}
-								</p>
-							</div>
-						</div>
-						<VSCodeTextField
-							value={apiKeys[provider.apiKeyField] || ""}
-							type="password"
-							onInput={(e) =>
-								handleApiKeyChange(provider.apiKeyField, (e.target as HTMLInputElement).value)
-							}
-							placeholder={`Enter your ${provider.name} API key`}
-							className="w-full text-xs -mt-0.5"
+			{/* API Key Tab Content */}
+			{activeTab === "api-key" && (
+				<>
+					{/* Search Bar */}
+					<div className="relative flex-shrink-0">
+						<Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-3 h-3 text-vscode-descriptionForeground" />
+						<Input
+							type="text"
+							placeholder="Search providers..."
+							value={searchQuery}
+							onChange={(e) => setSearchQuery(e.target.value)}
+							className="pl-7 h-7 text-xs bg-vscode-input-background border-vscode-input-border text-vscode-foreground placeholder-vscode-descriptionForeground"
 						/>
-						<button
-							onClick={() => handleLinkClick(provider.createKeyUrl)}
-							className="text-xs text-vscode-foreground hover:text-vscode-descriptionForeground flex items-center gap-1 transition-colors cursor-pointer">
-							Get {provider.name} API key
-							<ExternalLink className="w-3 h-3" />
-						</button>
 					</div>
-				))}
-				{filteredProviders.length === 0 && (
-					<div className="text-center py-4 text-vscode-descriptionForeground text-xs">
-						No providers found matching "{searchQuery}"
+
+					{/* Scrollable Provider List */}
+					<div className="flex-1 overflow-y-auto space-y-2 min-h-0 pr-1">
+						{filteredProviders.map((provider) => (
+							<div
+								key={provider.id}
+								className="space-y-1 p-2 bg-vscode-editor-background rounded border border-vscode-input-border">
+								<div className="flex items-center gap-2 mb-1">
+									{provider.logo}
+									<div className="flex-1 min-w-0">
+										<h3 className="text-vscode-foreground font-medium text-xs truncate mt-0.5">
+											{provider.name}
+										</h3>
+										<p className="text-vscode-descriptionForeground text-xs truncate">
+											{provider.description}
+										</p>
+									</div>
+								</div>
+								<VSCodeTextField
+									value={apiKeys[provider.apiKeyField] || ""}
+									type="password"
+									onInput={(e) =>
+										handleApiKeyChange(provider.apiKeyField, (e.target as HTMLInputElement).value)
+									}
+									placeholder={`Enter your ${provider.name} API key`}
+									className="w-full text-xs -mt-0.5"
+								/>
+								<button
+									onClick={() => handleLinkClick(provider.createKeyUrl)}
+									className="text-xs text-vscode-foreground hover:text-vscode-descriptionForeground flex items-center gap-1 transition-colors cursor-pointer">
+									Get {provider.name} API key
+									<ExternalLink className="w-3 h-3" />
+								</button>
+							</div>
+						))}
+						{filteredProviders.length === 0 && (
+							<div className="text-center py-4 text-vscode-descriptionForeground text-xs">
+								No providers found matching "{searchQuery}"
+							</div>
+						)}
 					</div>
-				)}
-			</div>
 
-			{/* Footer with Connect Button */}
-			<div className="flex-shrink-0 space-y-2 pt-2 border-t border-vscode-input-border">
-				{/* Security Notice */}
-				<div className="text-center">
-					<p className="text-xs text-vscode-descriptionForeground">
-						API credentials are protected through secure storage within VSCode.
-					</p>
+					{/* Footer with Connect Button */}
+					<div className="flex-shrink-0 space-y-2 pt-2 border-t border-vscode-input-border">
+						{/* Security Notice */}
+						<div className="text-center">
+							<p className="text-xs text-vscode-descriptionForeground">
+								API credentials are protected through secure storage within VSCode.
+							</p>
+						</div>
+
+						{/* Connect Button */}
+						<VSCodeButton
+							onClick={handleConnect}
+							disabled={isLoading}
+							className="w-full bg-vscode-button-background hover:bg-vscode-button-hoverBackground text-vscode-button-foreground py-1 text-xs">
+							{isLoading ? "Connecting..." : "Connect"}
+						</VSCodeButton>
+
+						{/* More providers link */}
+						<div className="text-center">
+							<button
+								onClick={() => handleLinkClick("https://docs.cubent.dev/providers")}
+								className="text-xs text-vscode-foreground hover:text-vscode-descriptionForeground flex items-center gap-1 mx-auto transition-colors cursor-pointer">
+								Click here to view more providers
+								<ExternalLink className="w-3 h-3" />
+							</button>
+						</div>
+					</div>
+				</>
+			)}
+
+			{/* BYAK Models Tab Content */}
+			{activeTab === "byak-models" && (
+				<div className="flex-1 overflow-y-auto min-h-0 pr-1">
+					{listApiConfigMeta
+						?.filter((config) => config.name.includes("(BYAK)"))
+						.map((config, index, array) => (
+							<div key={config.id}>
+								<div className="flex items-center justify-between py-2 px-1">
+									<div className="flex-1 min-w-0">
+										<h3 className="text-vscode-foreground font-medium text-xs truncate">
+											{config.name}
+										</h3>
+										<p className="text-vscode-descriptionForeground text-xs truncate">
+											{config.apiProvider}
+										</p>
+									</div>
+									<button
+										onClick={() => {
+											const isCurrentlyHidden = hiddenProfiles.has(config.id)
+											const newVisibility = !isCurrentlyHidden
+
+											console.log(`Toggle clicked for ${config.name}:`, {
+												profileId: config.id,
+												isCurrentlyHidden,
+												newVisibility,
+												currentHiddenProfiles: Array.from(hiddenProfiles),
+											})
+
+											// Send message to extension first
+											vscode.postMessage({
+												type: "setProfileVisibility",
+												profileId: config.id,
+												visible: newVisibility,
+											})
+
+											// Update local state immediately for UI responsiveness
+											const newHidden = new Set(hiddenProfiles)
+											if (newVisibility) {
+												// Make visible (remove from hidden)
+												newHidden.delete(config.id)
+											} else {
+												// Hide (add to hidden)
+												newHidden.add(config.id)
+											}
+											setHiddenProfiles(newHidden)
+										}}
+										className={`relative inline-flex h-4 w-7 items-center rounded-full transition-colors focus:outline-none ${
+											!hiddenProfiles.has(config.id) ? "bg-blue-600" : "bg-gray-600"
+										}`}
+										title={hiddenProfiles.has(config.id) ? "Show in chat" : "Hide from chat"}>
+										<span
+											className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${
+												!hiddenProfiles.has(config.id) ? "translate-x-3.5" : "translate-x-0.5"
+											}`}
+										/>
+									</button>
+								</div>
+								{index < array.length - 1 && (
+									<div className="border-b border-vscode-input-border opacity-30 mx-1" />
+								)}
+							</div>
+						))}
+					{!listApiConfigMeta?.some((config) => config.name.includes("(BYAK)")) && (
+						<div className="text-center py-4 text-vscode-descriptionForeground text-xs">
+							No BYAK models found
+						</div>
+					)}
 				</div>
+			)}
 
-				{/* Connect Button */}
-				<VSCodeButton
-					onClick={handleConnect}
-					disabled={isLoading}
-					className="w-full bg-vscode-button-background hover:bg-vscode-button-hoverBackground text-vscode-button-foreground py-1 text-xs">
-					{isLoading ? "Connecting..." : "Connect"}
-				</VSCodeButton>
+			{/* Built In Models Tab Content */}
+			{activeTab === "builtin-models" && (
+				<div className="flex-1 overflow-y-auto min-h-0 pr-1">
+					{listApiConfigMeta
+						?.filter((config) => !config.name.includes("(BYAK)"))
+						.map((config, index, array) => (
+							<div key={config.id}>
+								<div className="flex items-center justify-between py-2 px-1">
+									<div className="flex-1 min-w-0">
+										<h3 className="text-vscode-foreground font-medium text-xs truncate">
+											{config.name}
+										</h3>
+										<p className="text-vscode-descriptionForeground text-xs truncate">
+											{config.apiProvider}
+										</p>
+									</div>
+									<button
+										onClick={() => {
+											const isCurrentlyHidden = hiddenProfiles.has(config.id)
+											const newVisibility = !isCurrentlyHidden
 
-				{/* More providers link */}
-				<div className="text-center">
-					<button
-						onClick={() => handleLinkClick("https://docs.cubent.dev/providers")}
-						className="text-xs text-vscode-foreground hover:text-vscode-descriptionForeground flex items-center gap-1 mx-auto transition-colors cursor-pointer">
-						Click here to view more providers
-						<ExternalLink className="w-3 h-3" />
-					</button>
+											console.log(`Toggle clicked for ${config.name}:`, {
+												profileId: config.id,
+												isCurrentlyHidden,
+												newVisibility,
+												currentHiddenProfiles: Array.from(hiddenProfiles),
+											})
+
+											// Send message to extension first
+											vscode.postMessage({
+												type: "setProfileVisibility",
+												profileId: config.id,
+												visible: newVisibility,
+											})
+
+											// Update local state immediately for UI responsiveness
+											const newHidden = new Set(hiddenProfiles)
+											if (newVisibility) {
+												// Make visible (remove from hidden)
+												newHidden.delete(config.id)
+											} else {
+												// Hide (add to hidden)
+												newHidden.add(config.id)
+											}
+											setHiddenProfiles(newHidden)
+										}}
+										className={`relative inline-flex h-4 w-7 items-center rounded-full transition-colors focus:outline-none ${
+											!hiddenProfiles.has(config.id) ? "bg-blue-600" : "bg-gray-600"
+										}`}
+										title={hiddenProfiles.has(config.id) ? "Show in chat" : "Hide from chat"}>
+										<span
+											className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${
+												!hiddenProfiles.has(config.id) ? "translate-x-3.5" : "translate-x-0.5"
+											}`}
+										/>
+									</button>
+								</div>
+								{index < array.length - 1 && (
+									<div className="border-b border-vscode-input-border opacity-30 mx-1" />
+								)}
+							</div>
+						))}
+					{!listApiConfigMeta?.some((config) => !config.name.includes("(BYAK)")) && (
+						<div className="text-center py-4 text-vscode-descriptionForeground text-xs">
+							No built-in models found
+						</div>
+					)}
 				</div>
-			</div>
+			)}
 		</div>
 	)
 }

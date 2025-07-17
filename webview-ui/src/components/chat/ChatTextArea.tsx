@@ -102,6 +102,7 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 			showContextButton,
 			showEnhancePromptButton,
 			showAddImagesButton,
+			hiddenProfiles,
 		} = useExtensionState()
 
 		// Find the ID and display text for the currently selected API configuration
@@ -1446,29 +1447,36 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 									placeholder={displayName}
 									options={[
 										// Process all configurations in order (preserving backend sorting with headers)
-										...(listApiConfigMeta || []).map((config) => {
-											// Check if this is a section header
-											const isHeader = config.id?.startsWith("header-")
+										...(listApiConfigMeta || [])
+											.filter((config) => {
+												// Always show section headers
+												if (config.id?.startsWith("header-")) return true
+												// Hide profiles that are in the hidden list
+												return !hiddenProfiles?.includes(config.id)
+											})
+											.map((config) => {
+												// Check if this is a section header
+												const isHeader = config.id?.startsWith("header-")
 
-											if (isHeader) {
+												if (isHeader) {
+													return {
+														value: config.id,
+														label: config.name.replace(/^--- | ---$/g, ""),
+														type: DropdownOptionType.SEPARATOR,
+													}
+												}
+
+												// Check if pinned
+												const isPinned = pinnedApiConfigs && pinnedApiConfigs[config.id]
+
 												return {
 													value: config.id,
-													label: config.name.replace(/^--- | ---$/g, ""),
-													type: DropdownOptionType.SEPARATOR,
+													label: config.name,
+													name: config.name, // Keep name for comparison with currentApiConfigName.
+													type: DropdownOptionType.ITEM,
+													pinned: isPinned || false,
 												}
-											}
-
-											// Check if pinned
-											const isPinned = pinnedApiConfigs && pinnedApiConfigs[config.id]
-
-											return {
-												value: config.id,
-												label: config.name,
-												name: config.name, // Keep name for comparison with currentApiConfigName.
-												type: DropdownOptionType.ITEM,
-												pinned: isPinned || false,
-											}
-										}),
+											}),
 									]}
 									onChange={(value) => {
 										vscode.postMessage({ type: "loadApiConfigurationById", text: value })
@@ -1488,29 +1496,36 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 									placeholder={displayName}
 									options={[
 										// Process all configurations in order (preserving backend sorting with headers)
-										...(listApiConfigMeta || []).map((config) => {
-											// Check if this is a section header
-											const isHeader = config.id?.startsWith("header-")
+										...(listApiConfigMeta || [])
+											.filter((config) => {
+												// Always show section headers
+												if (config.id?.startsWith("header-")) return true
+												// Hide profiles that are in the hidden list
+												return !hiddenProfiles?.includes(config.id)
+											})
+											.map((config) => {
+												// Check if this is a section header
+												const isHeader = config.id?.startsWith("header-")
 
-											if (isHeader) {
+												if (isHeader) {
+													return {
+														value: config.id,
+														label: config.name.replace(/^--- | ---$/g, ""),
+														type: DropdownOptionType.SEPARATOR,
+													}
+												}
+
+												// Check if pinned
+												const isPinned = pinnedApiConfigs && pinnedApiConfigs[config.id]
+
 												return {
 													value: config.id,
-													label: config.name.replace(/^--- | ---$/g, ""),
-													type: DropdownOptionType.SEPARATOR,
+													label: config.name,
+													name: config.name, // Keep name for comparison with currentApiConfigName.
+													type: DropdownOptionType.ITEM,
+													pinned: isPinned || false,
 												}
-											}
-
-											// Check if pinned
-											const isPinned = pinnedApiConfigs && pinnedApiConfigs[config.id]
-
-											return {
-												value: config.id,
-												label: config.name,
-												name: config.name, // Keep name for comparison with currentApiConfigName.
-												type: DropdownOptionType.ITEM,
-												pinned: isPinned || false,
-											}
-										}),
+											}),
 										{
 											value: "sep-2",
 											label: t("chat:separator"),

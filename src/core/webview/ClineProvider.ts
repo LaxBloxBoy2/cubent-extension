@@ -1583,6 +1583,7 @@ export class ClineProvider
 			showContextButton,
 			showEnhancePromptButton,
 			showAddImagesButton,
+			hiddenProfiles,
 			cloudUserInfo,
 			organizationAllowList,
 			maxConcurrentFileReads,
@@ -1683,6 +1684,7 @@ export class ClineProvider
 			showContextButton: showContextButton ?? true,
 			showEnhancePromptButton: showEnhancePromptButton ?? true,
 			showAddImagesButton: showAddImagesButton ?? true,
+			hiddenProfiles: hiddenProfiles ?? [],
 			maxChatHistoryLimit: this.getGlobalState("maxChatHistoryLimit") ?? 15,
 			autoDeleteOldChats: this.getGlobalState("autoDeleteOldChats") ?? true,
 			cloudUserInfo,
@@ -1821,6 +1823,7 @@ export class ClineProvider
 			showContextButton: stateValues.showContextButton ?? true,
 			showEnhancePromptButton: stateValues.showEnhancePromptButton ?? true,
 			showAddImagesButton: stateValues.showAddImagesButton ?? true,
+			hiddenProfiles: stateValues.hiddenProfiles ?? [],
 			cloudUserInfo,
 			organizationAllowList,
 			// Explicitly add condensing settings
