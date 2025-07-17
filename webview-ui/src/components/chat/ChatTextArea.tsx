@@ -1062,12 +1062,12 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 						"flex-col",
 						"bg-vscode-editor-background",
 						"rounded-lg",
-						"border border-[#2a2a2a]",
+						"border border-vscode-input-border",
 						"p-0",
 						"outline-none",
 						"box-border",
 						"focus-within:outline-none",
-						"focus-within:border-[#333333]",
+						"focus-within:border-vscode-focusBorder",
 						"w-full",
 					)}
 					style={{
@@ -1619,7 +1619,7 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 									disabled={sendingDisabled}
 									style={{
 										fontSize: 12,
-										color: "#ffffff",
+										color: "var(--vscode-button-foreground)",
 									}}
 									onClick={() => {
 										// Append @ to the current input value
@@ -1673,7 +1673,7 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 									disabled={sendingDisabled}
 									isLoading={isEnhancingPrompt}
 									onClick={handleEnhancePrompt}
-									style={{ fontSize: 9, color: "#ffffff" }}
+									style={{ fontSize: 9, color: "var(--vscode-button-foreground)" }}
 								/>
 							)}
 							{showAddImagesButton && (
@@ -1682,7 +1682,7 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 									title={t("chat:addImages")}
 									disabled={shouldDisableImages}
 									onClick={onSelectImages}
-									style={{ fontSize: 9, color: "#ffffff" }}
+									style={{ fontSize: 9, color: "var(--vscode-button-foreground)" }}
 								/>
 							)}
 							{showRetry && (
@@ -1691,7 +1691,7 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 									title={t("chat:retry.tooltip")}
 									disabled={false}
 									onClick={onRetry}
-									style={{ fontSize: 9, color: "#ffffff" }}
+									style={{ fontSize: 9, color: "var(--vscode-button-foreground)" }}
 								/>
 							)}
 							{isStreaming ? (
@@ -1700,7 +1700,7 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 									title={t("chat:cancel.title")}
 									disabled={false}
 									onClick={onCancel}
-									style={{ color: "#f14c4c", fontSize: 9 }}
+									style={{ color: "var(--vscode-errorForeground)", fontSize: 9 }}
 								/>
 							) : showResumeTask ? (
 								<>
@@ -1709,14 +1709,14 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 										title={t("chat:resumeTask.title")}
 										disabled={sendingDisabled}
 										onClick={onResumeTask}
-										style={{ color: "#4CAF50", fontSize: 9 }}
+										style={{ color: "var(--vscode-charts-green)", fontSize: 9 }}
 									/>
 									<IconButton
 										iconClass="codicon-stop"
 										title={t("chat:terminate.title")}
 										disabled={sendingDisabled}
 										onClick={onTerminateTask}
-										style={{ color: "#f14c4c", fontSize: 9 }}
+										style={{ color: "var(--vscode-errorForeground)", fontSize: 9 }}
 									/>
 								</>
 							) : (
@@ -1725,9 +1725,9 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 									title={t("chat:sendMessage")}
 									disabled={sendingDisabled}
 									onClick={handleSendClick}
-									className="bg-[rgba(255,255,255,0.08)] hover:bg-[rgba(255,255,255,0.12)]"
+									className="bg-vscode-button-background hover:bg-vscode-button-hoverBackground"
 									style={{
-										color: "#ffffff",
+										color: "var(--vscode-button-foreground)",
 										transform: "rotate(-90deg)",
 										fontSize: 12,
 									}}

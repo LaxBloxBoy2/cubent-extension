@@ -86,7 +86,7 @@ export const settingsTabList =
 	"h-10 data-[compact=true]:h-10 flex-shrink-0 flex flex-row justify-center overflow-x-auto overflow-y-hidden border-b border-vscode-sideBar-background bg-vscode-editor-background/50"
 export const settingsTabTrigger =
 	"whitespace-nowrap overflow-hidden min-w-0 h-10 px-4 py-2 box-border flex items-center border-b-2 border-transparent text-vscode-foreground opacity-70 hover:bg-vscode-list-hoverBackground data-[compact=true]:min-w-10 data-[compact=true]:p-3"
-export const settingsTabTriggerActive = "opacity-100 border-gray-500 bg-gray-100 dark:bg-gray-800"
+export const settingsTabTriggerActive = "opacity-100 border-vscode-tab-activeBorder bg-vscode-tab-activeBackground"
 
 export interface SettingsViewRef {
 	checkUnsaveChanges: (then: () => void) => void

@@ -212,7 +212,7 @@ export const ChatRowContent = ({
 	const errorColor = "var(--vscode-errorForeground)"
 	const successColor = "var(--vscode-charts-green)"
 	const cancelledColor = "var(--vscode-descriptionForeground)"
-	const _lightBlueColor = "#87CEEB" // Light blue color for Task Completed
+	const _lightBlueColor = "var(--vscode-charts-blue)" // Light blue color for Task Completed
 
 	const [icon, title] = useMemo(() => {
 		switch (type) {
@@ -686,7 +686,7 @@ export const ChatRowContent = ({
 							{/* Collapsible markdown content */}
 							{isExpanded && tool.content && (
 								<div className="text-xs leading-tight mt-3">
-									<div className="relative bg-[#1e1e1e] p-3 rounded border border-gray-700/30 max-h-96 overflow-auto">
+									<div className="relative bg-vscode-editor-background p-3 rounded border border-vscode-input-border max-h-96 overflow-auto">
 										<Markdown markdown={tool.content} />
 									</div>
 								</div>
