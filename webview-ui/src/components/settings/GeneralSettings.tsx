@@ -43,9 +43,9 @@ const ToggleSwitch = ({
 			data-testid={testId}
 		/>
 		{/* Track - thinner design */}
-		<div className={`relative h-5 w-9 rounded-full transition-colors duration-200 ${checked ? 'bg-[#007acc]' : 'bg-[#3a3a3a]'}`}>
+		<div className={`relative h-5 w-9 rounded-full transition-colors duration-200 ${checked ? 'bg-vscode-button-background' : 'bg-vscode-input-border'}`}>
 			{/* Knob - smaller and thinner */}
-			<div className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow-sm transition-transform duration-200 ${checked ? 'translate-x-4' : 'translate-x-0.5'}`} />
+			<div className={`absolute top-0.5 h-4 w-4 rounded-full bg-vscode-button-foreground shadow-sm transition-transform duration-200 ${checked ? 'translate-x-4' : 'translate-x-0.5'}`} />
 		</div>
 	</label>
 )
@@ -67,8 +67,8 @@ const SettingRow = ({
 	<div className="flex items-start justify-between py-3">
 		{/* Text content */}
 		<div className="pr-4">
-			<p className="text-sm font-medium text-[#e4e4e4]">{title}</p>
-			<p className="mt-1 text-xs leading-snug text-[#9c9c9c] max-w-xs">{description}</p>
+			<p className="text-sm font-medium text-vscode-foreground">{title}</p>
+			<p className="mt-1 text-xs leading-snug text-vscode-descriptionForeground max-w-xs">{description}</p>
 		</div>
 		{/* Toggle switch */}
 		<ToggleSwitch checked={checked} onChange={onChange} testId={testId} />
@@ -100,8 +100,8 @@ export default function GeneralSettings({
 			{/* Content without Section wrapper - no card background */}
 			<div className="w-full p-6">
 				{/* Chat Toolbar Section */}
-				<h2 className="text-base font-semibold text-[#f1f1f1]">{t("settings:general.toolbar.title")}</h2>
-				<div className="divide-y divide-[#2e2e2e]">
+				<h2 className="text-base font-semibold text-vscode-foreground">{t("settings:general.toolbar.title")}</h2>
+				<div className="divide-y divide-vscode-input-border">
 					<SettingRow
 						title={t("settings:general.toolbar.contextButton.label")}
 						description={t("settings:general.toolbar.contextButton.description")}
@@ -123,8 +123,8 @@ export default function GeneralSettings({
 				</div>
 
 				{/* Notifications Section */}
-				<h2 className="mt-6 text-base font-semibold text-[#f1f1f1]">{t("settings:sections.notifications")}</h2>
-				<div className="divide-y divide-[#2e2e2e]">
+				<h2 className="mt-6 text-base font-semibold text-vscode-foreground">{t("settings:sections.notifications")}</h2>
+				<div className="divide-y divide-vscode-input-border">
 					<SettingRow
 						title={t("settings:notifications.tts.label")}
 						description={t("settings:notifications.tts.description")}
@@ -135,8 +135,8 @@ export default function GeneralSettings({
 
 					{/* TTS Speed Slider */}
 					{ttsEnabled && (
-						<div className="py-3 pl-4 border-l-2 border-[#3a3a3a]">
-							<label className="block text-sm font-medium text-[#e4e4e4] mb-2">
+						<div className="py-3 pl-4 border-l-2 border-vscode-input-border">
+							<label className="block text-sm font-medium text-vscode-foreground mb-2">
 								{t("settings:notifications.tts.speedLabel")}
 							</label>
 							<div className="flex items-center gap-2">
@@ -148,7 +148,7 @@ export default function GeneralSettings({
 									onValueChange={([value]) => setCachedStateField("ttsSpeed", value)}
 									data-testid="tts-speed-slider"
 								/>
-								<span className="w-10 text-sm text-[#9c9c9c]">
+								<span className="w-10 text-sm text-vscode-descriptionForeground">
 									{((ttsSpeed ?? 1.0) * 100).toFixed(0)}%
 								</span>
 							</div>
@@ -165,8 +165,8 @@ export default function GeneralSettings({
 
 					{/* Sound Volume Slider */}
 					{soundEnabled && (
-						<div className="py-3 pl-4 border-l-2 border-[#3a3a3a]">
-							<label className="block text-sm font-medium text-[#e4e4e4] mb-2">
+						<div className="py-3 pl-4 border-l-2 border-vscode-input-border">
+							<label className="block text-sm font-medium text-vscode-foreground mb-2">
 								{t("settings:notifications.sound.volumeLabel")}
 							</label>
 							<div className="flex items-center gap-2">
@@ -178,7 +178,7 @@ export default function GeneralSettings({
 									onValueChange={([value]) => setCachedStateField("soundVolume", value)}
 									data-testid="sound-volume-slider"
 								/>
-								<span className="w-10 text-sm text-[#9c9c9c]">
+								<span className="w-10 text-sm text-vscode-descriptionForeground">
 									{((soundVolume ?? 0.5) * 100).toFixed(0)}%
 								</span>
 							</div>

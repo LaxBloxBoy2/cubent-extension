@@ -29,8 +29,8 @@ export default function UserGuidelinesSettings({
 			{/* Content without Section wrapper - no card background */}
 			<div className="w-full p-6">
 				{/* User Guidelines Section */}
-				<h2 className="text-base font-semibold text-[#f1f1f1]">{t("settings:userGuidelines.title")}</h2>
-				<p className="text-sm text-[#9c9c9c] mt-1 mb-3">{t("settings:userGuidelines.description")}</p>
+				<h2 className="text-base font-semibold text-vscode-foreground">{t("settings:userGuidelines.title")}</h2>
+				<p className="text-sm text-vscode-descriptionForeground mt-1 mb-3">{t("settings:userGuidelines.description")}</p>
 				<div className="mb-6">
 					<VSCodeTextArea
 						resize="vertical"

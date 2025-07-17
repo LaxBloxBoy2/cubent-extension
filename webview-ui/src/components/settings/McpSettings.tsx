@@ -33,9 +33,9 @@ const ToggleSwitch = ({
 			data-testid={testId}
 		/>
 		{/* Track - thinner design */}
-		<div className={`relative h-5 w-9 rounded-full transition-colors duration-200 ${checked ? 'bg-[#007acc]' : 'bg-[#3a3a3a]'}`}>
+		<div className={`relative h-5 w-9 rounded-full transition-colors duration-200 ${checked ? 'bg-vscode-button-background' : 'bg-vscode-input-border'}`}>
 			{/* Knob - smaller and thinner */}
-			<div className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow-sm transition-transform duration-200 ${checked ? 'translate-x-4' : 'translate-x-0.5'}`} />
+			<div className={`absolute top-0.5 h-4 w-4 rounded-full bg-vscode-button-foreground shadow-sm transition-transform duration-200 ${checked ? 'translate-x-4' : 'translate-x-0.5'}`} />
 		</div>
 	</label>
 )
@@ -57,8 +57,8 @@ const SettingRow = ({
 	<div className="flex items-start justify-between py-3">
 		{/* Text content */}
 		<div className="pr-4">
-			<p className="text-sm font-medium text-[#e4e4e4]">{title}</p>
-			<p className="mt-1 text-xs leading-snug text-[#9c9c9c] max-w-xs">{description}</p>
+			<p className="text-sm font-medium text-vscode-foreground">{title}</p>
+			<p className="mt-1 text-xs leading-snug text-vscode-descriptionForeground max-w-xs">{description}</p>
 		</div>
 		{/* Toggle switch */}
 		<ToggleSwitch checked={checked} onChange={onChange} testId={testId} />
@@ -149,7 +149,7 @@ export const McpSettings = ({ className, ...props }: McpSettingsProps) => {
 			{/* Content without Section wrapper - no card background */}
 			<div className="w-full p-6">
 				{/* MCP Settings */}
-				<div className="divide-y divide-[#2e2e2e]">
+				<div className="divide-y divide-vscode-input-border">
 					<SettingRow
 						title="Enable MCP Servers"
 						description="Access connected MCP servers. Turn off to save tokens."
@@ -181,12 +181,12 @@ export const McpSettings = ({ className, ...props }: McpSettingsProps) => {
 				{/* Server List */}
 				{mcpEnabled && servers.length > 0 && (
 					<div className="mt-6">
-						<h3 className="text-sm font-medium text-[#f1f1f1] mb-3">Connected Servers</h3>
+						<h3 className="text-sm font-medium text-vscode-foreground mb-3">Connected Servers</h3>
 						<div className="space-y-2">
 							{servers.map((server) => (
 								<div
 									key={`${server.name}-${server.source || "global"}`}
-									className="flex items-center justify-between p-2 bg-[#1e1e1e] rounded">
+									className="flex items-center justify-between p-2 bg-vscode-editor-background rounded">
 									<div className="flex items-center gap-2">
 										<div
 											className="w-2 h-2 rounded-full"
@@ -199,14 +199,14 @@ export const McpSettings = ({ className, ...props }: McpSettingsProps) => {
 															: "var(--vscode-testing-iconFailed)",
 											}}
 										/>
-										<span className="text-sm text-[#e4e4e4]">{server.name}</span>
+										<span className="text-sm text-vscode-foreground">{server.name}</span>
 										{server.source && (
-											<span className="px-2 py-0.5 text-xs rounded bg-[#3a3a3a] text-[#e4e4e4]">
+											<span className="px-2 py-0.5 text-xs rounded bg-vscode-input-border text-vscode-foreground">
 												{server.source}
 											</span>
 										)}
 									</div>
-									<div className="text-xs text-[#9c9c9c]">{server.status}</div>
+									<div className="text-xs text-vscode-descriptionForeground">{server.status}</div>
 								</div>
 							))}
 						</div>
@@ -228,12 +228,12 @@ export const McpSettings = ({ className, ...props }: McpSettingsProps) => {
 
 				{/* Help Section */}
 				{vsCodeMcpEnabled && (
-					<div className="mt-6 p-3 bg-[#1e1e1e] rounded">
+					<div className="mt-6 p-3 bg-vscode-editor-background rounded">
 						<div className="flex items-center gap-2 mb-2">
 							<HelpCircle className="w-4 h-4" />
-							<span className="text-sm font-medium text-[#e4e4e4]">Need help?</span>
+							<span className="text-sm font-medium text-vscode-foreground">Need help?</span>
 						</div>
-						<p className="text-xs text-[#9c9c9c] mb-2">
+						<p className="text-xs text-vscode-descriptionForeground mb-2">
 							Explore our guide to MCP configuration and best practices.
 						</p>
 						<VSCodeLink
