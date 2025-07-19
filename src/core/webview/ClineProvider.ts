@@ -1246,6 +1246,10 @@ export class ClineProvider
 		deepSeekApiKey?: string
 		groqApiKey?: string
 		mistralApiKey?: string
+		// Base URLs
+		openAiNativeBaseUrl?: string
+		anthropicBaseUrl?: string
+		googleGeminiBaseUrl?: string
 	}) {
 		try {
 			// Get all BYAK profiles
@@ -1330,6 +1334,40 @@ export class ClineProvider
 				if (apiProvider === "mistral" || name.toLowerCase().includes("mistral")) {
 					if (keys.mistralApiKey !== undefined) {
 						updatedSettings.mistralApiKey = keys.mistralApiKey
+						hasChanges = true
+					}
+				}
+
+				// Update Base URLs for supported providers
+				if (
+					apiProvider === "openai-native" ||
+					name.toLowerCase().includes("openai") ||
+					name.toLowerCase().includes("gpt")
+				) {
+					if (keys.openAiNativeBaseUrl !== undefined) {
+						updatedSettings.openAiNativeBaseUrl = keys.openAiNativeBaseUrl
+						hasChanges = true
+					}
+				}
+
+				if (
+					apiProvider === "anthropic" ||
+					name.toLowerCase().includes("anthropic") ||
+					name.toLowerCase().includes("claude")
+				) {
+					if (keys.anthropicBaseUrl !== undefined) {
+						updatedSettings.anthropicBaseUrl = keys.anthropicBaseUrl
+						hasChanges = true
+					}
+				}
+
+				if (
+					apiProvider === "gemini" ||
+					name.toLowerCase().includes("gemini") ||
+					name.toLowerCase().includes("google")
+				) {
+					if (keys.googleGeminiBaseUrl !== undefined) {
+						updatedSettings.googleGeminiBaseUrl = keys.googleGeminiBaseUrl
 						hasChanges = true
 					}
 				}

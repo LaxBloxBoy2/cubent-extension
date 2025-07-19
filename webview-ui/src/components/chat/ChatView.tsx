@@ -1491,7 +1491,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 						{showScrollToBottom && (
 							<div className="absolute top-[-35px] right-[13px] z-10">
 								<button
-									className="bg-vscode-button-background rounded-[3px] overflow-hidden cursor-pointer flex justify-center items-center w-[25px] h-[25px] hover:bg-vscode-button-hoverBackground active:bg-vscode-button-background border border-vscode-input-border text-vscode-button-foreground"
+									className="bg-[#161616] rounded-[3px] overflow-hidden cursor-pointer flex justify-center items-center w-[25px] h-[25px] hover:bg-[#2a2a2a] active:bg-[#161616] border border-vscode-input-border text-vscode-button-foreground"
 									onClick={() => {
 										scrollToBottomSmooth()
 										disableAutoScrollRef.current = false

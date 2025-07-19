@@ -2259,7 +2259,7 @@ export const webviewMessageHandler = async (provider: ClineProvider, message: We
 		}
 		case "getByakApiKeys": {
 			try {
-				// Get current API keys from all BYAK profiles
+				// Get current API keys and base URLs from all BYAK profiles
 				const currentConfig = await provider.getState()
 				const apiConfig = currentConfig.apiConfiguration
 
@@ -2271,6 +2271,10 @@ export const webviewMessageHandler = async (provider: ClineProvider, message: We
 					deepSeekApiKey: apiConfig?.deepSeekApiKey || "",
 					groqApiKey: apiConfig?.groqApiKey || "",
 					mistralApiKey: apiConfig?.mistralApiKey || "",
+					// Base URLs
+					openAiNativeBaseUrl: apiConfig?.openAiNativeBaseUrl || "",
+					anthropicBaseUrl: apiConfig?.anthropicBaseUrl || "",
+					googleGeminiBaseUrl: apiConfig?.googleGeminiBaseUrl || "",
 				}
 
 				provider.postMessageToWebview({
@@ -2289,6 +2293,10 @@ export const webviewMessageHandler = async (provider: ClineProvider, message: We
 						deepSeekApiKey: "",
 						groqApiKey: "",
 						mistralApiKey: "",
+						// Base URLs
+						openAiNativeBaseUrl: "",
+						anthropicBaseUrl: "",
+						googleGeminiBaseUrl: "",
 					},
 				})
 			}

@@ -1,4 +1,4 @@
-import { VSCodeButton, VSCodeCheckbox, VSCodeTextField } from "@vscode/webview-ui-toolkit/react"
+import { VSCodeButton, VSCodeTextField } from "@vscode/webview-ui-toolkit/react"
 import { History, Trash2 } from "lucide-react"
 import { HTMLAttributes, useState } from "react"
 
@@ -14,6 +14,60 @@ type HistoryManagementSettingsProps = HTMLAttributes<HTMLDivElement> & {
 	autoDeleteOldChats?: boolean
 	setCachedStateField: SetCachedStateField<any>
 }
+
+// Thin toggle switch component - matching GeneralSettings design
+const ToggleSwitch = ({
+	checked,
+	onChange,
+	testId,
+}: {
+	checked: boolean
+	onChange: (checked: boolean) => void
+	testId?: string
+}) => (
+	<label className="relative inline-flex h-5 w-9 cursor-pointer select-none items-center">
+		<input
+			type="checkbox"
+			className="sr-only"
+			checked={checked}
+			onChange={(e) => onChange(e.target.checked)}
+			data-testid={testId}
+		/>
+		{/* Track - thinner design */}
+		<div
+			className={`relative h-5 w-9 rounded-full transition-colors duration-200 ${checked ? "bg-vscode-button-background" : "bg-vscode-input-border"}`}>
+			{/* Knob - smaller and thinner */}
+			<div
+				className={`absolute top-0.5 h-4 w-4 rounded-full bg-vscode-button-foreground shadow-sm transition-transform duration-200 ${checked ? "translate-x-4" : "translate-x-0.5"}`}
+			/>
+		</div>
+	</label>
+)
+
+// Row component matching the GeneralSettings design
+const SettingRow = ({
+	title,
+	description,
+	checked,
+	onChange,
+	testId,
+}: {
+	title: string
+	description: string
+	checked: boolean
+	onChange: (checked: boolean) => void
+	testId?: string
+}) => (
+	<div className="flex items-start justify-between py-3">
+		{/* Text content */}
+		<div className="pr-4">
+			<p className="text-sm font-medium text-vscode-foreground">{title}</p>
+			<p className="mt-1 text-xs leading-snug text-vscode-descriptionForeground max-w-xs">{description}</p>
+		</div>
+		{/* Toggle switch */}
+		<ToggleSwitch checked={checked} onChange={onChange} testId={testId} />
+	</div>
+)
 
 export const HistoryManagementSettings = ({
 	maxChatHistoryLimit,
@@ -59,16 +113,12 @@ export const HistoryManagementSettings = ({
 			</SectionHeader>
 
 			<Section>
-				<div>
-					<VSCodeCheckbox
-						checked={autoDeleteOldChats ?? true}
-						onChange={(e: any) => handleAutoDeleteChange(e.target.checked)}>
-						<span className="font-medium">{t("settings:historyManagement.autoDelete.label")}</span>
-					</VSCodeCheckbox>
-					<div className="text-vscode-descriptionForeground text-sm mt-1">
-						{t("settings:historyManagement.autoDelete.description")}
-					</div>
-				</div>
+				<SettingRow
+					title={t("settings:historyManagement.autoDelete.label")}
+					description={t("settings:historyManagement.autoDelete.description")}
+					checked={autoDeleteOldChats ?? true}
+					onChange={handleAutoDeleteChange}
+				/>
 			</Section>
 
 			<Section>
