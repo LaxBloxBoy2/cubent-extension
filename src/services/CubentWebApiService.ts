@@ -7,6 +7,8 @@ export interface CubentUser {
 	picture?: string
 	subscriptionTier: string
 	subscriptionStatus: string
+	trialEndDate?: string | null
+	daysLeftInTrial?: number | null
 	cubentUnitsUsed: number
 	cubentUnitsLimit: number
 	extensionEnabled: boolean
@@ -111,15 +113,17 @@ class CubentWebApiService {
 				email: data.user.email,
 				name: data.user.name,
 				picture: data.user.picture,
-				subscriptionTier: data.user.subscriptionTier || "FREE",
-				subscriptionStatus: data.user.subscriptionStatus || "ACTIVE",
-				cubentUnitsUsed: data.user.cubentUnitsUsed || 0,
-				cubentUnitsLimit: data.user.cubentUnitsLimit || 50,
-				extensionEnabled: data.user.extensionEnabled !== false,
+				subscriptionTier: data.user.subscriptionTier || "free",
+				subscriptionStatus: data.user.subscriptionStatus || "inactive",
+				trialEndDate: data.user.trialEndDate || null,
+				daysLeftInTrial: data.user.daysLeftInTrial || null,
+				cubentUnitsUsed: 0, // TODO: Get from usage data
+				cubentUnitsLimit: 50000, // Default limit
+				extensionEnabled: data.user.termsAccepted !== false,
 				termsAccepted: data.user.termsAccepted !== false,
 				lastExtensionSync: data.user.lastExtensionSync ? new Date(data.user.lastExtensionSync) : undefined,
-				createdAt: new Date(data.user.createdAt || Date.now()),
-				updatedAt: new Date(data.user.updatedAt || Date.now()),
+				createdAt: new Date(Date.now()),
+				updatedAt: new Date(Date.now()),
 			}
 		} catch (error) {
 			console.error("Error fetching user profile:", error)

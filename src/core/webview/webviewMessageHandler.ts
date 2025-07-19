@@ -1634,49 +1634,50 @@ export const webviewMessageHandler = async (provider: ClineProvider, message: We
 			break
 		}
 
-		case "getUserProfile": {
-			try {
-				const userManagement = provider.getUserManagement()
-				if (userManagement) {
-					const userProfile = await userManagement.userManagementService.getUserProfile()
-					provider.postMessageToWebview({ type: "userProfile", data: userProfile })
-				} else {
-					// Return mock data if user management is not initialized
-					provider.postMessageToWebview({
-						type: "userProfile",
-						data: {
-							id: "demo-user-123",
-							clerkUserId: "user_demo123",
-							email: "demo@example.com",
-							name: "Demo User",
-							picture: null,
-							subscriptionTier: "free_trial",
-							subscriptionStatus: "trial",
-							subscriptionStartDate: new Date().toISOString(),
-							subscriptionEndDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-							trialStartDate: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-							trialEndDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-							trialExtensions: 0,
-							preferences: {
-								usageWarningsEnabled: true,
-								trialExpiryNotifications: true,
-								detailedUsageTracking: true,
-								costAlertsEnabled: true,
-								costAlertThreshold: 80,
-								autoUpgradeEnabled: false,
-								preferredUpgradeTier: "basic",
-							},
-							createdAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
-							updatedAt: new Date().toISOString(),
-							lastActiveAt: new Date().toISOString(),
-						},
-					})
-				}
-			} catch (error) {
-				console.error("Error getting user profile:", error)
-			}
-			break
-		}
+		// Commented out to use the API-based getUserProfile handler below
+		// case "getUserProfile": {
+		// 	try {
+		// 		const userManagement = provider.getUserManagement()
+		// 		if (userManagement) {
+		// 			const userProfile = await userManagement.userManagementService.getUserProfile()
+		// 			provider.postMessageToWebview({ type: "userProfile", data: userProfile })
+		// 		} else {
+		// 			// Return mock data if user management is not initialized
+		// 			provider.postMessageToWebview({
+		// 				type: "userProfile",
+		// 				data: {
+		// 					id: "demo-user-123",
+		// 					clerkUserId: "user_demo123",
+		// 					email: "demo@example.com",
+		// 					name: "Demo User",
+		// 					picture: null,
+		// 					subscriptionTier: "free_trial",
+		// 					subscriptionStatus: "trial",
+		// 					subscriptionStartDate: new Date().toISOString(),
+		// 					subscriptionEndDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+		// 					trialStartDate: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+		// 					trialEndDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+		// 					trialExtensions: 0,
+		// 					preferences: {
+		// 						usageWarningsEnabled: true,
+		// 						trialExpiryNotifications: true,
+		// 						detailedUsageTracking: true,
+		// 						costAlertsEnabled: true,
+		// 						costAlertThreshold: 80,
+		// 						autoUpgradeEnabled: false,
+		// 						preferredUpgradeTier: "basic",
+		// 					},
+		// 					createdAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+		// 					updatedAt: new Date().toISOString(),
+		// 					lastActiveAt: new Date().toISOString(),
+		// 				},
+		// 			})
+		// 		}
+		// 	} catch (error) {
+		// 		console.error("Error getting user profile:", error)
+		// 	}
+		// 	break
+		// }
 
 		case "updateUserPreferences": {
 			try {
@@ -2087,6 +2088,7 @@ export const webviewMessageHandler = async (provider: ClineProvider, message: We
 			}
 			break
 		}
+
 		case "getUserUsageStats": {
 			try {
 				// Use CubentWebApiService to get usage stats from API

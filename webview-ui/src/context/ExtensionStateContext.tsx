@@ -136,6 +136,7 @@ export const mergeExtensionState = (prevState: ExtensionState, newState: Extensi
 		customModePrompts: prevCustomModePrompts,
 		customSupportPrompts: prevCustomSupportPrompts,
 		experiments: prevExperiments,
+		currentUser: prevCurrentUser,
 		...prevRest
 	} = prevState
 
@@ -144,6 +145,7 @@ export const mergeExtensionState = (prevState: ExtensionState, newState: Extensi
 		customModePrompts: newCustomModePrompts,
 		customSupportPrompts: newCustomSupportPrompts,
 		experiments: newExperiments,
+		currentUser: newCurrentUser,
 		...newRest
 	} = newState
 
@@ -152,10 +154,18 @@ export const mergeExtensionState = (prevState: ExtensionState, newState: Extensi
 	const experiments = { ...prevExperiments, ...newExperiments }
 	const rest = { ...prevRest, ...newRest }
 
+	// Preserve currentUser with trial information if it exists in prevState
+	// This prevents losing fresh API data when settings changes trigger state updates
+	let currentUser = newCurrentUser
+	if (prevCurrentUser && prevCurrentUser.daysLeftInTrial !== undefined && prevCurrentUser.daysLeftInTrial !== null) {
+		// Previous user has trial information from API, preserve it
+		currentUser = prevCurrentUser
+	}
+
 	// Note that we completely replace the previous apiConfiguration object with
 	// a new one since the state that is broadcast is the entire apiConfiguration
 	// and therefore merging is not necessary.
-	return { ...rest, apiConfiguration, customModePrompts, customSupportPrompts, experiments }
+	return { ...rest, apiConfiguration, customModePrompts, customSupportPrompts, experiments, currentUser }
 }
 
 export const ExtensionStateContextProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -313,6 +323,16 @@ export const ExtensionStateContextProvider: React.FC<{ children: React.ReactNode
 				}
 				case "currentCheckpointUpdated": {
 					setCurrentCheckpoint(message.text)
+					break
+				}
+				case "userProfile": {
+					// Update currentUser with fresh API data including trial information
+					if (message.data) {
+						setState((prevState) => ({
+							...prevState,
+							currentUser: message.data,
+						}))
+					}
 					break
 				}
 				case "listApiConfig": {

@@ -78,6 +78,7 @@ import { TerminalSettings } from "./TerminalSettings"
 import { ExperimentalSettings } from "./ExperimentalSettings"
 import { LanguageSettings } from "./LanguageSettings"
 import { Section } from "./Section"
+import { TrialStatusBanner } from "../user/TrialStatusBanner"
 import PromptsSettings from "./PromptsSettings"
 import { cn } from "@/lib/utils"
 
@@ -528,7 +529,7 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 				{isAuthenticated && currentUser ? (
 					<div className="relative" ref={profileDropdownRef}>
 						<div
-							className="flex items-center gap-1 cursor-pointer rounded-md px-0.5 py-0"
+							className="flex items-center gap-2 cursor-pointer rounded-md px-0.5 py-1"
 							onClick={handleProfileClick}>
 							{/* User Avatar */}
 							{currentUser.picture ? (
@@ -548,28 +549,14 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 								</div>
 							)}
 
-							{/* User Info */}
-							<div className="min-w-0">
-								<p className="text-xs font-medium text-vscode-foreground truncate leading-none">
+							{/* User Info - Centered vertically */}
+							<div className="min-w-0 flex flex-col justify-center">
+								<p className="text-xs font-medium text-vscode-foreground truncate leading-tight mb-0.5">
 									{currentUser.email || "No email"}
 								</p>
-								<p className="text-xs text-vscode-descriptionForeground leading-none -mt-1">
-									{(() => {
-										const tier = currentUser.subscriptionTier || "free_trial"
-										switch (tier.toLowerCase()) {
-											case "free_trial":
-												return "Free Trial"
-											case "basic":
-												return "Basic"
-											case "pro":
-												return "Pro"
-											case "enterprise":
-												return "Enterprise"
-											default:
-												return "Free Trial"
-										}
-									})()}
-								</p>
+								<div className="leading-tight">
+									<TrialStatusBanner />
+								</div>
 							</div>
 
 							{/* Dropdown Arrow */}

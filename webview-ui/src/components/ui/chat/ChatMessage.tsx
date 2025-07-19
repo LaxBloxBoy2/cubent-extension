@@ -85,7 +85,7 @@ function ChatMessageContent({ isHeaderVisible }: ChatMessageContentProps) {
 	const { message } = useChatMessage()
 
 	return (
-		<div className={cn("flex flex-col gap-4 flex-1 min-w-0 px-4 pb-6", { "pt-4": isHeaderVisible })}>
+		<div className={cn("flex flex-col gap-4 flex-1 min-w-0 px-4 pb-2", { "pt-2": isHeaderVisible })}>
 			<Markdown content={message.content} />
 		</div>
 	)

@@ -125,7 +125,11 @@ const App = () => {
 	}, [telemetrySetting, telemetryKey, machineId, didHydrateState])
 
 	// Tell the extension that we are ready to receive messages.
-	useEffect(() => vscode.postMessage({ type: "webviewDidLaunch" }), [])
+	useEffect(() => {
+		vscode.postMessage({ type: "webviewDidLaunch" })
+		// Request fresh user profile data with trial information
+		vscode.postMessage({ type: "getUserProfile" })
+	}, [])
 
 	if (!didHydrateState) {
 		return null

@@ -81,6 +81,7 @@ export interface ExtensionMessage {
 		| "textSelectionCleared"
 		| "userProfile"
 		| "trialInfo"
+		| "trialStatus"
 		| "usageStats"
 		| "messageUsageData"
 	text?: string
