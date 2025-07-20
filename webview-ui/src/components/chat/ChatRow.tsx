@@ -125,7 +125,7 @@ const ChatRow = memo(
 		const prevHeightRef = useRef(0)
 
 		const [chatrow, { height }] = useSize(
-			<div className="px-[15px] py-[0px] pr-[6px]">
+			<div className="px-[15px] py-[0px] pr-[6px]" style={{ minHeight: "20px" }}>
 				<ChatRowContent {...props} />
 			</div>,
 		)
@@ -134,6 +134,19 @@ const ChatRow = memo(
 			// used for partials, command output, etc.
 			// NOTE: it's important we don't distinguish between partial or complete here since our scroll effects in chatview need to handle height change during partial -> complete
 			const isInitialRender = prevHeightRef.current === 0 // prevents scrolling when new element is added since we already scroll for that
+
+			// Debug height calculation issues
+			if (height === 0 || height === Infinity) {
+				console.log("🔍 DEBUG: ChatRow height issue:", {
+					height,
+					isLast,
+					messageType: message.type,
+					messageSay: message.say,
+					messageAsk: message.ask,
+					prevHeight: prevHeightRef.current,
+				})
+			}
+
 			// height starts off at Infinity
 			if (isLast && height !== 0 && height !== Infinity && height !== prevHeightRef.current) {
 				if (!isInitialRender) {
@@ -144,6 +157,15 @@ const ChatRow = memo(
 		}, [height, isLast, onHeightChange, message])
 
 		// we cannot return null as virtuoso does not support it, so we use a separate visibleMessages array to filter out messages that should not be rendered
+		// Fallback: if height calculation fails, render directly
+		if (height === 0 || height === Infinity) {
+			return (
+				<div className="px-[15px] py-[0px] pr-[6px]" style={{ minHeight: "20px" }}>
+					<ChatRowContent {...props} />
+				</div>
+			)
+		}
+
 		return chatrow
 	},
 	// memo does shallow comparison of props, so we need to do deep comparison of arrays/objects whose properties might change
@@ -385,23 +407,29 @@ export const ChatRowContent = ({
 						/>
 						{/* Approval buttons */}
 						{showApprovalButtons && message.type === "ask" && (
-							<div className="flex items-center justify-center gap-2 mt-2 p-1 bg-vscode-editor-background border border-vscode-widget-border rounded">
+							<div className="flex justify-end gap-1 mt-2">
 								{primaryButtonText && (
 									<button
 										disabled={!enableApprovalButtons}
-										className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-white bg-vscode-button-background hover:bg-vscode-button-hoverBackground disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer rounded transition-colors duration-150"
+										className="inline-flex items-center gap-1 px-1.5 py-0.5 text-[10px] font-medium text-vscode-foreground bg-vscode-input-border hover:bg-vscode-toolbar-hoverBackground disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer rounded transition-colors duration-150 h-6"
 										onClick={onApprove}>
-										<span className="codicon codicon-check text-xs"></span>
-										{primaryButtonText}
+										<span className="codicon codicon-check text-sm"></span>
+										<span>{primaryButtonText}</span>
+										<span className="text-[9px] text-vscode-descriptionForeground rounded px-1 py-0.5 bg-vscode-foreground/10 ml-1 shadow-sm">
+											Tab
+										</span>
 									</button>
 								)}
 								{secondaryButtonText && (
 									<button
 										disabled={!enableApprovalButtons}
-										className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-vscode-foreground bg-vscode-button-secondaryBackground hover:bg-vscode-button-secondaryHoverBackground disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer rounded transition-colors duration-150"
+										className="inline-flex items-center gap-1 px-1.5 py-0.5 text-[10px] font-medium text-vscode-foreground bg-vscode-toolbar-hoverBackground hover:bg-vscode-list-hoverBackground disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer rounded transition-colors duration-150 h-6"
 										onClick={onReject}>
-										<span className="codicon codicon-close text-xs"></span>
-										{secondaryButtonText}
+										<span className="codicon codicon-close text-sm"></span>
+										<span>{secondaryButtonText}</span>
+										<span className="text-[9px] text-vscode-descriptionForeground rounded px-1 py-0.5 bg-vscode-foreground/10 ml-1 shadow-sm">
+											Esc
+										</span>
 									</button>
 								)}
 							</div>
@@ -449,23 +477,29 @@ export const ChatRowContent = ({
 						/>
 						{/* Approval buttons */}
 						{showApprovalButtons && message.type === "ask" && (
-							<div className="flex items-center justify-center gap-2 mt-2 p-1 bg-vscode-editor-background border border-vscode-widget-border rounded">
+							<div className="flex justify-end gap-1 mt-2">
 								{primaryButtonText && (
 									<button
 										disabled={!enableApprovalButtons}
-										className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-white bg-vscode-button-background hover:bg-vscode-button-hoverBackground disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer rounded transition-colors duration-150"
+										className="inline-flex items-center gap-1 px-1.5 py-0.5 text-[10px] font-medium text-vscode-foreground bg-vscode-input-border hover:bg-vscode-toolbar-hoverBackground disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer rounded transition-colors duration-150 h-6"
 										onClick={onApprove}>
-										<span className="codicon codicon-check text-xs"></span>
-										{primaryButtonText}
+										<span className="codicon codicon-check text-sm"></span>
+										<span>{primaryButtonText}</span>
+										<span className="text-[9px] text-vscode-descriptionForeground rounded px-1 py-0.5 bg-vscode-foreground/10 ml-1 shadow-sm">
+											Tab
+										</span>
 									</button>
 								)}
 								{secondaryButtonText && (
 									<button
 										disabled={!enableApprovalButtons}
-										className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-vscode-foreground bg-vscode-button-secondaryBackground hover:bg-vscode-button-secondaryHoverBackground disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer rounded transition-colors duration-150"
+										className="inline-flex items-center gap-1 px-1.5 py-0.5 text-[10px] font-medium text-vscode-foreground bg-vscode-toolbar-hoverBackground hover:bg-vscode-list-hoverBackground disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer rounded transition-colors duration-150 h-6"
 										onClick={onReject}>
-										<span className="codicon codicon-close text-xs"></span>
-										{secondaryButtonText}
+										<span className="codicon codicon-close text-sm"></span>
+										<span>{secondaryButtonText}</span>
+										<span className="text-[9px] text-vscode-descriptionForeground rounded px-1 py-0.5 bg-vscode-foreground/10 ml-1 shadow-sm">
+											Esc
+										</span>
 									</button>
 								)}
 							</div>
@@ -510,23 +544,29 @@ export const ChatRowContent = ({
 						/>
 						{/* Approval buttons */}
 						{showApprovalButtons && message.type === "ask" && (
-							<div className="flex items-center justify-center gap-2 mt-2 p-1 bg-vscode-editor-background border border-vscode-widget-border rounded">
+							<div className="flex justify-end gap-1 mt-2">
 								{primaryButtonText && (
 									<button
 										disabled={!enableApprovalButtons}
-										className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-white bg-vscode-button-background hover:bg-vscode-button-hoverBackground disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer rounded transition-colors duration-150"
+										className="inline-flex items-center gap-1.5 px-2 py-1 text-xs font-medium text-vscode-foreground bg-vscode-input-border hover:bg-vscode-toolbar-hoverBackground disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer rounded transition-colors duration-150 h-7"
 										onClick={onApprove}>
-										<span className="codicon codicon-check text-xs"></span>
-										{primaryButtonText}
+										<span className="codicon codicon-check text-base"></span>
+										<span>{primaryButtonText}</span>
+										<span className="text-xs text-vscode-descriptionForeground rounded px-1 py-0.5 bg-vscode-foreground/10 ml-2 shadow-sm">
+											Tab
+										</span>
 									</button>
 								)}
 								{secondaryButtonText && (
 									<button
 										disabled={!enableApprovalButtons}
-										className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-vscode-foreground bg-vscode-button-secondaryBackground hover:bg-vscode-button-secondaryHoverBackground disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer rounded transition-colors duration-150"
+										className="inline-flex items-center gap-1.5 px-2 py-1 text-xs font-medium text-vscode-foreground bg-vscode-toolbar-hoverBackground hover:bg-vscode-list-hoverBackground disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer rounded transition-colors duration-150 h-7"
 										onClick={onReject}>
-										<span className="codicon codicon-close text-xs"></span>
-										{secondaryButtonText}
+										<span className="codicon codicon-close text-base"></span>
+										<span>{secondaryButtonText}</span>
+										<span className="text-xs text-vscode-descriptionForeground rounded px-1 py-0.5 bg-vscode-foreground/10 ml-2 shadow-sm">
+											Esc
+										</span>
 									</button>
 								)}
 							</div>
@@ -549,23 +589,29 @@ export const ChatRowContent = ({
 							/>
 							{/* Approval buttons for batch file requests */}
 							{showApprovalButtons && message.type === "ask" && (
-								<div className="flex items-center justify-center gap-2 mt-2 p-1 bg-vscode-editor-background border border-vscode-widget-border rounded">
+								<div className="flex justify-end gap-1 mt-2">
 									{primaryButtonText && (
 										<button
 											disabled={!enableApprovalButtons}
-											className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-white bg-vscode-button-background hover:bg-vscode-button-hoverBackground disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer rounded transition-colors duration-150"
+											className="inline-flex items-center gap-1 px-1.5 py-0.5 text-[10px] font-medium text-vscode-foreground bg-vscode-input-border hover:bg-vscode-toolbar-hoverBackground disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer rounded transition-colors duration-150 h-6"
 											onClick={onApprove}>
-											<span className="codicon codicon-check text-xs"></span>
-											{primaryButtonText}
+											<span className="codicon codicon-check text-sm"></span>
+											<span>{primaryButtonText}</span>
+											<span className="text-[9px] text-vscode-descriptionForeground rounded px-1 py-0.5 bg-vscode-foreground/10 ml-1 shadow-sm">
+												Tab
+											</span>
 										</button>
 									)}
 									{secondaryButtonText && (
 										<button
 											disabled={!enableApprovalButtons}
-											className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-vscode-foreground bg-vscode-button-secondaryBackground hover:bg-vscode-button-secondaryHoverBackground disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer rounded transition-colors duration-150"
+											className="inline-flex items-center gap-1 px-1.5 py-0.5 text-[10px] font-medium text-vscode-foreground bg-vscode-toolbar-hoverBackground hover:bg-vscode-list-hoverBackground disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer rounded transition-colors duration-150 h-6"
 											onClick={onReject}>
-											<span className="codicon codicon-close text-xs"></span>
-											{secondaryButtonText}
+											<span className="codicon codicon-close text-sm"></span>
+											<span>{secondaryButtonText}</span>
+											<span className="text-[9px] text-vscode-descriptionForeground rounded px-1 py-0.5 bg-vscode-foreground/10 ml-1 shadow-sm">
+												Esc
+											</span>
 										</button>
 									)}
 								</div>
@@ -629,23 +675,29 @@ export const ChatRowContent = ({
 						</ToolUseBlock>
 						{/* Approval buttons for single file requests */}
 						{showApprovalButtons && message.type === "ask" && (
-							<div className="flex items-center justify-center gap-2 mt-2 p-1 bg-vscode-editor-background border border-vscode-widget-border rounded">
+							<div className="flex justify-end gap-1 mt-2">
 								{primaryButtonText && (
 									<button
 										disabled={!enableApprovalButtons}
-										className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-white bg-vscode-button-background hover:bg-vscode-button-hoverBackground disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer rounded transition-colors duration-150"
+										className="inline-flex items-center gap-1 px-1.5 py-0.5 text-[10px] font-medium text-vscode-foreground bg-vscode-input-border hover:bg-vscode-toolbar-hoverBackground disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer rounded transition-colors duration-150 h-6"
 										onClick={onApprove}>
-										<span className="codicon codicon-check text-xs"></span>
-										{primaryButtonText}
+										<span className="codicon codicon-check text-sm"></span>
+										<span>{primaryButtonText}</span>
+										<span className="text-[9px] text-vscode-descriptionForeground rounded px-1 py-0.5 bg-vscode-foreground/10 ml-1 shadow-sm">
+											Tab
+										</span>
 									</button>
 								)}
 								{secondaryButtonText && (
 									<button
 										disabled={!enableApprovalButtons}
-										className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-vscode-foreground bg-vscode-button-secondaryBackground hover:bg-vscode-button-secondaryHoverBackground disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer rounded transition-colors duration-150"
+										className="inline-flex items-center gap-1 px-1.5 py-0.5 text-[10px] font-medium text-vscode-foreground bg-vscode-toolbar-hoverBackground hover:bg-vscode-list-hoverBackground disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer rounded transition-colors duration-150 h-6"
 										onClick={onReject}>
-										<span className="codicon codicon-close text-xs"></span>
-										{secondaryButtonText}
+										<span className="codicon codicon-close text-sm"></span>
+										<span>{secondaryButtonText}</span>
+										<span className="text-[9px] text-vscode-descriptionForeground rounded px-1 py-0.5 bg-vscode-foreground/10 ml-1 shadow-sm">
+											Esc
+										</span>
 									</button>
 								)}
 							</div>
@@ -700,23 +752,29 @@ export const ChatRowContent = ({
 						</div>
 						{/* Approval buttons */}
 						{showApprovalButtons && message.type === "ask" && (
-							<div className="flex items-center justify-center gap-2 mt-2 p-1 bg-vscode-editor-background border border-vscode-widget-border rounded">
+							<div className="flex justify-end gap-1 mt-2">
 								{primaryButtonText && (
 									<button
 										disabled={!enableApprovalButtons}
-										className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-white bg-vscode-button-background hover:bg-vscode-button-hoverBackground disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer rounded transition-colors duration-150"
+										className="inline-flex items-center gap-1 px-1.5 py-0.5 text-[10px] font-medium text-vscode-foreground bg-vscode-input-border hover:bg-vscode-toolbar-hoverBackground disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer rounded transition-colors duration-150 h-6"
 										onClick={onApprove}>
-										<span className="codicon codicon-check text-xs"></span>
-										{primaryButtonText}
+										<span className="codicon codicon-check text-sm"></span>
+										<span>{primaryButtonText}</span>
+										<span className="text-[9px] text-vscode-descriptionForeground rounded px-1 py-0.5 bg-vscode-foreground/10 ml-1 shadow-sm">
+											Tab
+										</span>
 									</button>
 								)}
 								{secondaryButtonText && (
 									<button
 										disabled={!enableApprovalButtons}
-										className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-vscode-foreground bg-vscode-button-secondaryBackground hover:bg-vscode-button-secondaryHoverBackground disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer rounded transition-colors duration-150"
+										className="inline-flex items-center gap-1 px-1.5 py-0.5 text-[10px] font-medium text-vscode-foreground bg-vscode-toolbar-hoverBackground hover:bg-vscode-list-hoverBackground disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer rounded transition-colors duration-150 h-6"
 										onClick={onReject}>
-										<span className="codicon codicon-close text-xs"></span>
-										{secondaryButtonText}
+										<span className="codicon codicon-close text-sm"></span>
+										<span>{secondaryButtonText}</span>
+										<span className="text-[9px] text-vscode-descriptionForeground rounded px-1 py-0.5 bg-vscode-foreground/10 ml-1 shadow-sm">
+											Esc
+										</span>
 									</button>
 								)}
 							</div>
@@ -1351,23 +1409,29 @@ export const ChatRowContent = ({
 							)}
 							{/* Approval buttons for MCP server requests */}
 							{showApprovalButtons && (
-								<div className="flex items-center justify-center gap-2 mt-2 p-1 bg-vscode-editor-background border border-vscode-widget-border rounded">
+								<div className="flex justify-end gap-1 mt-2">
 									{primaryButtonText && (
 										<button
 											disabled={!enableApprovalButtons}
-											className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-white bg-vscode-button-background hover:bg-vscode-button-hoverBackground disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer rounded transition-colors duration-150"
+											className="inline-flex items-center gap-1 px-1.5 py-0.5 text-[10px] font-medium text-vscode-foreground bg-vscode-input-border hover:bg-vscode-toolbar-hoverBackground disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer rounded transition-colors duration-150 h-6"
 											onClick={onApprove}>
-											<span className="codicon codicon-check text-xs"></span>
-											{primaryButtonText}
+											<span className="codicon codicon-check text-sm"></span>
+											<span>{primaryButtonText}</span>
+											<span className="text-[9px] text-vscode-descriptionForeground rounded px-1 py-0.5 bg-vscode-foreground/10 ml-1 shadow-sm">
+												Tab
+											</span>
 										</button>
 									)}
 									{secondaryButtonText && (
 										<button
 											disabled={!enableApprovalButtons}
-											className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-vscode-button-secondaryForeground bg-vscode-button-secondaryBackground hover:bg-vscode-button-secondaryHoverBackground disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer rounded transition-colors duration-150"
+											className="inline-flex items-center gap-1 px-1.5 py-0.5 text-[10px] font-medium text-vscode-foreground bg-vscode-toolbar-hoverBackground hover:bg-vscode-list-hoverBackground disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer rounded transition-colors duration-150 h-6"
 											onClick={onReject}>
-											<span className="codicon codicon-close text-xs"></span>
-											{secondaryButtonText}
+											<span className="codicon codicon-close text-sm"></span>
+											<span>{secondaryButtonText}</span>
+											<span className="text-[9px] text-vscode-descriptionForeground rounded px-1 py-0.5 bg-vscode-foreground/10 ml-1 shadow-sm">
+												Esc
+											</span>
 										</button>
 									)}
 								</div>

@@ -6,7 +6,7 @@ export const ToolUseBlock = ({ className, ...props }: React.HTMLAttributes<HTMLD
 	<div
 		className={cn("relative overflow-hidden rounded-xs cursor-pointer", className)}
 		style={{
-			backgroundColor: CODE_BLOCK_BG_COLOR,
+			backgroundColor: "transparent",
 			border: "0.5px solid var(--vscode-panel-border, var(--vscode-widget-border, #3e3e42))",
 		}}
 		{...props}

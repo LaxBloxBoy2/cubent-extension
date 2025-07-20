@@ -34,7 +34,7 @@ export const FeedbackButtons: React.FC<FeedbackButtonsProps> = ({ messageTs, mes
 
 	return (
 		<>
-			<div className="inline-flex items-center gap-0 mt-2 opacity-80 hover:opacity-100 transition-opacity border border-vscode-widget-border rounded-lg px-1 py-0.5 bg-vscode-editor-background">
+			<div className="inline-flex items-center gap-0 mt-2 mb-3 opacity-80 hover:opacity-100 transition-opacity border border-vscode-widget-border rounded-lg px-1 py-0.5 bg-vscode-editor-background">
 				<button
 					onClick={handleThumbsUp}
 					className={`h-6 w-6 p-0 border-none cursor-pointer flex items-center justify-center hover:bg-vscode-toolbar-hoverBackground rounded transition-colors ${

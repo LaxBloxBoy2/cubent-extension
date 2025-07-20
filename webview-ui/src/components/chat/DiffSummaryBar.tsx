@@ -162,8 +162,7 @@ const DiffSummaryBar: React.FC<DiffSummaryBarProps> = ({ messages, isVisible = t
 			// Positioned as part of chat input area with proper spacing from content above
 			className="mt-4 mx-2 bg-vscode-editor-background rounded border border-vscode-input-border/60 text-sm"
 			style={{
-				boxShadow:
-					"0 -8px 24px var(--vscode-widget-shadow), 0 -4px 12px var(--vscode-widget-shadow), 0 -2px 6px var(--vscode-widget-shadow)",
+				boxShadow: "0 -6px 16px rgba(0,0,0,0.1), 0 -4px 10px rgba(0,0,0,0.08), 0 -2px 6px rgba(0,0,0,0.06)",
 			}}
 			onClick={(e) => e.stopPropagation()}
 			onMouseDown={(e) => e.stopPropagation()}>
@@ -182,24 +181,24 @@ const DiffSummaryBar: React.FC<DiffSummaryBarProps> = ({ messages, isVisible = t
 
 					{/* Diff stats - will wrap below when no space */}
 					<div className="flex items-center gap-1 px-1.5 py-0.5 bg-vscode-input-background rounded text-[10px]">
-						{totalLinesAdded > 0 && <span className="text-vscode-charts-green">+{totalLinesAdded}</span>}
+						{totalLinesAdded > 0 && <span className="text-green-400">+{totalLinesAdded}</span>}
 						{totalLinesAdded > 0 && totalLinesRemoved > 0 && (
 							<span className="text-vscode-descriptionForeground">/</span>
 						)}
-						{totalLinesRemoved > 0 && <span className="text-vscode-charts-red">-{totalLinesRemoved}</span>}
+						{totalLinesRemoved > 0 && <span className="text-red-400">-{totalLinesRemoved}</span>}
 					</div>
 				</div>
 
 				<div className="flex items-center gap-1">
 					<button
 						onClick={handleDiscardAll}
-						className="px-2 py-1 text-[11px] text-vscode-foreground hover:bg-vscode-toolbar-hoverBackground/40 rounded border border-vscode-input-border/40 transition-colors cursor-pointer"
+						className="px-1.5 py-0.5 text-[10px] text-vscode-foreground hover:bg-vscode-toolbar-hoverBackground/40 rounded border border-vscode-input-border/40 transition-colors cursor-pointer"
 						title="Revert all changes to previous state">
 						Discard All
 					</button>
 					<button
 						onClick={handleKeepAll}
-						className="px-2 py-1 text-[11px] text-white bg-vscode-input-background hover:bg-vscode-toolbar-hoverBackground/40 rounded transition-colors cursor-pointer"
+						className="px-1.5 py-0.5 text-[10px] text-vscode-foreground bg-vscode-input-background hover:bg-vscode-toolbar-hoverBackground/40 rounded transition-colors cursor-pointer"
 						title="Keep changes and hide this bar">
 						Keep All
 					</button>
@@ -226,13 +225,13 @@ const DiffSummaryBar: React.FC<DiffSummaryBarProps> = ({ messages, isVisible = t
 									)}
 									<div className="flex items-center gap-1 px-1 py-0.5 bg-vscode-input-background rounded text-[10px]">
 										{change.linesAdded > 0 && (
-											<span className="text-vscode-charts-green">+{change.linesAdded}</span>
+											<span className="text-green-400">+{change.linesAdded}</span>
 										)}
 										{change.linesAdded > 0 && change.linesRemoved > 0 && (
 											<span className="text-vscode-descriptionForeground">/</span>
 										)}
 										{change.linesRemoved > 0 && (
-											<span className="text-vscode-charts-red">-{change.linesRemoved}</span>
+											<span className="text-red-400">-{change.linesRemoved}</span>
 										)}
 									</div>
 								</div>

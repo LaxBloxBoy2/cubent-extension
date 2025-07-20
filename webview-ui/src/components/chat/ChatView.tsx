@@ -99,6 +99,26 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 	const messagesRef = useRef(messages)
 	useEffect(() => {
 		messagesRef.current = messages
+		console.log("🔍 DEBUG: Messages updated in ChatView:", {
+			messageCount: messages.length,
+			messages: messages.slice(0, 5), // Show first 5 messages for debugging
+			lastMessage: messages[messages.length - 1],
+			// Check for duplicate timestamps
+			duplicateTimestamps: messages.reduce((acc, msg, index) => {
+				const duplicates = messages.filter((m, i) => m.ts === msg.ts && i !== index)
+				if (duplicates.length > 0) {
+					acc.push({
+						index,
+						ts: msg.ts,
+						type: msg.type,
+						say: msg.say,
+						ask: msg.ask,
+						duplicateCount: duplicates.length,
+					})
+				}
+				return acc
+			}, [] as any[]),
+		})
 	}, [messages])
 
 	const { chats } = useChatSearch()
@@ -726,7 +746,27 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 	}, [isHidden, sendingDisabled, enableButtons])
 
 	const visibleMessages = useMemo(() => {
-		const newVisibleMessages = modifiedMessages.filter((message) => {
+		// First, deduplicate messages by timestamp AND content to prevent duplicate rendering
+		const deduplicatedMessages = modifiedMessages.filter((message, index, array) => {
+			const firstOccurrence = array.findIndex(
+				(m) =>
+					m.ts === message.ts ||
+					(m.type === message.type &&
+						m.say === message.say &&
+						m.ask === message.ask &&
+						m.text === message.text &&
+						Math.abs(m.ts - message.ts) < 1000), // Within 1 second
+			)
+			return firstOccurrence === index
+		})
+
+		console.log("🔍 DEBUG: Message deduplication:", {
+			originalCount: modifiedMessages.length,
+			deduplicatedCount: deduplicatedMessages.length,
+			removedDuplicates: modifiedMessages.length - deduplicatedMessages.length,
+		})
+
+		const newVisibleMessages = deduplicatedMessages.filter((message) => {
 			if (everVisibleMessagesTsRef.current.has(message.ts)) {
 				// If it was ever visible, and it's not one of the types that should always be hidden once processed, keep it.
 				// This helps prevent flickering for messages like 'api_req_retry_delayed' if they are no longer the absolute last.
@@ -736,11 +776,10 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 					"resume_completed_task",
 				]
 				const alwaysHiddenOnceProcessedSay = [
-					"api_req_started",
 					"api_req_finished",
 					"api_req_retried",
 					"api_req_deleted",
-					"mcp_server_request_started",
+					// Removed "api_req_started" and "mcp_server_request_started" to fix new chat visibility bug
 				]
 				if (message.ask && alwaysHiddenOnceProcessedAsk.includes(message.ask)) return false
 				if (message.say && alwaysHiddenOnceProcessedSay.includes(message.say)) return false
@@ -762,14 +801,22 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 					return false
 			}
 			switch (message.say) {
+				case "reasoning":
+					// Always hide reasoning messages to prevent duplicate "thinking" text
+					return false
 				case "api_req_started":
 				case "api_req_finished":
 				case "api_req_retried":
 				case "api_req_deleted":
-					return false
+					// Only hide these if they're not the first few messages in a new chat
+					// This fixes the bug where tool calls in new chats are invisible
+					if (deduplicatedMessages.length > 5) {
+						return false
+					}
+					break
 				case "api_req_retry_delayed":
-					const last1 = modifiedMessages.at(-1)
-					const last2 = modifiedMessages.at(-2)
+					const last1 = deduplicatedMessages.at(-1)
+					const last2 = deduplicatedMessages.at(-2)
 					if (last1?.ask === "resume_task" && last2 === message) {
 						// This specific sequence should be visible
 					} else if (message !== last1) {
@@ -779,15 +826,31 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 					break
 				case "text":
 					if ((message.text ?? "") === "" && (message.images?.length ?? 0) === 0) return false
+					// Filter out standalone "thinking" text messages to prevent duplication
+					const text = (message.text ?? "").toLowerCase().trim()
+					if (text === "thinking" || text === "思考中" || text === "思考中") return false
 					break
 				case "mcp_server_request_started":
-					return false
+					// Only hide these if they're not the first few messages in a new chat
+					// This fixes the bug where MCP tool calls in new chats are invisible
+					if (deduplicatedMessages.length > 5) {
+						return false
+					}
+					break
 			}
 			return true
 		})
 
 		// Update the set of ever-visible messages (LRUCache automatically handles cleanup)
 		newVisibleMessages.forEach((msg) => everVisibleMessagesTsRef.current.set(msg.ts, true))
+
+		console.log("🔍 DEBUG: Visible messages calculated:", {
+			totalModified: modifiedMessages.length,
+			totalVisible: newVisibleMessages.length,
+			modifiedMessages: modifiedMessages.slice(0, 3),
+			visibleMessages: newVisibleMessages.slice(0, 3),
+			hiddenCount: modifiedMessages.length - newVisibleMessages.length,
+		})
 
 		return newVisibleMessages
 	}, [modifiedMessages])
@@ -986,7 +1049,9 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 		}
 
 		if (message.type === "say") {
-			return ["api_req_started", "text", "browser_action", "browser_action_result"].includes(message.say!)
+			// FIXED: Only include actual browser-specific messages, not general API messages
+			// This was causing tool calls to be incorrectly grouped as browser sessions
+			return ["browser_action", "browser_action_result"].includes(message.say!)
 		}
 
 		return false
@@ -1005,13 +1070,22 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 			}
 		}
 
-		visibleMessages.forEach((message) => {
+		visibleMessages.forEach((message, index) => {
+			console.log(`🔍 DEBUG: Processing message ${index}:`, {
+				type: message.type,
+				say: message.say,
+				ask: message.ask,
+				isInBrowserSession,
+				currentGroupLength: currentGroup.length,
+			})
+
 			if (message.ask === "browser_action_launch") {
 				// Complete existing browser session if any.
 				endBrowserSession()
 				// Start new.
 				isInBrowserSession = true
 				currentGroup.push(message)
+				console.log("🔍 DEBUG: Started browser session")
 			} else if (isInBrowserSession) {
 				// End session if `api_req_started` is cancelled.
 
@@ -1034,21 +1108,25 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 				}
 
 				if (isBrowserSessionMessage(message)) {
+					console.log("🔍 DEBUG: Adding to browser session group")
 					currentGroup.push(message)
 
 					// Check if this is a close action
 					if (message.say === "browser_action") {
 						const browserAction = JSON.parse(message.text || "{}") as ClineSayBrowserAction
 						if (browserAction.action === "close") {
+							console.log("🔍 DEBUG: Ending browser session (close action)")
 							endBrowserSession()
 						}
 					}
 				} else {
 					// complete existing browser session if any
+					console.log("🔍 DEBUG: Not browser session message, ending session and adding to result")
 					endBrowserSession()
 					result.push(message)
 				}
 			} else {
+				console.log("🔍 DEBUG: Not in browser session, adding directly to result")
 				result.push(message)
 			}
 		})
@@ -1067,6 +1145,15 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 				partial: true,
 			})
 		}
+
+		console.log("🔍 DEBUG: Grouped messages result:", {
+			inputVisibleCount: visibleMessages.length,
+			outputGroupedCount: result.length,
+			visibleMessages: visibleMessages.slice(0, 5),
+			groupedResult: result.slice(0, 5),
+			isCondensing,
+			allVisibleMessages: visibleMessages.map((m) => ({ type: m.type, say: m.say, ask: m.ask, ts: m.ts })),
+		})
 
 		return result
 	}, [isCondensing, visibleMessages])
@@ -1312,9 +1399,33 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 			if ((event.metaKey || event.ctrlKey) && event.key === ".") {
 				event.preventDefault() // Prevent default browser behavior
 				switchToNextMode()
+				return
+			}
+
+			// Handle Tab and Esc for approval buttons (only when buttons are enabled)
+			if (enableButtons && clineAsk) {
+				if (event.key === "Tab" && !event.shiftKey && !event.ctrlKey && !event.metaKey) {
+					event.preventDefault()
+					handlePrimaryButtonClick(inputValue, selectedImages)
+					return
+				}
+
+				if (event.key === "Escape" && !event.shiftKey && !event.ctrlKey && !event.metaKey) {
+					event.preventDefault()
+					handleSecondaryButtonClick(inputValue, selectedImages)
+					return
+				}
 			}
 		},
-		[switchToNextMode],
+		[
+			switchToNextMode,
+			enableButtons,
+			clineAsk,
+			handlePrimaryButtonClick,
+			handleSecondaryButtonClick,
+			inputValue,
+			selectedImages,
+		],
 	)
 
 	// Add event listener

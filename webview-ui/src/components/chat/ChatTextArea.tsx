@@ -11,6 +11,7 @@ import { ExtensionMessage } from "@shared/ExtensionMessage"
 import { vscode } from "@/utils/vscode"
 import { useExtensionState } from "@/context/ExtensionStateContext"
 import { useAppTranslation } from "@/i18n/TranslationContext"
+import { useSelectedModel } from "@/components/ui/hooks/useSelectedModel"
 import {
 	ContextMenuOptionType,
 	getContextMenuOptions,
@@ -103,7 +104,12 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 			showEnhancePromptButton,
 			showAddImagesButton,
 			hiddenProfiles,
+			apiConfiguration,
 		} = useExtensionState()
+
+		// Get model information to check if it supports images
+		const { info: model } = useSelectedModel(apiConfiguration)
+		const modelSupportsImages = model?.supportsImages || false
 
 		// Find the ID and display text for the currently selected API configuration
 		const { currentConfigId, displayName } = useMemo(() => {
@@ -1678,11 +1684,11 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 									style={{ fontSize: 9, color: "var(--vscode-foreground)" }}
 								/>
 							)}
-							{showAddImagesButton && (
+							{showAddImagesButton && modelSupportsImages && (
 								<IconButton
 									iconClass="codicon-file"
 									title={t("chat:addImages")}
-									disabled={shouldDisableImages}
+									disabled={sendingDisabled || selectedImages.length >= MAX_IMAGES_PER_MESSAGE}
 									onClick={onSelectImages}
 									style={{ fontSize: 9, color: "var(--vscode-foreground)" }}
 								/>
@@ -1727,9 +1733,11 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 									title={t("chat:sendMessage")}
 									disabled={sendingDisabled}
 									onClick={handleSendClick}
-									className="bg-vscode-button-background hover:bg-vscode-button-hoverBackground"
+									className="border"
 									style={{
-										color: "var(--vscode-button-foreground)",
+										backgroundColor: "var(--vscode-editor-background)",
+										color: "var(--vscode-editor-foreground)",
+										borderColor: "var(--vscode-input-border)",
 										transform: "rotate(-90deg)",
 										fontSize: 12,
 									}}

@@ -120,13 +120,13 @@ export const CommandExecution = ({
 							</span>
 						</div>
 					</div>
-					<div className="flex items-center">
+					<div className="flex items-center gap-1">
 						{status?.status === "started" && (
 							<>
 								<Button
 									variant="ghost"
 									size="sm"
-									className="mr-0.5 h-6 w-6 p-0"
+									className="h-6 w-6 p-0"
 									onClick={(e) => {
 										e.stopPropagation()
 										vscode.postMessage({ type: "terminalOperation", terminalOperation: "continue" })
@@ -140,7 +140,7 @@ export const CommandExecution = ({
 								<Button
 									variant="ghost"
 									size="sm"
-									className="mr-2 h-6 w-6 p-0"
+									className="h-6 w-6 p-0"
 									onClick={(e) => {
 										e.stopPropagation()
 										vscode.postMessage({ type: "terminalOperation", terminalOperation: "abort" })
@@ -153,9 +153,32 @@ export const CommandExecution = ({
 								</Button>
 							</>
 						)}
+						{showButtons && (
+							<>
+								<button
+									disabled={!enableButtons}
+									className="h-6 w-6 p-0 inline-flex items-center justify-center text-vscode-foreground bg-vscode-input-background hover:bg-vscode-toolbar-hoverBackground disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer transition-colors duration-150"
+									title={t("chat:runCommand.tooltip")}
+									onClick={(e) => {
+										e.stopPropagation()
+										onRunCommand?.()
+									}}>
+									<span className="codicon codicon-play text-xs"></span>
+								</button>
+								<button
+									disabled={!enableButtons}
+									className="h-6 w-6 p-0 inline-flex items-center justify-center text-vscode-foreground bg-vscode-button-secondaryBackground hover:bg-vscode-button-secondaryHoverBackground disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer transition-colors duration-150"
+									title={t("chat:reject.tooltip")}
+									onClick={(e) => {
+										e.stopPropagation()
+										onReject?.()
+									}}>
+									<span className="codicon codicon-close text-xs"></span>
+								</button>
+							</>
+						)}
 						{output.length > 0 && (
-							<span
-								className={`codicon codicon-chevron-${isExpanded ? "up" : "down"} scale-75 -ml-1 -mr-2`}></span>
+							<span className={`codicon codicon-chevron-${isExpanded ? "up" : "down"} scale-75`}></span>
 						)}
 					</div>
 				</ToolUseBlockHeader>
@@ -165,27 +188,6 @@ export const CommandExecution = ({
 					</div>
 				)}
 			</ToolUseBlock>
-
-			{showButtons && (
-				<div className="flex items-center justify-center gap-2 mt-2 p-1 bg-vscode-editor-background border border-vscode-widget-border rounded">
-					<button
-						disabled={!enableButtons}
-						className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-white bg-vscode-button-background hover:bg-vscode-button-hoverBackground disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer rounded transition-colors duration-150"
-						title={t("chat:runCommand.tooltip")}
-						onClick={onRunCommand}>
-						<span className="codicon codicon-play text-xs"></span>
-						{t("chat:runCommand.title")}
-					</button>
-					<button
-						disabled={!enableButtons}
-						className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-vscode-foreground bg-vscode-button-secondaryBackground hover:bg-vscode-button-secondaryHoverBackground disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer rounded transition-colors duration-150"
-						title={t("chat:reject.tooltip")}
-						onClick={onReject}>
-						<span className="codicon codicon-close text-xs"></span>
-						{t("chat:reject.title")}
-					</button>
-				</div>
-			)}
 		</>
 	)
 }

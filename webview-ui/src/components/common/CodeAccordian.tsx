@@ -408,23 +408,29 @@ const CodeAccordian = ({
 			)}
 			{/* Approval buttons below header for custom headers and append content */}
 			{(customHeaderText || isAppendContent) && showApprovalButtons && (
-				<div className="flex items-center justify-center gap-2 mt-2 p-1 bg-vscode-editor-background border border-vscode-widget-border rounded">
+				<div className="flex justify-end gap-2 mt-2">
 					{primaryButtonText && (
 						<button
 							disabled={!enableApprovalButtons}
-							className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-white bg-vscode-button-background hover:bg-vscode-button-hoverBackground disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer rounded transition-colors duration-150"
+							className="inline-flex items-center gap-1 px-1.5 py-0.5 text-[10px] font-medium text-vscode-foreground bg-vscode-input-border hover:bg-vscode-toolbar-hoverBackground disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer rounded transition-colors duration-150 h-6"
 							onClick={onApprove}>
-							<span className="codicon codicon-check text-xs"></span>
-							{primaryButtonText}
+							<span className="codicon codicon-check text-sm"></span>
+							<span>{primaryButtonText}</span>
+							<span className="text-[9px] text-vscode-descriptionForeground rounded px-1 py-0.5 bg-vscode-foreground/10 ml-1 shadow-sm">
+								Tab
+							</span>
 						</button>
 					)}
 					{secondaryButtonText && (
 						<button
 							disabled={!enableApprovalButtons}
-							className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-vscode-foreground bg-vscode-button-secondaryBackground hover:bg-vscode-button-secondaryHoverBackground disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer rounded transition-colors duration-150"
+							className="inline-flex items-center gap-1 px-1.5 py-0.5 text-[10px] font-medium text-vscode-foreground bg-vscode-toolbar-hoverBackground hover:bg-vscode-list-hoverBackground disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer rounded transition-colors duration-150 h-6"
 							onClick={onReject}>
-							<span className="codicon codicon-close text-xs"></span>
-							{secondaryButtonText}
+							<span className="codicon codicon-close text-sm"></span>
+							<span>{secondaryButtonText}</span>
+							<span className="text-[9px] text-vscode-descriptionForeground rounded px-1 py-0.5 bg-vscode-foreground/10 ml-1 shadow-sm">
+								Esc
+							</span>
 						</button>
 					)}
 				</div>

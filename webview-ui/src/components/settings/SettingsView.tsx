@@ -67,7 +67,7 @@ import { ApiKeyManagementSettings } from "./ApiKeyManagementSettings"
 import { BrowserSettings } from "./BrowserSettings"
 import { CheckpointSettings } from "./CheckpointSettings"
 import { NotificationSettings } from "./NotificationSettings"
-import { ContextManagementSettings } from "./ContextManagementSettings"
+// import { ContextManagementSettings } from "./ContextManagementSettings" // Hidden as requested
 import { HistoryManagementSettings } from "./HistoryManagementSettings"
 import { McpSettings } from "./McpSettings"
 import GeneralSettings from "./GeneralSettings"
@@ -474,7 +474,7 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 			{ id: "mcp", icon: Server },
 			{ id: "indexing", icon: Database },
 			// { id: "checkpoints", icon: GitBranch }, // Hidden as requested
-			{ id: "contextManagement", icon: Database },
+			// { id: "contextManagement", icon: Database }, // Hidden as requested
 			{ id: "historyManagement", icon: History },
 		],
 		[], // No dependencies needed now
@@ -787,6 +787,7 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 					{activeTab === "userGuidelines" && (
 						<UserGuidelinesSettings
 							customInstructions={customInstructions}
+							allowedCommands={allowedCommands}
 							setCachedStateField={setCachedStateField}
 						/>
 					)}
@@ -816,28 +817,8 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 					{activeTab === "indexing" && <CodebaseIndexingVisual />}
 
 					{/* Checkpoints Section - Hidden as requested */}
-					{/* {activeTab === "checkpoints" && (
-						<CheckpointSettings
-							enableCheckpoints={enableCheckpoints}
-							setCachedStateField={setCachedStateField}
-						/>
-					)} */}
 
-					{/* Context Management Section */}
-					{activeTab === "contextManagement" && (
-						<ContextManagementSettings
-							autoCondenseContext={autoCondenseContext}
-							autoCondenseContextPercent={autoCondenseContextPercent}
-							condensingApiConfigId={condensingApiConfigId}
-							customCondensingPrompt={customCondensingPrompt}
-							listApiConfigMeta={listApiConfigMeta ?? []}
-							maxOpenTabsContext={maxOpenTabsContext}
-							maxWorkspaceFiles={maxWorkspaceFiles ?? 200}
-							showRooIgnoredFiles={showRooIgnoredFiles}
-							maxReadFileLine={maxReadFileLine}
-							setCachedStateField={setCachedStateField}
-						/>
-					)}
+					{/* Context Management Section - Hidden as requested */}
 
 					{/* History Management Section */}
 					{activeTab === "historyManagement" && (
