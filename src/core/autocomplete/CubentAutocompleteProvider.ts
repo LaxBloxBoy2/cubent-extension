@@ -27,6 +27,7 @@ export class CubentAutocompleteProvider implements vscode.InlineCompletionItemPr
 	}
 	private onUsageStatsChanged?: (stats: typeof this.usageStats) => void
 	private contextRetrievalService: ContextRetrievalService
+	private trackingService: AutocompleteTrackingService
 
 	constructor(
 		private readonly contextProxy: ContextProxy,
