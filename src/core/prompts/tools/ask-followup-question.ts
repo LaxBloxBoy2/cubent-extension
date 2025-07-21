@@ -1,6 +1,6 @@
 export function getAskFollowupQuestionDescription(): string {
 	return `## ask_followup_question
-Description: Ask the user a question to gather additional information needed to complete the task. This tool should be used when you encounter ambiguities, need clarification, or require more details to proceed effectively. It allows for interactive problem-solving by enabling direct communication with the user. Use this tool judiciously to maintain a balance between gathering necessary information and avoiding excessive back-and-forth.
+Description: Ask the user a question to gather additional information needed to complete a specific task. This tool should ONLY be used when you encounter genuine ambiguities, need clarification about requirements, or require specific details to proceed with a concrete task. Do NOT use this tool for general greetings, casual conversation, or when the user hasn't requested a specific task. Use this tool judiciously to maintain a balance between gathering necessary information and avoiding excessive back-and-forth.
 Parameters:
 - question: (required) The question to ask the user. This should be a clear, specific question that addresses the information you need.
 - follow_up: (required) A list of 2-4 suggested answers that logically follow from the question, ordered by priority or logical sequence. Each suggestion must:

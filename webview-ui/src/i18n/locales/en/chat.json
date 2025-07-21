@@ -200,7 +200,7 @@
 		"completionInstructions": "Subtask completed! You can review the results and suggest any corrections or next steps. If everything looks good, confirm to return the result to the parent task."
 	},
 	"questions": {
-		"hasQuestion": "Pending clarification:"
+		"hasQuestion": ""
 	},
 	"taskCompleted": "Results",
 	"error": "Error",

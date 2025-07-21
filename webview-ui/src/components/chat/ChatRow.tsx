@@ -1454,30 +1454,10 @@ export const ChatRowContent = ({
 				case "followup":
 					return (
 						<>
-							{title && (
-								<div
-									style={{
-										...headerStyle,
-										marginTop: "8px",
-										marginBottom: "12px",
-										display: "flex",
-										alignItems: "center",
-									}}>
-									<div
-										style={{
-											display: "inline-flex",
-											alignItems: "center",
-											gap: "8px",
-											border: "1px solid var(--vscode-input-border)",
-											borderRadius: "4px",
-											padding: "8px 12px",
-										}}>
-										{icon}
-										{title}
-									</div>
-								</div>
-							)}
-							<div style={{ paddingTop: 10, paddingBottom: 15 }}>
+							{/* Horizontal line separator above question */}
+							<div className="w-full h-px mb-3" style={{ backgroundColor: "rgba(255, 255, 255, 0.1)" }} />
+							{/* Header with chat icon and border is hidden */}
+							<div style={{ paddingTop: 2, paddingBottom: 8 }}>
 								<Markdown
 									markdown={message.partial === true ? message?.text : followUpData?.question}
 								/>

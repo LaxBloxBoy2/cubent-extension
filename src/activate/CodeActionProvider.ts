@@ -6,10 +6,10 @@ import { getCodeActionCommand } from "../utils/commands"
 import { EditorUtils } from "../integrations/editor/EditorUtils"
 
 export const TITLES: Record<CodeActionName, string> = {
-	EXPLAIN: "Explain with Cubent",
+	EXPLAIN: "Clarify This Code",
 	FIX: "Fix with Cubent",
-	IMPROVE: "Improve with Cubent",
-	ADD_TO_CONTEXT: "Add to Cubent",
+	IMPROVE: "Refactor Code",
+	ADD_TO_CONTEXT: "Send to Cubent",
 	NEW_TASK: "New Cubent Task",
 } as const
 
