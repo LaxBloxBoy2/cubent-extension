@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react"
 import { VSCodeTextField, VSCodeButton } from "@vscode/webview-ui-toolkit/react"
-import { ExternalLink, Key, Settings, Search } from "lucide-react"
+import { ExternalLink, Key, Settings, Search, Lock } from "lucide-react"
 
 import { useAppTranslation } from "@/i18n/TranslationContext"
 import { cn } from "@/lib/utils"
@@ -370,19 +370,16 @@ export const ApiKeyManagerContent = ({
 			{/* Tabs */}
 			<div className="flex border-b border-vscode-input-border flex-shrink-0">
 				<button
-					className={`px-2 py-1 text-xs font-medium ${
+					className={`px-2 py-1 text-sm font-medium ${
 						activeTab === "api-key"
 							? "text-vscode-foreground border-b-2 border-vscode-focusBorder"
 							: "text-vscode-descriptionForeground"
 					}`}
 					onClick={() => setActiveTab("api-key")}>
-					<span className="flex items-center gap-1">
-						<Key className="w-3 h-3" />
-						API Key
-					</span>
+					Api Keys
 				</button>
 				<button
-					className={`px-2 py-1 text-xs font-medium ${
+					className={`px-2 py-1 text-sm font-medium ${
 						activeTab === "byak-models"
 							? "text-vscode-foreground border-b-2 border-vscode-focusBorder"
 							: "text-vscode-descriptionForeground"
@@ -391,7 +388,7 @@ export const ApiKeyManagerContent = ({
 					BYAK Models
 				</button>
 				<button
-					className={`px-2 py-1 text-xs font-medium ${
+					className={`px-2 py-1 text-sm font-medium ${
 						activeTab === "builtin-models"
 							? "text-vscode-foreground border-b-2 border-vscode-focusBorder"
 							: "text-vscode-descriptionForeground"
@@ -509,6 +506,14 @@ export const ApiKeyManagerContent = ({
 							className="pl-7 h-7 text-xs bg-vscode-input-background border-vscode-input-border text-vscode-foreground placeholder-vscode-descriptionForeground"
 						/>
 					</div>
+
+					{/* BYAK Models Description */}
+					<div className="flex-shrink-0 px-1 py-2">
+						<p className="text-xs text-vscode-descriptionForeground">
+							Bring Your API Key (BYAK) models use your own API credentials. You manage your own usage and
+							billing directly with the provider.
+						</p>
+					</div>
 					<div className="flex-1 overflow-y-auto min-h-0 pr-1">
 						{filteredByakModels.map((config, index, array) => (
 							<div key={config.id}>
@@ -576,6 +581,14 @@ export const ApiKeyManagerContent = ({
 							className="pl-7 h-7 text-xs bg-vscode-input-background border-vscode-input-border text-vscode-foreground placeholder-vscode-descriptionForeground"
 						/>
 					</div>
+
+					{/* Built In Models Description */}
+					<div className="flex-shrink-0 px-1 py-2">
+						<p className="text-xs text-vscode-descriptionForeground">
+							Built-in models are managed by Cubent.Dev and run using Cubent Units. These premium models
+							are coming soon and will provide seamless access without requiring your own API keys.
+						</p>
+					</div>
 					<div className="flex-1 overflow-y-auto min-h-0 pr-1">
 						{filteredBuiltinModels.map((config, index, array) => (
 							<div key={config.id}>
@@ -597,36 +610,16 @@ export const ApiKeyManagerContent = ({
 											</>
 										)}
 									</div>
-									{/* Only show toggle for actual models, not provider titles */}
+									{/* Only show lock for actual models, not provider titles */}
 									{!config.name.startsWith("---") && (
-										<button
-											onClick={() => {
-												// Simple toggle - just update local state
-												const isCurrentlyHidden = hiddenProfiles.has(config.name)
-												const newHidden = new Set(hiddenProfiles)
-
-												if (isCurrentlyHidden) {
-													// Make visible (remove from hidden)
-													newHidden.delete(config.name)
-												} else {
-													// Hide (add to hidden)
-													newHidden.add(config.name)
-												}
-
-												setHiddenProfiles(newHidden)
-											}}
-											className={`relative inline-flex h-4 w-7 items-center rounded-full transition-colors focus:outline-none ${
-												!hiddenProfiles.has(config.name) ? "bg-blue-600" : "bg-gray-600"
-											}`}
-											title={hiddenProfiles.has(config.name) ? "Show in chat" : "Hide from chat"}>
-											<span
-												className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${
-													!hiddenProfiles.has(config.name)
-														? "translate-x-3.5"
-														: "translate-x-0.5"
-												}`}
-											/>
-										</button>
+										<div className="flex items-center gap-2">
+											<Lock className="w-3 h-3 text-vscode-descriptionForeground" />
+											<div
+												className="relative inline-flex h-4 w-7 items-center rounded-full bg-gray-600 opacity-50 cursor-not-allowed"
+												title="Built-in models are coming soon">
+												<span className="inline-block h-3 w-3 transform rounded-full bg-white translate-x-0.5" />
+											</div>
+										</div>
 									)}
 								</div>
 								{index < array.length - 1 && (
@@ -751,19 +744,16 @@ const ApiKeyManagerPopupContent = () => {
 			{/* Tabs */}
 			<div className="flex border-b border-vscode-input-border flex-shrink-0">
 				<button
-					className={`px-2 py-1 text-xs font-medium ${
+					className={`px-2 py-1 text-sm font-medium ${
 						activeTab === "api-key"
 							? "text-vscode-foreground border-b-2 border-vscode-focusBorder"
 							: "text-vscode-descriptionForeground"
 					}`}
 					onClick={() => setActiveTab("api-key")}>
-					<span className="flex items-center gap-1">
-						<Key className="w-3 h-3" />
-						API Key
-					</span>
+					Api Keys
 				</button>
 				<button
-					className={`px-2 py-1 text-xs font-medium ${
+					className={`px-2 py-1 text-sm font-medium ${
 						activeTab === "byak-models"
 							? "text-vscode-foreground border-b-2 border-vscode-focusBorder"
 							: "text-vscode-descriptionForeground"
@@ -772,7 +762,7 @@ const ApiKeyManagerPopupContent = () => {
 					BYAK Models
 				</button>
 				<button
-					className={`px-2 py-1 text-xs font-medium ${
+					className={`px-2 py-1 text-sm font-medium ${
 						activeTab === "builtin-models"
 							? "text-vscode-foreground border-b-2 border-vscode-focusBorder"
 							: "text-vscode-descriptionForeground"
@@ -882,6 +872,15 @@ const ApiKeyManagerPopupContent = () => {
 							className="pl-7 h-7 text-xs bg-vscode-input-background border-vscode-input-border text-vscode-foreground placeholder-vscode-descriptionForeground"
 						/>
 					</div>
+
+					{/* BYAK Models Description */}
+					<div className="flex-shrink-0 px-1 py-2">
+						<p className="text-xs text-vscode-descriptionForeground">
+							Bring Your API Key (BYAK) models use your own API credentials. You manage your own usage and
+							billing directly with the provider.
+						</p>
+					</div>
+
 					<div className="flex-1 overflow-y-auto min-h-0 pr-1">
 						{filteredByakModels.map((config, index, array) => (
 							<div key={config.id}>
@@ -963,6 +962,15 @@ const ApiKeyManagerPopupContent = () => {
 							className="pl-7 h-7 text-xs bg-vscode-input-background border-vscode-input-border text-vscode-foreground placeholder-vscode-descriptionForeground"
 						/>
 					</div>
+
+					{/* Built In Models Description */}
+					<div className="flex-shrink-0 px-1 py-2">
+						<p className="text-xs text-vscode-descriptionForeground">
+							Built-in models are managed by Cubent.Dev and run using Cubent Units. These premium models
+							are coming soon and will provide seamless access without requiring your own API keys.
+						</p>
+					</div>
+
 					<div className="flex-1 overflow-y-auto min-h-0 pr-1">
 						{filteredBuiltinModels.map((config, index, array) => (
 							<div key={config.id}>
@@ -984,50 +992,16 @@ const ApiKeyManagerPopupContent = () => {
 											</>
 										)}
 									</div>
-									{/* Only show toggle for actual models, not provider titles */}
+									{/* Only show lock for actual models, not provider titles */}
 									{!config.name.startsWith("---") && (
-										<button
-											onClick={() => {
-												const isCurrentlyHidden = hiddenProfiles.has(config.name)
-												const newVisibility = !isCurrentlyHidden
-
-												console.log(`Toggle clicked for ${config.name}:`, {
-													profileName: config.name,
-													isCurrentlyHidden,
-													newVisibility,
-													currentHiddenProfiles: Array.from(hiddenProfiles),
-												})
-
-												// Send message to extension first
-												vscode.postMessage({
-													type: "setProfileVisibility",
-													profileName: config.name,
-													visible: newVisibility,
-												})
-
-												// Update local state immediately for UI responsiveness
-												const newHidden = new Set(hiddenProfiles)
-												if (newVisibility) {
-													// Make visible (remove from hidden)
-													newHidden.delete(config.name)
-												} else {
-													// Hide (add to hidden)
-													newHidden.add(config.name)
-												}
-												setHiddenProfiles(newHidden)
-											}}
-											className={`relative inline-flex h-4 w-7 items-center rounded-full transition-colors focus:outline-none ${
-												!hiddenProfiles.has(config.name) ? "bg-blue-600" : "bg-gray-600"
-											}`}
-											title={hiddenProfiles.has(config.name) ? "Show in chat" : "Hide from chat"}>
-											<span
-												className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${
-													!hiddenProfiles.has(config.name)
-														? "translate-x-3.5"
-														: "translate-x-0.5"
-												}`}
-											/>
-										</button>
+										<div className="flex items-center gap-2">
+											<Lock className="w-3 h-3 text-vscode-descriptionForeground" />
+											<div
+												className="relative inline-flex h-4 w-7 items-center rounded-full bg-gray-600 opacity-50 cursor-not-allowed"
+												title="Built-in models are coming soon">
+												<span className="inline-block h-3 w-3 transform rounded-full bg-white translate-x-0.5" />
+											</div>
+										</div>
 									)}
 								</div>
 								{index < array.length - 1 && (
@@ -1074,7 +1048,7 @@ export const ApiKeyManagerPopup = ({
 				<DialogHeader className="pb-2 flex-shrink-0">
 					<DialogTitle className="text-vscode-foreground flex items-center gap-2 text-sm">
 						<Settings className="w-4 h-4" />
-						API Key Management
+						API Key & Models Management
 					</DialogTitle>
 				</DialogHeader>
 				<ApiKeyManagerPopupContent />

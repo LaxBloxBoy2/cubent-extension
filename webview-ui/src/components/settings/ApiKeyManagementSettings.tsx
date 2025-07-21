@@ -24,7 +24,7 @@ export const ApiKeyManagementSettings = ({
 			<SectionHeader>
 				<div className="flex items-center gap-2">
 					<Key className="w-4" />
-					<div>API Key Management</div>
+					<div>API Key & Models Management</div>
 				</div>
 			</SectionHeader>
 			<Section className="p-0">

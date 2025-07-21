@@ -268,7 +268,33 @@ export async function activate(context: vscode.ExtensionContext) {
 		context.globalState.update("showAddImagesButton", true)
 	}
 	if (context.globalState.get("hiddenProfiles") === undefined) {
-		context.globalState.update("hiddenProfiles", [])
+		// Hide all Built In Models by default
+		const defaultHiddenProfiles = [
+			"Claude Sonnet 4",
+			"Claude 3.7 Sonnet (Thinking)",
+			"Claude 3.7 Sonnet",
+			"Claude 3.5 Sonnet",
+			"Claude 3.5 Haiku",
+			"Claude 3 Haiku",
+			"O3 Mini",
+			"O3 Mini (High)",
+			"O3 Mini (Low)",
+			"GPT-4.5 Preview",
+			"GPT-4o",
+			"GPT-4o Mini",
+			"DeepSeek Chat",
+			"DeepSeek Reasoner",
+			"Gemini 2.5 Flash (Thinking)",
+			"Gemini 2.5 Flash",
+			"Gemini 2.5 Pro",
+			"Gemini 2.0 Flash",
+			"Gemini 2.0 Pro",
+			"Gemini 1.5 Flash",
+			"Gemini 1.5 Pro",
+			"Grok-3 Mini",
+			"Grok 2 Vision",
+		]
+		context.globalState.update("hiddenProfiles", defaultHiddenProfiles)
 	}
 
 	const contextProxy = await ContextProxy.getInstance(context)
