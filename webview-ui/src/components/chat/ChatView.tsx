@@ -1010,33 +1010,34 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 	)
 
 	useEffect(() => {
+		// Auto-TTS disabled - users can manually trigger TTS via feedback buttons
 		// This ensures the first message is not read, future user messages are
 		// labeled as `user_feedback`.
-		if (lastMessage && messages.length > 1) {
-			if (
-				lastMessage.text && // has text
-				(lastMessage.say === "text" || lastMessage.say === "completion_result") && // is a text message
-				!lastMessage.partial && // not a partial message
-				!lastMessage.text.startsWith("{") // not a json object
-			) {
-				let text = lastMessage?.text || ""
-				const mermaidRegex = /```mermaid[\s\S]*?```/g
-				// remove mermaid diagrams from text
-				text = text.replace(mermaidRegex, "")
-				// remove markdown from text
-				text = removeMd(text)
+		// if (lastMessage && messages.length > 1) {
+		// 	if (
+		// 		lastMessage.text && // has text
+		// 		(lastMessage.say === "text" || lastMessage.say === "completion_result") && // is a text message
+		// 		!lastMessage.partial && // not a partial message
+		// 		!lastMessage.text.startsWith("{") // not a json object
+		// 	) {
+		// 		let text = lastMessage?.text || ""
+		// 		const mermaidRegex = /```mermaid[\s\S]*?```/g
+		// 		// remove mermaid diagrams from text
+		// 		text = text.replace(mermaidRegex, "")
+		// 		// remove markdown from text
+		// 		text = removeMd(text)
 
-				// ensure message is not a duplicate of last read message
-				if (text !== lastTtsRef.current) {
-					try {
-						playTts(text)
-						lastTtsRef.current = text
-					} catch (error) {
-						console.error("Failed to execute text-to-speech:", error)
-					}
-				}
-			}
-		}
+		// 		// ensure message is not a duplicate of last read message
+		// 		if (text !== lastTtsRef.current) {
+		// 			try {
+		// 				playTts(text)
+		// 				lastTtsRef.current = text
+		// 			} catch (error) {
+		// 				console.error("Failed to execute text-to-speech:", error)
+		// 			}
+		// 		}
+		// 	}
+		// }
 
 		// Update previous value.
 		setWasStreaming(isStreaming)
@@ -1487,7 +1488,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 			) : (
 				<div className="flex-1 min-h-0 overflow-y-auto flex flex-col gap-4">
 					<div
-						className={` w-full flex flex-col gap-4 m-auto ${chats.length > 0 ? "mt-16" : ""} px-3.5 min-[370px]:px-10 transition-all duration-300`}>
+						className={` w-full flex flex-col gap-4 m-auto ${chats.length > 0 ? "mt-16" : ""} px-2 min-[370px]:px-4 transition-all duration-300`}>
 						<QaptHero />
 						{telemetrySetting === "unset" && <TelemetryBanner />}
 
@@ -1669,7 +1670,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 
 			{/* Description text at the very bottom - only show when no active task */}
 			{!task && (
-				<div className="px-3.5 min-[370px]:px-10 pb-4">
+				<div className="px-2 min-[370px]:px-4 pb-4">
 					<p className="text-vscode-editor-foreground leading-tight font-vscode-font-family text-center text-balance max-w-[380px] mx-auto text-[10px] opacity-60">
 						<Trans
 							i18nKey="chat:about"

@@ -160,7 +160,7 @@ const DiffSummaryBar: React.FC<DiffSummaryBarProps> = ({ messages, isVisible = t
 	return (
 		<div
 			// Positioned as part of chat input area with proper spacing from content above
-			className="mt-4 mx-2 bg-vscode-editor-background rounded border border-vscode-input-border/60 text-sm"
+			className="mt-4 mx-3 bg-vscode-editor-background rounded border border-vscode-input-border/60 text-sm"
 			style={{
 				boxShadow: "0 -6px 16px rgba(0,0,0,0.1), 0 -4px 10px rgba(0,0,0,0.08), 0 -2px 6px rgba(0,0,0,0.06)",
 			}}

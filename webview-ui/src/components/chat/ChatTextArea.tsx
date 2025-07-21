@@ -1059,7 +1059,7 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 		// Bottom placeholder text removed for cleaner interface
 
 		return (
-			<div className={cn("relative", "flex", "flex-col", "w-full", "px-1 py-3")}>
+			<div className={cn("relative", "flex", "flex-col", "w-full", "px-3 py-3")}>
 				{/* Chat input container with darker background and improved styling for better visual appearance */}
 				<div
 					className={cn(

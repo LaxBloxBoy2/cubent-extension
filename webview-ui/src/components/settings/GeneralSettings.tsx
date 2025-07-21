@@ -127,12 +127,13 @@ export default function GeneralSettings({
 					/>
 				</div>
 
-				{/* Notifications Section - Only Sound Effects */}
+				{/* Notifications Section - Sound Effects */}
 				<div className="mt-8">
 					<h2 className="text-base font-semibold text-vscode-foreground">
 						{t("settings:sections.notifications")}
 					</h2>
 					<div className="divide-y divide-vscode-input-border">
+						{/* Sound Effects Settings */}
 						<SettingRow
 							title={t("settings:notifications.sound.label")}
 							description={t("settings:notifications.sound.description")}
@@ -160,6 +161,46 @@ export default function GeneralSettings({
 								/>
 								<span className="w-12 text-xs text-vscode-descriptionForeground">
 									{((soundVolume ?? 0.5) * 100).toFixed(0)}%
+								</span>
+							</div>
+						</div>
+					)}
+				</div>
+
+				{/* TTS Section - Separate from Notifications */}
+				<div className="mt-8">
+					<h2 className="text-base font-semibold text-vscode-foreground">
+						TTS
+					</h2>
+					<div className="divide-y divide-vscode-input-border">
+						{/* Text-to-Speech Settings */}
+						<SettingRow
+							title="Text-to-Speech"
+							description="Enable AI responses to be read aloud using text-to-speech. Click the speaker button on completion feedback to hear conversations."
+							checked={ttsEnabled ?? false}
+							onChange={(checked) => setCachedStateField("ttsEnabled", checked)}
+							testId="tts-enabled-toggle"
+						/>
+					</div>
+
+					{/* TTS Speed slider when TTS is enabled */}
+					{ttsEnabled && (
+						<div className="mt-4 pl-4 border-l-2 border-vscode-button-background">
+							<label className="block text-sm font-medium text-vscode-foreground mb-2">
+								Speech Speed
+							</label>
+							<div className="flex items-center gap-3">
+								<Slider
+									min={0.5}
+									max={2.0}
+									step={0.1}
+									value={[ttsSpeed ?? 1.0]}
+									onValueChange={([value]) => setCachedStateField("ttsSpeed", value)}
+									data-testid="tts-speed-slider"
+									className="flex-1"
+								/>
+								<span className="w-12 text-xs text-vscode-descriptionForeground">
+									{(ttsSpeed ?? 1.0).toFixed(1)}x
 								</span>
 							</div>
 						</div>

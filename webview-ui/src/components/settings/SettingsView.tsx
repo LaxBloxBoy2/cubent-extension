@@ -33,6 +33,7 @@ import {
 	TrendingUp,
 	BookOpen,
 	Ruler,
+	Zap,
 } from "lucide-react"
 
 import type { ProviderSettings, ExperimentId } from "@cubent/types"
@@ -63,6 +64,7 @@ import ApiConfigManager from "./ApiConfigManager"
 import ApiOptions from "./ApiOptions"
 import { AutoApproveSettings } from "./AutoApproveSettings"
 import { ApiKeyManagementSettings } from "./ApiKeyManagementSettings"
+import { AutocompleteSettings } from "./AutocompleteSettings"
 
 import { BrowserSettings } from "./BrowserSettings"
 import { CheckpointSettings } from "./CheckpointSettings"
@@ -97,6 +99,7 @@ const sectionNames = [
 	"general",
 	"providers",
 	"apiKeyManagement",
+	"autocomplete",
 	"userGuidelines",
 	"mcp",
 	"indexing",
@@ -470,6 +473,7 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 			{ id: "general", icon: Settings },
 			{ id: "providers", icon: Settings },
 			{ id: "apiKeyManagement", icon: Key },
+			{ id: "autocomplete", icon: Zap },
 			{ id: "userGuidelines", icon: Ruler },
 			{ id: "mcp", icon: Server },
 			{ id: "indexing", icon: Database },
@@ -809,6 +813,9 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 							}}
 						/>
 					)}
+
+					{/* Autocomplete Settings Section */}
+					{activeTab === "autocomplete" && <AutocompleteSettings />}
 
 					{/* MCP Settings Section */}
 					{activeTab === "mcp" && <McpSettings />}
