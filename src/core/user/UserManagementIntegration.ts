@@ -36,11 +36,11 @@ export class UserManagementIntegration {
 	 */
 	public async initialize(): Promise<void> {
 		await this.userManagementService.initialize()
-		
-		// Check trial status on startup
-		if (this.trialManagementService.isTrialExpired()) {
-			await this.trialManagementService.handleTrialExpiry()
-		}
+
+		// Check trial status on startup - DISABLED: Remove trial notifications
+		// if (this.trialManagementService.isTrialExpired()) {
+		// 	await this.trialManagementService.handleTrialExpiry()
+		// }
 	}
 
 	/**
@@ -56,7 +56,7 @@ export class UserManagementIntegration {
 			return {
 				allowed: false,
 				reason: `Model ${modelId} is not available in your current plan`,
-				upgradeRequired: true
+				upgradeRequired: true,
 			}
 		}
 
@@ -66,7 +66,7 @@ export class UserManagementIntegration {
 			return {
 				allowed: false,
 				reason: usageCheck.reason,
-				upgradeRequired: true
+				upgradeRequired: true,
 			}
 		}
 
@@ -75,7 +75,7 @@ export class UserManagementIntegration {
 			return {
 				allowed: false,
 				reason: "Your trial has expired",
-				upgradeRequired: true
+				upgradeRequired: true,
 			}
 		}
 
@@ -85,11 +85,7 @@ export class UserManagementIntegration {
 	/**
 	 * Track API usage after a request
 	 */
-	public async trackApiUsage(
-		modelId: string,
-		usage: ApiStreamUsageChunk,
-		cost?: number
-	): Promise<void> {
+	public async trackApiUsage(modelId: string, usage: ApiStreamUsageChunk, cost?: number): Promise<void> {
 		await this.usageTrackingService.trackApiUsage(modelId, usage, cost)
 	}
 
@@ -138,7 +134,7 @@ export class UserManagementIntegration {
 		}
 
 		// Filter models based on allowed list
-		return allModels.filter(model => quotas.allowedModels.includes(model))
+		return allModels.filter((model) => quotas.allowedModels.includes(model))
 	}
 
 	/**
@@ -179,7 +175,7 @@ export class UserManagementIntegration {
 		return {
 			userManagement: this.userManagementService,
 			usageTracking: this.usageTrackingService,
-			trialManagement: this.trialManagementService
+			trialManagement: this.trialManagementService,
 		}
 	}
 
@@ -196,14 +192,14 @@ export class UserManagementIntegration {
 			this.showLimitExceededNotification(type, current, limit)
 		})
 
-		// Trial management events
-		this.trialManagementService.on("trial-expiring", ({ daysRemaining }) => {
-			this.showTrialExpiringNotification(daysRemaining)
-		})
+		// Trial management events - DISABLED: Remove trial notifications
+		// this.trialManagementService.on("trial-expiring", ({ daysRemaining }) => {
+		// 	this.showTrialExpiringNotification(daysRemaining)
+		// })
 
-		this.trialManagementService.on("trial-expired", () => {
-			this.showTrialExpiredNotification()
-		})
+		// this.trialManagementService.on("trial-expired", () => {
+		// 	this.showTrialExpiredNotification()
+		// })
 
 		// User profile events
 		this.userManagementService.on("subscription-changed", ({ oldTier, newTier }) => {
@@ -247,13 +243,8 @@ export class UserManagementIntegration {
 	 */
 	private async showLimitExceededNotification(type: string, current: number, limit: number): Promise<void> {
 		const message = `${type} limit exceeded (${current}/${limit}). Upgrade to continue using Cubent.`
-		
-		const action = await vscode.window.showErrorMessage(
-			message,
-			"Upgrade Now",
-			"View Usage",
-			"Dismiss"
-		)
+
+		const action = await vscode.window.showErrorMessage(message, "Upgrade Now", "View Usage", "Dismiss")
 
 		switch (action) {
 			case "Upgrade Now":
@@ -269,15 +260,15 @@ export class UserManagementIntegration {
 	 * Show trial expiring notification
 	 */
 	private async showTrialExpiringNotification(daysRemaining: number): Promise<void> {
-		const message = `Your trial expires in ${daysRemaining} day${daysRemaining === 1 ? '' : 's'}. Upgrade to continue using Cubent.`
-		
+		const message = `Your trial expires in ${daysRemaining} day${daysRemaining === 1 ? "" : "s"}. Upgrade to continue using Cubent.`
+
 		const trialInfo = this.trialManagementService.getTrialInfo()
 		const actions = ["Upgrade Now"]
-		
+
 		if (trialInfo.canExtend) {
 			actions.unshift("Extend Trial")
 		}
-		
+
 		actions.push("Remind Later")
 
 		const action = await vscode.window.showWarningMessage(message, ...actions)
@@ -299,7 +290,7 @@ export class UserManagementIntegration {
 		const action = await vscode.window.showErrorMessage(
 			"Your trial has expired. Upgrade to continue using Cubent.",
 			"Upgrade Now",
-			"Learn More"
+			"Learn More",
 		)
 
 		switch (action) {
@@ -315,10 +306,13 @@ export class UserManagementIntegration {
 	/**
 	 * Show subscription changed notification
 	 */
-	private async showSubscriptionChangedNotification(oldTier: SubscriptionTier, newTier: SubscriptionTier): Promise<void> {
+	private async showSubscriptionChangedNotification(
+		oldTier: SubscriptionTier,
+		newTier: SubscriptionTier,
+	): Promise<void> {
 		const message = `Subscription upgraded from ${oldTier} to ${newTier}. Enjoy your new features!`
-		
-		vscode.window.showInformationMessage(message, "View Features").then(action => {
+
+		vscode.window.showInformationMessage(message, "View Features").then((action) => {
 			if (action === "View Features") {
 				vscode.env.openExternal(vscode.Uri.parse("https://cubent.ai/features"))
 			}

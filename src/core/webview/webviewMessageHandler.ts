@@ -2374,5 +2374,146 @@ export const webviewMessageHandler = async (provider: ClineProvider, message: We
 			}
 			break
 		}
+		case "getConfiguration": {
+			if (message.section) {
+				try {
+					const config = vscode.workspace.getConfiguration(message.section)
+					const configObject: Record<string, any> = {}
+
+					// For autocomplete section, get specific keys
+					if (message.section === "cubent.autocomplete") {
+						configObject.enabled = config.get("enabled", false)
+						configObject.model = config.get("model", "codestral")
+						configObject.mistralApiKey = config.get("mistralApiKey", "")
+						configObject.inceptionApiKey = config.get("inceptionApiKey", "")
+						configObject.ollamaBaseUrl = config.get("ollamaBaseUrl", "http://localhost:11434")
+						configObject.allowWithCopilot = config.get("allowWithCopilot", false)
+						configObject.debounceDelay = config.get("debounceDelay", 300)
+						configObject.maxTokens = config.get("maxTokens", 256)
+					} else {
+						// Get all configuration keys for other sections
+						const inspect = config.inspect("")
+						if (inspect) {
+							const allKeys = Object.keys(inspect.defaultValue || {})
+							for (const key of allKeys) {
+								configObject[key] = config.get(key)
+							}
+						}
+					}
+
+					console.log(`Sending configuration for ${message.section}:`, configObject)
+
+					await provider.postMessageToWebview({
+						type: "configuration",
+						section: message.section,
+						configuration: configObject,
+					})
+				} catch (error) {
+					console.error(`Failed to get configuration for ${message.section}:`, error)
+				}
+			}
+			break
+		}
+		case "updateConfiguration": {
+			if (message.section && message.configuration) {
+				try {
+					console.log(`Updating configuration for ${message.section}:`, message.configuration)
+					const config = vscode.workspace.getConfiguration(message.section)
+
+					// Update each configuration key
+					for (const [key, value] of Object.entries(message.configuration)) {
+						console.log(`Setting ${message.section}.${key} = ${value}`)
+						await config.update(key, value, vscode.ConfigurationTarget.Global)
+					}
+
+					// Send updated configuration back
+					const updatedConfig = vscode.workspace.getConfiguration(message.section)
+					const configObject: Record<string, any> = {}
+
+					if (message.section === "cubent.autocomplete") {
+						// Get specific autocomplete keys
+						configObject.enabled = updatedConfig.get("enabled", false)
+						configObject.model = updatedConfig.get("model", "codestral")
+						configObject.mistralApiKey = updatedConfig.get("mistralApiKey", "")
+						configObject.inceptionApiKey = updatedConfig.get("inceptionApiKey", "")
+						configObject.ollamaBaseUrl = updatedConfig.get("ollamaBaseUrl", "http://localhost:11434")
+						configObject.allowWithCopilot = updatedConfig.get("allowWithCopilot", false)
+						configObject.debounceDelay = updatedConfig.get("debounceDelay", 300)
+						configObject.maxTokens = updatedConfig.get("maxTokens", 256)
+					} else {
+						// For other sections, get the keys that were updated
+						for (const key of Object.keys(message.configuration)) {
+							configObject[key] = updatedConfig.get(key)
+						}
+					}
+
+					console.log(`Sending updated configuration for ${message.section}:`, configObject)
+
+					await provider.postMessageToWebview({
+						type: "configuration",
+						section: message.section,
+						configuration: configObject,
+					})
+				} catch (error) {
+					console.error(`Failed to update configuration for ${message.section}:`, error)
+				}
+			}
+			break
+		}
+		case "testAutocompleteConnection": {
+			if (message.modelId) {
+				try {
+					// Import the autocomplete provider dynamically
+					const { CubentAutocompleteProvider } = await import("../autocomplete/CubentAutocompleteProvider")
+
+					// Create a temporary provider instance for testing
+					const testProvider = new CubentAutocompleteProvider(
+						provider.contextProxy,
+						provider.cloudService,
+						provider.telemetryService,
+					)
+
+					// Get the specific provider for the model
+					const modelProvider = testProvider
+						.getAvailableProviders()
+						.find((p) => p.model === message.modelId)?.provider
+
+					if (!modelProvider) {
+						await provider.postMessageToWebview({
+							type: "autocompleteConnectionResult",
+							modelId: message.modelId,
+							success: false,
+							error: "Provider not found",
+						})
+						return
+					}
+
+					// Test the connection
+					const isAvailable = await modelProvider.isAvailable()
+					let connectionSuccess = false
+
+					if (isAvailable && typeof (modelProvider as any).testConnection === "function") {
+						connectionSuccess = await (modelProvider as any).testConnection()
+					} else {
+						connectionSuccess = isAvailable
+					}
+
+					await provider.postMessageToWebview({
+						type: "autocompleteConnectionResult",
+						modelId: message.modelId,
+						success: connectionSuccess,
+					})
+				} catch (error) {
+					console.error(`Failed to test autocomplete connection for ${message.modelId}:`, error)
+					await provider.postMessageToWebview({
+						type: "autocompleteConnectionResult",
+						modelId: message.modelId,
+						success: false,
+						error: error instanceof Error ? error.message : String(error),
+					})
+				}
+			}
+			break
+		}
 	}
 }

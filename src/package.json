@@ -1,4 +1,5 @@
 {
+	"//": "Updated package.json - Build and install requested",
 	"name": "cubent",
 	"displayName": "%extension.displayName%",
 	"description": "%extension.description%",
@@ -51,6 +52,15 @@
 	],
 	"main": "./dist/extension.js",
 	"contributes": {
+		"icons": {
+			"cubent-icon": {
+				"description": "Cubent icon",
+				"default": {
+					"fontPath": "assets/icons/icomoon.woff",
+					"fontCharacter": "\\E900"
+				}
+			}
+		},
 		"viewsContainers": {
 			"activitybar": [
 				{
@@ -74,6 +84,11 @@
 				"command": "cubent.plusButtonClicked",
 				"title": "%command.newTask.title%",
 				"icon": "$(add)"
+			},
+			{
+				"command": "cubent.testCustomIcon",
+				"title": "Test Custom Icon",
+				"icon": "$(cubent-icon)"
 			},
 			{
 				"command": "cubent.mcpButtonClicked",
@@ -164,6 +179,21 @@
 				"command": "cubent.acceptInput",
 				"title": "%command.acceptInput.title%",
 				"category": "%configuration.title%"
+			},
+			{
+				"command": "cubent.showAutocompleteStatus",
+				"title": "Show Autocomplete Status",
+				"category": "Cubent"
+			},
+			{
+				"command": "cubent.statusBarClick",
+				"title": "Status Bar Click",
+				"category": "Cubent"
+			},
+			{
+				"command": "cubent.showCubentStatus",
+				"title": "Show Cubent Status",
+				"category": "Cubent"
 			}
 		],
 		"menus": {
@@ -279,10 +309,25 @@
 					"default": false,
 					"description": "%settings.cubentCoderCloudEnabled.description%"
 				},
+				"cubent.ttsEnabled": {
+					"type": "boolean",
+					"default": false,
+					"description": "Enable Text-to-Speech for reading AI responses aloud"
+				},
+				"cubent.ttsSpeed": {
+					"type": "number",
+					"default": 1,
+					"minimum": 0.5,
+					"maximum": 2,
+					"description": "Text-to-Speech playback speed (0.5x to 2.0x)"
+				},
 				"cubent.database.neon.url": {
 					"type": "string",
 					"default": "",
-					"description": "Neon database connection URL"
+					"description": "Neon database connection URL",
+					"tags": [
+						"@ext:hidden"
+					]
 				},
 				"cubent.database.supabase.url": {
 					"type": "string",
@@ -353,6 +398,60 @@
 					"type": "boolean",
 					"default": false,
 					"description": "Always allow MCP tool usage without prompting"
+				},
+				"cubent.autocomplete.enabled": {
+					"type": "boolean",
+					"default": false,
+					"description": "Enable AI-powered code autocomplete (experimental)"
+				},
+				"cubent.autocomplete.model": {
+					"type": "string",
+					"enum": [
+						"codestral",
+						"mercury-coder",
+						"qwen-coder"
+					],
+					"default": "codestral",
+					"description": "Autocomplete model to use",
+					"enumDescriptions": [
+						"Codestral (Mistral AI) - Best Performance",
+						"Mercury Coder Small (Inception Labs) - Best Speed/Quality",
+						"Qwen 2.5 Coder 1.5B (Ollama) - Local/Privacy"
+					]
+				},
+				"cubent.autocomplete.mistralApiKey": {
+					"type": "string",
+					"default": "",
+					"description": "Mistral API key for Codestral model"
+				},
+				"cubent.autocomplete.inceptionApiKey": {
+					"type": "string",
+					"default": "",
+					"description": "Inception Labs API key for Mercury Coder model"
+				},
+				"cubent.autocomplete.ollamaBaseUrl": {
+					"type": "string",
+					"default": "http://localhost:11434",
+					"description": "Ollama base URL for local models"
+				},
+				"cubent.autocomplete.allowWithCopilot": {
+					"type": "boolean",
+					"default": false,
+					"description": "Allow autocomplete to run alongside GitHub Copilot (may cause conflicts)"
+				},
+				"cubent.autocomplete.debounceDelay": {
+					"type": "number",
+					"default": 300,
+					"minimum": 0,
+					"maximum": 2000,
+					"description": "Delay in milliseconds before triggering autocomplete"
+				},
+				"cubent.autocomplete.maxTokens": {
+					"type": "number",
+					"default": 256,
+					"minimum": 50,
+					"maximum": 1000,
+					"description": "Maximum tokens to generate for completions"
 				}
 			}
 		}
@@ -485,5 +584,10 @@
 		"typescript": "5.8.3",
 		"vitest": "^3.1.3",
 		"zod-to-ts": "^1.2.0"
+	},
+	"__metadata": {
+		"installedTimestamp": 1753062036315,
+		"targetPlatform": "undefined",
+		"size": 134249470
 	}
 }

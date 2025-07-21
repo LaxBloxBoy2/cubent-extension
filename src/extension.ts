@@ -41,6 +41,8 @@ import { API } from "./extension/api"
 import { UserManagementIntegration } from "./core/user/UserManagementIntegration"
 import UsageTrackingService from "./services/UsageTrackingService"
 import AuthenticationService from "./services/AuthenticationService"
+import { CubentAutocompleteProvider } from "./core/autocomplete/CubentAutocompleteProvider"
+// Removed CubentUsagePanel - using QuickPick popup instead
 
 import {
 	handleUri,
@@ -50,6 +52,103 @@ import {
 	CodeActionProvider,
 } from "./activate"
 import { initializeI18n } from "./i18n"
+
+/**
+ * Show Cubent usage popup (like Copilot's popup)
+ */
+function showCubentUsagePopup(autocompleteProvider?: CubentAutocompleteProvider) {
+	const config = vscode.workspace.getConfiguration("cubent.autocomplete")
+	const enabled = config.get<boolean>("enabled", false)
+	const model = config.get<string>("model", "codestral")
+
+	let stats = { totalRequests: 0, successfulCompletions: 0, acceptedCompletions: 0 }
+	let successRate = 0
+
+	if (autocompleteProvider) {
+		stats = autocompleteProvider.getUsageStats()
+		successRate =
+			stats.totalRequests > 0 ? Math.round((stats.successfulCompletions / stats.totalRequests) * 100) : 0
+	}
+
+	const quickPick = vscode.window.createQuickPick()
+	quickPick.title = `🤖 Cubent Usage ${enabled ? "(Enabled)" : "(Disabled)"}`
+	quickPick.placeholder = "Choose an action..."
+
+	const items: vscode.QuickPickItem[] = [
+		{
+			label: "📊 Usage Statistics",
+			detail: `${successRate}% success rate • ${stats.successfulCompletions}/${stats.totalRequests} completions`,
+			kind: vscode.QuickPickItemKind.Separator,
+		},
+		{
+			label: "🔧 Current Model",
+			detail: `${model} ${enabled ? "(Active)" : "(Inactive)"}`,
+			kind: vscode.QuickPickItemKind.Separator,
+		},
+		{
+			label: enabled ? "⏸️ Disable Autocomplete" : "▶️ Enable Autocomplete",
+			detail: enabled ? "Turn off code completions" : "Turn on code completions",
+		},
+		{
+			label: "🔄 Reset Statistics",
+			detail: "Clear all usage data",
+		},
+		{
+			label: "⚙️ Open Settings",
+			detail: "Configure autocomplete options",
+		},
+		{
+			label: "🎯 Switch to Codestral",
+			detail: model === "codestral" ? "✅ Currently active" : "Mistral AI model",
+		},
+		{
+			label: "🚀 Switch to Mercury Coder",
+			detail: model === "mercury-coder" ? "✅ Currently active" : "Inception AI model",
+		},
+		{
+			label: "🏠 Switch to Qwen Coder",
+			detail: model === "qwen-coder" ? "✅ Currently active" : "Local Ollama model",
+		},
+	]
+
+	quickPick.items = items
+	quickPick.show()
+
+	quickPick.onDidAccept(() => {
+		const selected = quickPick.selectedItems[0]
+		if (!selected) return
+
+		if (selected.label.includes("Disable Autocomplete")) {
+			config.update("enabled", false, vscode.ConfigurationTarget.Global)
+			vscode.window.showInformationMessage("Cubent autocomplete disabled")
+		} else if (selected.label.includes("Enable Autocomplete")) {
+			config.update("enabled", true, vscode.ConfigurationTarget.Global)
+			vscode.window.showInformationMessage("Cubent autocomplete enabled")
+		} else if (selected.label.includes("Reset Statistics")) {
+			if (autocompleteProvider) {
+				autocompleteProvider.resetUsageStats()
+				vscode.window.showInformationMessage("Statistics reset")
+			}
+		} else if (selected.label.includes("Open Settings")) {
+			vscode.commands.executeCommand("workbench.action.openSettings", "cubent.autocomplete")
+		} else if (selected.label.includes("Codestral")) {
+			config.update("model", "codestral", vscode.ConfigurationTarget.Global)
+			vscode.window.showInformationMessage("Switched to Codestral")
+		} else if (selected.label.includes("Mercury Coder")) {
+			config.update("model", "mercury-coder", vscode.ConfigurationTarget.Global)
+			vscode.window.showInformationMessage("Switched to Mercury Coder")
+		} else if (selected.label.includes("Qwen Coder")) {
+			config.update("model", "qwen-coder", vscode.ConfigurationTarget.Global)
+			vscode.window.showInformationMessage("Switched to Qwen Coder")
+		}
+
+		quickPick.dispose()
+	})
+
+	quickPick.onDidHide(() => {
+		quickPick.dispose()
+	})
+}
 
 /**
  * Built using https://github.com/microsoft/vscode-webview-ui-toolkit
@@ -70,6 +169,29 @@ export async function activate(context: vscode.ExtensionContext) {
 	outputChannel = vscode.window.createOutputChannel(Package.outputChannel)
 	context.subscriptions.push(outputChannel)
 	outputChannel.appendLine(`${Package.name} extension activated - ${JSON.stringify(Package)}`)
+
+	// Create Cubent status bar item FIRST - always visible
+	console.log("Creating Cubent status bar item...")
+	const cubentStatusBarItem = vscode.window.createStatusBarItem(
+		vscode.StatusBarAlignment.Right,
+		0, // Lowest priority number for far right position
+	)
+
+	// Register command for status bar click - show usage popup
+	context.subscriptions.push(
+		vscode.commands.registerCommand("cubent.statusBarClick", () => {
+			// Show Cubent usage popup (like Copilot's actual popup)
+			showCubentUsagePopup(autocompleteProvider)
+		}),
+	)
+
+	// Simple initial setup - using custom icon (same as activity bar)
+	cubentStatusBarItem.text = "$(cubent-icon) Cubent"
+	cubentStatusBarItem.tooltip = "Cubent AI Assistant - Click to view usage and settings"
+	cubentStatusBarItem.command = "cubent.statusBarClick"
+	cubentStatusBarItem.show()
+	context.subscriptions.push(cubentStatusBarItem)
+	console.log("Cubent status bar item created and shown:", cubentStatusBarItem.text)
 
 	// Migrate old settings to new
 	await migrateSettings(context, outputChannel)
@@ -118,9 +240,21 @@ export async function activate(context: vscode.ExtensionContext) {
 	// Get default commands from configuration.
 	const defaultCommands = vscode.workspace.getConfiguration(Package.name).get<string[]>("allowedCommands") || []
 
+	// Get TTS settings from configuration
+	const defaultTtsEnabled = vscode.workspace.getConfiguration(Package.name).get<boolean>("ttsEnabled") || false
+	const defaultTtsSpeed = vscode.workspace.getConfiguration(Package.name).get<number>("ttsSpeed") || 1.0
+
 	// Initialize global state if not already set.
 	if (!context.globalState.get("allowedCommands")) {
 		context.globalState.update("allowedCommands", defaultCommands)
+	}
+
+	// Initialize TTS settings if not already set
+	if (context.globalState.get("ttsEnabled") === undefined) {
+		context.globalState.update("ttsEnabled", defaultTtsEnabled)
+	}
+	if (context.globalState.get("ttsSpeed") === undefined) {
+		context.globalState.update("ttsSpeed", defaultTtsSpeed)
 	}
 
 	// Initialize new general settings with default values if not already set
@@ -195,6 +329,129 @@ export async function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(
 		vscode.languages.registerCodeActionsProvider({ pattern: "**/*" }, new CodeActionProvider(), {
 			providedCodeActionKinds: CodeActionProvider.providedCodeActionKinds,
+		}),
+	)
+
+	// Status bar is created at the beginning of activate function
+
+	// Simple command registration - will add more complex ones later
+	console.log("Registering basic Cubent commands...")
+
+	// Declare autocompleteProvider in outer scope for status bar access
+	let autocompleteProvider: CubentAutocompleteProvider | undefined
+
+	// autocompleteProvider will be set when autocomplete is enabled
+
+	// Register autocomplete provider (if enabled)
+	const autocompleteConfig = vscode.workspace.getConfiguration("cubent.autocomplete")
+	const autocompleteEnabled = autocompleteConfig.get<boolean>("enabled", false)
+
+	console.log(`[Cubent Extension] Autocomplete enabled: ${autocompleteEnabled}`)
+
+	if (autocompleteEnabled) {
+		try {
+			console.log("[Cubent Extension] Creating autocomplete provider...")
+			autocompleteProvider = new CubentAutocompleteProvider(
+				contextProxy,
+				CloudService.getInstance(),
+				telemetryService,
+			)
+			console.log("[Cubent Extension] Autocomplete provider created successfully")
+
+			// Set up usage stats callback to update status bar
+			autocompleteProvider.setUsageStatsCallback((stats) => {
+				// Always update main Cubent status bar with autocomplete stats
+				cubentStatusBarItem.text = `$(cubent-icon) Cubent (${stats.successfulCompletions})`
+				cubentStatusBarItem.tooltip = `Cubent AI Assistant
+Autocomplete: ${stats.successfulCompletions} completions
+Model: ${autocompleteConfig.get<string>("model", "none")}
+Click to view usage and settings`
+				console.log(`Status bar updated: ${cubentStatusBarItem.text}`)
+			})
+
+			// Initial status bar update when autocomplete is enabled
+			const initialStats = autocompleteProvider.getUsageStats()
+			cubentStatusBarItem.text = `$(cubent-icon) Cubent (${initialStats.successfulCompletions})`
+			cubentStatusBarItem.tooltip = `Cubent AI Assistant
+Autocomplete: Enabled (${autocompleteConfig.get<string>("model", "none")})
+Usage: ${initialStats.successfulCompletions} completions
+Click to open sidebar`
+
+			console.log("[Cubent Extension] Registering inline completion provider...")
+			const registration = vscode.languages.registerInlineCompletionItemProvider(
+				{ pattern: "**" },
+				autocompleteProvider,
+			)
+			context.subscriptions.push(registration)
+			console.log("[Cubent Extension] Inline completion provider registered successfully")
+
+			// No separate autocomplete status bar - integrated into main Cubent status bar
+
+			// Register simple autocomplete status command
+			context.subscriptions.push(
+				vscode.commands.registerCommand("cubent.showAutocompleteStatus", () => {
+					if (autocompleteProvider) {
+						const stats = autocompleteProvider.getUsageStats()
+						const model = autocompleteConfig.get<string>("model", "codestral")
+						vscode.window.showInformationMessage(
+							`Cubent Autocomplete (${model}): ${stats.successfulCompletions}/${stats.totalRequests} completions`,
+						)
+					} else {
+						vscode.window.showInformationMessage("Cubent Autocomplete: Not available")
+					}
+				}),
+			)
+
+			console.log("Cubent autocomplete provider registered successfully")
+		} catch (error) {
+			console.error("Failed to register autocomplete provider:", error)
+			vscode.window.showWarningMessage(
+				"Failed to initialize Cubent autocomplete. Check your API keys in settings.",
+			)
+		}
+	} else {
+		// Update status bar when autocomplete is disabled
+		cubentStatusBarItem.text = "$(cubent-icon) Cubent"
+		cubentStatusBarItem.tooltip = "Cubent AI Assistant\nAutocomplete: Disabled\nClick to open sidebar"
+	}
+
+	// Listen for configuration changes to update status bar
+	context.subscriptions.push(
+		vscode.workspace.onDidChangeConfiguration(async (e) => {
+			if (e.affectsConfiguration("cubent.autocomplete")) {
+				const enabled = vscode.workspace.getConfiguration("cubent.autocomplete").get<boolean>("enabled", false)
+				const model = vscode.workspace.getConfiguration("cubent.autocomplete").get<string>("model", "none")
+
+				if (enabled && autocompleteProvider) {
+					const stats = autocompleteProvider.getUsageStats()
+					cubentStatusBarItem.text = `$(cubent-icon) Cubent (${stats.successfulCompletions})`
+					cubentStatusBarItem.tooltip = `Cubent AI Assistant
+Autocomplete: Enabled (${model})
+Usage: ${stats.successfulCompletions} completions
+Click to open sidebar`
+				} else {
+					cubentStatusBarItem.text = "$(cubent-icon) Cubent"
+					cubentStatusBarItem.tooltip = "Cubent AI Assistant\nAutocomplete: Disabled\nClick to open sidebar"
+				}
+				console.log(`Status bar updated due to config change: ${cubentStatusBarItem.text}`)
+			}
+
+			// Handle TTS settings changes
+			if (e.affectsConfiguration("cubent.ttsEnabled") || e.affectsConfiguration("cubent.ttsSpeed")) {
+				const ttsEnabled = vscode.workspace.getConfiguration("cubent").get<boolean>("ttsEnabled", false)
+				const ttsSpeed = vscode.workspace.getConfiguration("cubent").get<number>("ttsSpeed", 1.0)
+
+				// Update global state
+				await context.globalState.update("ttsEnabled", ttsEnabled)
+				await context.globalState.update("ttsSpeed", ttsSpeed)
+
+				// Notify the webview of the change
+				if (provider) {
+					await provider.postStateToWebview()
+				}
+
+				console.log(`TTS settings updated: enabled=${ttsEnabled}, speed=${ttsSpeed}`)
+			}
 		}),
 	)
 
@@ -283,6 +540,6 @@ export async function deactivate() {
 
 	// Clean up user management integration
 	if (userManagementIntegration) {
-		userManagementIntegration.removeAllListeners()
+		// userManagementIntegration.removeAllListeners() // Method doesn't exist
 	}
 }

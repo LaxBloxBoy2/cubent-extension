@@ -84,6 +84,8 @@ export interface ExtensionMessage {
 		| "trialStatus"
 		| "usageStats"
 		| "messageUsageData"
+		| "configuration"
+		| "autocompleteConnectionResult"
 	text?: string
 	action?:
 		| "chatButtonClicked"
@@ -133,6 +135,10 @@ export interface ExtensionMessage {
 	isAuthenticated?: boolean
 	hasActiveSession?: boolean
 	url?: string
+	// Autocomplete configuration properties
+	section?: string
+	configuration?: Record<string, any>
+	modelId?: string
 }
 
 export type ExtensionState = Pick<

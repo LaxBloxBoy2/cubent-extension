@@ -75,6 +75,20 @@ async function main() {
 			},
 		},
 		{
+			name: "copyAssets",
+			setup(build) {
+				build.onEnd(() => {
+					// Copy assets folder to dist
+					const assetsPath = path.join(srcDir, "assets")
+					const distAssetsPath = path.join(distDir, "assets")
+					if (fs.existsSync(assetsPath)) {
+						fs.cpSync(assetsPath, distAssetsPath, { recursive: true })
+						console.log(`[copyAssets] Copied assets to dist`)
+					}
+				})
+			},
+		},
+		{
 			name: "esbuild-problem-matcher",
 			setup(build) {
 				build.onStart(() => console.log("[esbuild-problem-matcher#onStart]"))

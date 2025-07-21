@@ -1,13 +1,7 @@
 import EventEmitter from "events"
 import * as vscode from "vscode"
 
-import {
-	UserProfile,
-	SubscriptionTier,
-	SubscriptionStatus,
-	TrialInfo,
-	UsageAlert
-} from "@cubent/types"
+import { UserProfile, SubscriptionTier, SubscriptionStatus, TrialInfo, UsageAlert } from "@cubent/types"
 
 import { UserManagementService } from "./UserManagementService"
 
@@ -32,7 +26,7 @@ export class TrialManagementService extends EventEmitter<TrialManagementEvents> 
 		this.userManagementService = userManagementService
 
 		// Set up periodic trial checks
-		this.setupPeriodicTrialChecks()
+		// this.setupPeriodicTrialChecks() // DISABLED: Remove trial notifications
 
 		// Listen to user profile updates
 		this.userManagementService.on("user-profile-updated", this.handleUserProfileUpdate.bind(this))
@@ -58,21 +52,18 @@ export class TrialManagementService extends EventEmitter<TrialManagementEvents> 
 				costRemaining: 0,
 				canExtend: false,
 				extensionsUsed: userProfile.trialExtensions,
-				maxExtensions: this.MAX_TRIAL_EXTENSIONS
+				maxExtensions: this.MAX_TRIAL_EXTENSIONS,
 			}
 		}
 
-		const daysRemaining = Math.max(0, Math.ceil(
-			(userProfile.trialEndDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
-		))
-
-		const tokensRemaining = Math.max(0, 
-			userProfile.quotas.monthlyTokenLimit - userProfile.usage.currentMonthTokens
+		const daysRemaining = Math.max(
+			0,
+			Math.ceil((userProfile.trialEndDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)),
 		)
 
-		const costRemaining = Math.max(0,
-			userProfile.quotas.monthlyCostLimit - userProfile.usage.currentMonthCost
-		)
+		const tokensRemaining = Math.max(0, userProfile.quotas.monthlyTokenLimit - userProfile.usage.currentMonthTokens)
+
+		const costRemaining = Math.max(0, userProfile.quotas.monthlyCostLimit - userProfile.usage.currentMonthCost)
 
 		const canExtend = userProfile.trialExtensions < this.MAX_TRIAL_EXTENSIONS && daysRemaining <= 3
 
@@ -83,7 +74,7 @@ export class TrialManagementService extends EventEmitter<TrialManagementEvents> 
 			costRemaining,
 			canExtend,
 			extensionsUsed: userProfile.trialExtensions,
-			maxExtensions: this.MAX_TRIAL_EXTENSIONS
+			maxExtensions: this.MAX_TRIAL_EXTENSIONS,
 		}
 	}
 
@@ -105,13 +96,13 @@ export class TrialManagementService extends EventEmitter<TrialManagementEvents> 
 
 		await this.userManagementService.startTrial()
 
-		this.emit("trial-started", { 
-			userId: userProfile.id, 
-			endDate: trialEndDate 
+		this.emit("trial-started", {
+			userId: userProfile.id,
+			endDate: trialEndDate,
 		})
 
 		// Schedule trial expiry notifications
-		this.scheduleTrialNotifications(userProfile.id, trialEndDate)
+		// this.scheduleTrialNotifications(userProfile.id, trialEndDate) // DISABLED: Remove trial notifications
 	}
 
 	/**
@@ -137,7 +128,7 @@ export class TrialManagementService extends EventEmitter<TrialManagementEvents> 
 
 		// Extend trial by specified days
 		const newEndDate = new Date(
-			userProfile.trialEndDate.getTime() + this.TRIAL_EXTENSION_DAYS * 24 * 60 * 60 * 1000
+			userProfile.trialEndDate.getTime() + this.TRIAL_EXTENSION_DAYS * 24 * 60 * 60 * 1000,
 		)
 
 		userProfile.trialEndDate = newEndDate
@@ -150,7 +141,7 @@ export class TrialManagementService extends EventEmitter<TrialManagementEvents> 
 		this.emit("trial-extended", {
 			userId: userProfile.id,
 			newEndDate,
-			extensionDays: this.TRIAL_EXTENSION_DAYS
+			extensionDays: this.TRIAL_EXTENSION_DAYS,
 		})
 
 		// Reschedule notifications for new end date
@@ -158,7 +149,7 @@ export class TrialManagementService extends EventEmitter<TrialManagementEvents> 
 
 		// Show success message
 		vscode.window.showInformationMessage(
-			`Trial extended by ${this.TRIAL_EXTENSION_DAYS} days! Your trial now expires on ${newEndDate.toLocaleDateString()}.`
+			`Trial extended by ${this.TRIAL_EXTENSION_DAYS} days! Your trial now expires on ${newEndDate.toLocaleDateString()}.`,
 		)
 	}
 
@@ -216,7 +207,7 @@ export class TrialManagementService extends EventEmitter<TrialManagementEvents> 
 			"Upgrade to Basic",
 			"Upgrade to Pro",
 			"Learn More",
-			"Remind Later"
+			"Remind Later",
 		)
 
 		switch (action) {
@@ -235,9 +226,9 @@ export class TrialManagementService extends EventEmitter<TrialManagementEvents> 
 				break
 		}
 
-		this.emit("upgrade-suggested", { 
-			userId: userProfile.id, 
-			suggestedTier 
+		this.emit("upgrade-suggested", {
+			userId: userProfile.id,
+			suggestedTier,
 		})
 	}
 
@@ -245,15 +236,10 @@ export class TrialManagementService extends EventEmitter<TrialManagementEvents> 
 	 * Show upgrade comparison
 	 */
 	private async showUpgradeComparison(): Promise<void> {
-		const panel = vscode.window.createWebviewPanel(
-			"cubentUpgrade",
-			"Upgrade Cubent",
-			vscode.ViewColumn.One,
-			{
-				enableScripts: true,
-				retainContextWhenHidden: true
-			}
-		)
+		const panel = vscode.window.createWebviewPanel("cubentUpgrade", "Upgrade Cubent", vscode.ViewColumn.One, {
+			enableScripts: true,
+			retainContextWhenHidden: true,
+		})
 
 		panel.webview.html = this.getUpgradeComparisonHtml()
 	}
@@ -264,13 +250,13 @@ export class TrialManagementService extends EventEmitter<TrialManagementEvents> 
 	private async initiateUpgrade(tier: SubscriptionTier): Promise<void> {
 		// This would typically redirect to a payment page or billing portal
 		// For now, we'll show a placeholder message
-		
+
 		const upgradeUrl = this.getUpgradeUrl(tier)
-		
+
 		const action = await vscode.window.showInformationMessage(
 			`Upgrading to ${tier}. You'll be redirected to complete your subscription.`,
 			"Open Billing Portal",
-			"Cancel"
+			"Cancel",
 		)
 
 		if (action === "Open Billing Portal") {
@@ -286,7 +272,7 @@ export class TrialManagementService extends EventEmitter<TrialManagementEvents> 
 		const baseUrl = "https://cubent.ai/upgrade"
 		const userProfile = this.userManagementService.getUserProfile()
 		const userId = userProfile?.id || "unknown"
-		
+
 		return `${baseUrl}?tier=${tier}&user=${userId}`
 	}
 
@@ -295,13 +281,13 @@ export class TrialManagementService extends EventEmitter<TrialManagementEvents> 
 	 */
 	private scheduleTrialNotifications(userId: string, trialEndDate: Date): void {
 		const now = new Date()
-		
-		this.TRIAL_WARNING_DAYS.forEach(days => {
+
+		this.TRIAL_WARNING_DAYS.forEach((days) => {
 			const notificationDate = new Date(trialEndDate.getTime() - days * 24 * 60 * 60 * 1000)
-			
+
 			if (notificationDate > now) {
 				const timeUntilNotification = notificationDate.getTime() - now.getTime()
-				
+
 				setTimeout(() => {
 					this.showTrialExpiryWarning(days)
 				}, timeUntilNotification)
@@ -318,9 +304,9 @@ export class TrialManagementService extends EventEmitter<TrialManagementEvents> 
 			return
 		}
 
-		this.emit("trial-expiring", { 
-			userId: userProfile.id, 
-			daysRemaining 
+		this.emit("trial-expiring", {
+			userId: userProfile.id,
+			daysRemaining,
 		})
 
 		let message: string
@@ -364,9 +350,12 @@ export class TrialManagementService extends EventEmitter<TrialManagementEvents> 
 	 */
 	private scheduleUpgradeReminder(): void {
 		// Remind again in 24 hours
-		setTimeout(() => {
-			this.showUpgradePrompt()
-		}, 24 * 60 * 60 * 1000)
+		setTimeout(
+			() => {
+				this.showUpgradePrompt()
+			},
+			24 * 60 * 60 * 1000,
+		)
 	}
 
 	/**
@@ -374,9 +363,12 @@ export class TrialManagementService extends EventEmitter<TrialManagementEvents> 
 	 */
 	private setupPeriodicTrialChecks(): void {
 		// Check trial status every hour
-		setInterval(() => {
-			this.checkTrialStatus()
-		}, 60 * 60 * 1000) // 1 hour
+		setInterval(
+			() => {
+				this.checkTrialStatus()
+			},
+			60 * 60 * 1000,
+		) // 1 hour
 
 		// Initial check
 		setTimeout(() => {
@@ -419,7 +411,7 @@ export class TrialManagementService extends EventEmitter<TrialManagementEvents> 
 			costRemaining: 0,
 			canExtend: false,
 			extensionsUsed: 0,
-			maxExtensions: this.MAX_TRIAL_EXTENSIONS
+			maxExtensions: this.MAX_TRIAL_EXTENSIONS,
 		}
 	}
 

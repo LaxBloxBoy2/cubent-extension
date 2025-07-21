@@ -18,7 +18,7 @@ export class Terminal extends BaseTerminal {
 
 		const env = Terminal.getEnv()
 		// Use a 3D cube-like ThemeIcon for better compatibility
-		const iconPath = new vscode.ThemeIcon("symbol-module") // 3D box-like icon
+		const iconPath = new vscode.ThemeIcon("cubent-icon") // 3D box-like icon
 		this.terminal = terminal ?? vscode.window.createTerminal({ cwd, name: "Cubent", iconPath, env })
 
 		if (Terminal.getTerminalZdotdir()) {

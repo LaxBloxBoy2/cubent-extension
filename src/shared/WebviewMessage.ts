@@ -182,6 +182,9 @@ export interface WebviewMessage {
 		| "showAddImagesButton"
 		| "setProfileVisibility"
 		| "setHiddenProfiles"
+		| "getConfiguration"
+		| "updateConfiguration"
+		| "testAutocompleteConnection"
 	text?: string
 	disabled?: boolean
 	askResponse?: ClineAskResponse
@@ -230,6 +233,9 @@ export interface WebviewMessage {
 	profileName?: string
 	visible?: boolean
 	profiles?: string[]
+	section?: string
+	configuration?: Record<string, any>
+	modelId?: string
 }
 
 export const checkoutDiffPayloadSchema = z.object({
