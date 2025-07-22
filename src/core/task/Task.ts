@@ -271,9 +271,20 @@ export class Task extends EventEmitter<ClineEvents> {
 
 		if (startTask) {
 			if (task || images) {
-				this.startTask(task, images)
+				this.startTask(task, images).catch((error) => {
+					console.log("🔍 ERROR IN CONSTRUCTOR startTask:", error)
+					// Subscription errors are handled in recursivelyMakeClineRequests, no need to handle here
+					if ((error as any).isSubscriptionError === true) {
+						console.log("🔍 SUBSCRIPTION ERROR IN CONSTRUCTOR - ALREADY HANDLED")
+						// Don't display duplicate subscription error
+					} else {
+						console.error("Unhandled error in startTask:", error)
+					}
+				})
 			} else if (historyItem) {
-				this.resumeTaskFromHistory()
+				this.resumeTaskFromHistory().catch((error) => {
+					console.error("Error resuming task from history:", error)
+				})
 			} else {
 				throw new Error("Either historyItem or task/images must be provided")
 			}
@@ -408,6 +419,12 @@ export class Task extends EventEmitter<ClineEvents> {
 		partial?: boolean,
 		progressStatus?: ToolProgressStatus,
 	): Promise<{ response: ClineAskResponse; text?: string; images?: string[] }> {
+		console.log("🔍 ASK METHOD CALLED:", {
+			type,
+			text: text?.substring(0, 100) + (text && text.length > 100 ? "..." : ""),
+			partial,
+			progressStatus,
+		})
 		// If this Cline instance was aborted by the provider, then the only
 		// thing keeping us alive is a promise still running in the background,
 		// in which case we don't want to send its result to the webview as it
@@ -1104,6 +1121,38 @@ export class Task extends EventEmitter<ClineEvents> {
 			throw new Error(`[RooCode#recursivelyMakeRooRequests] task ${this.taskId}.${this.instanceId} aborted`)
 		}
 
+		// Check subscription status FIRST - before any API setup or say calls
+		const clineProvider = this.providerRef.deref()
+		if (clineProvider) {
+			const webviewState = await clineProvider.getStateToPostToWebview()
+			const currentUser = webviewState?.currentUser
+
+			if (currentUser) {
+				const tier = currentUser.subscriptionTier || "free"
+				const status = currentUser.subscriptionStatus || "inactive"
+				const hasActivePaidSubscription = (status === "active" || status === "trialing") && tier !== "free"
+
+				if (!hasActivePaidSubscription) {
+					console.log("🚫 BLOCKING FREE USER - TREATING EXACTLY LIKE API ERROR")
+					const errorMessage =
+						"Your free trial has ended. To keep using Cubent, upgrade now and unlock full access. If you believe this is an error, please contact us."
+
+					// SUBSCRIPTION ERROR: Treat exactly like other API errors
+					await this.say("error", errorMessage)
+
+					const { response } = await this.ask("api_req_failed", errorMessage)
+
+					if (response !== "yesButtonClicked") {
+						// User clicked "start new chat" - this will clear the task
+						throw new Error("Subscription required")
+					}
+
+					// User clicked "try again" - continue with the request (they might have upgraded)
+					// Fall through to continue processing
+				}
+			}
+		}
+
 		if (this.consecutiveMistakeCount >= this.consecutiveMistakeLimit) {
 			const { response, text, images } = await this.ask(
 				"mistake_limit_reached",
@@ -1289,12 +1338,13 @@ export class Task extends EventEmitter<ClineEvents> {
 			// Yields only if the first chunk is successful, otherwise will
 			// allow the user to retry the request (most likely due to rate
 			// limit error, which gets thrown on the first chunk).
-			const stream = this.attemptApiRequest()
+			let stream: AsyncGenerator<any, void, unknown>
 			let assistantMessage = ""
 			let reasoningMessage = ""
 			this.isStreaming = true
 
 			try {
+				stream = this.attemptApiRequest()
 				for await (const chunk of stream) {
 					if (!chunk) {
 						// Sometimes chunk is undefined, no idea that can cause
@@ -1330,6 +1380,26 @@ export class Task extends EventEmitter<ClineEvents> {
 							// Present content to user.
 							presentAssistantMessage(this)
 							break
+						}
+						case "error": {
+							console.log("🔍 HANDLING YIELDED ERROR:", chunk.error)
+							console.log("🔍 ERROR CHECK:", {
+								isSubscriptionError: chunk.error.isSubscriptionError,
+								type: typeof chunk.error.isSubscriptionError,
+								errorKeys: Object.keys(chunk.error),
+							})
+
+							// Handle subscription errors specially
+							if (chunk.error.isSubscriptionError === true) {
+								console.log("🔍 SUBSCRIPTION ERROR FROM STREAM - ALREADY HANDLED")
+								// Subscription error was already displayed in recursivelyMakeClineRequests
+								// Just stop processing without showing duplicate messages
+							} else {
+								console.log("🔍 NOT A SUBSCRIPTION ERROR, DISPLAYING GENERIC ERROR")
+								// Handle other errors
+								await this.ask("api_req_failed", chunk.error.message)
+							}
+							return // Stop processing
 						}
 					}
 
@@ -1654,7 +1724,8 @@ export class Task extends EventEmitter<ClineEvents> {
 	}
 
 	public async *attemptApiRequest(retryAttempt: number = 0): ApiStream {
-		const state = await this.providerRef.deref()?.getState()
+		const provider = this.providerRef.deref()
+		const state = await provider?.getState()
 		const {
 			apiConfiguration,
 			autoApprovalEnabled,
@@ -1664,6 +1735,8 @@ export class Task extends EventEmitter<ClineEvents> {
 			autoCondenseContext = true,
 			autoCondenseContextPercent = 100,
 		} = state ?? {}
+
+		// Subscription check moved to recursivelyMakeClineRequests to avoid task abortion
 
 		// Get condensing configuration for automatic triggers
 		const customCondensingPrompt = state?.customCondensingPrompt
@@ -1817,14 +1890,36 @@ export class Task extends EventEmitter<ClineEvents> {
 		} catch (error) {
 			this.isWaitingForFirstChunk = false
 
-			// Check if this is a quota exhaustion error (429) or authentication error - don't auto-retry these
-			const isQuotaError = error.status === 429 && (
-				error.message?.includes("quota") ||
-				error.message?.includes("RESOURCE_EXHAUSTED") ||
-				error.message?.includes("Too Many Requests")
-			)
+			console.log("🔍 ERROR CAUGHT IN recursivelyMakeClineRequests:", {
+				error: error.message,
+				isSubscriptionError: (error as any).isSubscriptionError,
+				errorType: typeof error,
+				errorKeys: Object.keys(error),
+			})
 
-			const isAuthError = error.message?.includes("authentication") ||
+			// Check if this is a subscription error - handle these specially
+			const isSubscriptionError = (error as any).isSubscriptionError === true
+
+			console.log("🔍 SUBSCRIPTION ERROR CHECK:", {
+				isSubscriptionError,
+				errorMessage: error.message,
+			})
+
+			if (isSubscriptionError) {
+				console.log("🔍 SUBSCRIPTION ERROR - ALREADY HANDLED IN recursivelyMakeClineRequests")
+				// Subscription error was already displayed, just throw to stop processing
+				throw new Error("Subscription required")
+			}
+
+			// Check if this is a quota exhaustion error (429) or authentication error - don't auto-retry these
+			const isQuotaError =
+				error.status === 429 &&
+				(error.message?.includes("quota") ||
+					error.message?.includes("RESOURCE_EXHAUSTED") ||
+					error.message?.includes("Too Many Requests"))
+
+			const isAuthError =
+				error.message?.includes("authentication") ||
 				error.message?.includes("apiKey") ||
 				error.message?.includes("authToken") ||
 				error.message?.includes("Authorization") ||

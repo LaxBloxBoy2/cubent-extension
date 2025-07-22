@@ -11,6 +11,7 @@ const mockGetModels = getModels as jest.MockedFunction<typeof getModels>
 const mockClineProvider = {
 	getState: jest.fn(),
 	postMessageToWebview: jest.fn(),
+	initClineWithTask: jest.fn(),
 } as unknown as ClineProvider
 
 describe("webviewMessageHandler - requestRouterModels", () => {
@@ -269,6 +270,127 @@ describe("webviewMessageHandler - requestRouterModels", () => {
 			provider: "litellm",
 			apiKey: "litellm-key", // From config
 			baseUrl: "http://localhost:4000", // From config
+		})
+	})
+
+	describe("newTask subscription blocking", () => {
+		beforeEach(() => {
+			jest.clearAllMocks()
+		})
+
+		it("blocks free plan users from starting new tasks", async () => {
+			mockClineProvider.getState = jest.fn().mockResolvedValue({
+				currentUser: {
+					subscriptionTier: "free",
+					subscriptionStatus: "inactive",
+				},
+			})
+
+			await webviewMessageHandler(mockClineProvider, {
+				type: "newTask",
+				text: "test task",
+			})
+
+			// Should send subscription error instead of starting task
+			expect(mockClineProvider.postMessageToWebview).toHaveBeenCalledWith({
+				type: "subscriptionError",
+				error: "It looks like you don't have an active subscription. Please subscribe to continue using Cubent features. If you believe this is an error, please contact us.",
+				isExpiredTrial: false,
+			})
+
+			// Should not start the task
+			expect(mockClineProvider.initClineWithTask).not.toHaveBeenCalled()
+		})
+
+		it("blocks expired trial users", async () => {
+			mockClineProvider.getState = jest.fn().mockResolvedValue({
+				currentUser: {
+					subscriptionTier: "byak",
+					subscriptionStatus: "trialing",
+					daysLeftInTrial: 0,
+				},
+			})
+
+			await webviewMessageHandler(mockClineProvider, {
+				type: "newTask",
+				text: "test task",
+			})
+
+			// Should send expired trial error
+			expect(mockClineProvider.postMessageToWebview).toHaveBeenCalledWith({
+				type: "subscriptionError",
+				error: "Your free trial has ended. To keep using Cubent, upgrade now and unlock full access. If you believe this is an error, please contact us.",
+				isExpiredTrial: true,
+			})
+
+			// Should not start the task
+			expect(mockClineProvider.initClineWithTask).not.toHaveBeenCalled()
+		})
+
+		it("allows active paid subscription users", async () => {
+			mockClineProvider.getState = jest.fn().mockResolvedValue({
+				currentUser: {
+					subscriptionTier: "byak",
+					subscriptionStatus: "active",
+				},
+			})
+
+			await webviewMessageHandler(mockClineProvider, {
+				type: "newTask",
+				text: "test task",
+			})
+
+			// Should not send subscription error
+			expect(mockClineProvider.postMessageToWebview).not.toHaveBeenCalledWith(
+				expect.objectContaining({ type: "subscriptionError" }),
+			)
+
+			// Should start the task
+			expect(mockClineProvider.initClineWithTask).toHaveBeenCalledWith("test task", undefined)
+		})
+
+		it("allows trial users with days remaining", async () => {
+			mockClineProvider.getState = jest.fn().mockResolvedValue({
+				currentUser: {
+					subscriptionTier: "byak",
+					subscriptionStatus: "trialing",
+					daysLeftInTrial: 5,
+				},
+			})
+
+			await webviewMessageHandler(mockClineProvider, {
+				type: "newTask",
+				text: "test task",
+			})
+
+			// Should not send subscription error
+			expect(mockClineProvider.postMessageToWebview).not.toHaveBeenCalledWith(
+				expect.objectContaining({ type: "subscriptionError" }),
+			)
+
+			// Should start the task
+			expect(mockClineProvider.initClineWithTask).toHaveBeenCalledWith("test task", undefined)
+		})
+
+		it("blocks users with no currentUser data", async () => {
+			mockClineProvider.getState = jest.fn().mockResolvedValue({
+				currentUser: null,
+			})
+
+			await webviewMessageHandler(mockClineProvider, {
+				type: "newTask",
+				text: "test task",
+			})
+
+			// Should send subscription error
+			expect(mockClineProvider.postMessageToWebview).toHaveBeenCalledWith({
+				type: "subscriptionError",
+				error: "It looks like you don't have an active subscription. Please subscribe to continue using Cubent features. If you believe this is an error, please contact us.",
+				isExpiredTrial: false,
+			})
+
+			// Should not start the task
+			expect(mockClineProvider.initClineWithTask).not.toHaveBeenCalled()
 		})
 	})
 })

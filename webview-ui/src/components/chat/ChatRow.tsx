@@ -1165,6 +1165,15 @@ export const ChatRowContent = ({
 						</div>
 					)
 				case "error":
+					// Check if this is a subscription error
+					// When trial expires, users see subscription error messages with a "Resume" button
+					// The button is purely visual and doesn't perform any action - just displays "Resume" text
+					const isSubscriptionError =
+						message.text &&
+						(message.text.includes("don't have an active subscription") ||
+							message.text.includes("free trial has ended") ||
+							message.text.includes("upgrade now"))
+
 					// Compact error display with dark background and non-hardcoded colors
 					// Error label on top, details below, very compact design
 					return (
@@ -1201,9 +1210,66 @@ export const ChatRowContent = ({
 									wordBreak: "break-word",
 									whiteSpace: "pre-wrap",
 									opacity: 0.9,
+									marginBottom: isSubscriptionError ? "6px" : "0",
 								}}>
 								{formatErrorText(message.text || "")}
 							</div>
+
+							{/* Subscription Error Buttons */}
+							{isSubscriptionError && (
+								<div style={{ display: "flex", gap: "8px", marginTop: "6px" }}>
+									<button
+										style={{
+											backgroundColor: "var(--vscode-button-background)",
+											color: "var(--vscode-button-foreground)",
+											border: "none",
+											borderRadius: "2px",
+											padding: "3px 8px",
+											fontSize: "10px",
+											cursor: "pointer",
+											fontWeight: "500",
+										}}
+										onClick={() => {
+											vscode.postMessage({ type: "openExternal", url: "https://app.cubent.dev/" })
+										}}
+										onMouseEnter={(e) => {
+											e.currentTarget.style.backgroundColor =
+												"var(--vscode-button-hoverBackground)"
+										}}
+										onMouseLeave={(e) => {
+											e.currentTarget.style.backgroundColor = "var(--vscode-button-background)"
+										}}>
+										Upgrade Now
+									</button>
+									<button
+										style={{
+											backgroundColor: "var(--vscode-button-secondaryBackground)",
+											color: "var(--vscode-button-secondaryForeground)",
+											border: "none",
+											borderRadius: "2px",
+											padding: "3px 8px",
+											fontSize: "10px",
+											cursor: "pointer",
+											fontWeight: "500",
+										}}
+										onClick={() => {
+											vscode.postMessage({
+												type: "openExternalUrl",
+												url: "https://cubent.dev/contact",
+											})
+										}}
+										onMouseEnter={(e) => {
+											e.currentTarget.style.backgroundColor =
+												"var(--vscode-button-secondaryHoverBackground)"
+										}}
+										onMouseLeave={(e) => {
+											e.currentTarget.style.backgroundColor =
+												"var(--vscode-button-secondaryBackground)"
+										}}>
+										Contact Us
+									</button>
+								</div>
+							)}
 						</div>
 					)
 				case "completion_result":
@@ -1473,6 +1539,63 @@ export const ChatRowContent = ({
 					return <AutoApprovedRequestLimitWarning message={message} />
 				}
 				case "api_req_failed":
+					// Check if this is a subscription error
+					console.log("🔍 CHATROW API_REQ_FAILED:", {
+						messageText: message.text,
+						hasText: !!message.text,
+						includesSubscription: message.text?.includes("don't have an active subscription"),
+						includesFreeTrial: message.text?.includes("free trial has ended"),
+					})
+
+					const isSubscriptionError =
+						message.text &&
+						(message.text.includes("don't have an active subscription") ||
+							message.text.includes("free trial has ended"))
+					const isExpiredTrial = message.text && message.text.includes("free trial has ended")
+
+					console.log("🔍 SUBSCRIPTION ERROR CHECK:", {
+						isSubscriptionError,
+						isExpiredTrial,
+						willShowSubscriptionUI: isSubscriptionError,
+					})
+
+					if (isSubscriptionError) {
+						return (
+							<div className="text-sm bg-vscode-editor-background border border-vscode-border rounded-xs p-3 mt-2">
+								<div className="flex items-center gap-2 mb-2">
+									<span className="codicon codicon-error text-vscode-errorForeground"></span>
+									<span className="text-vscode-foreground font-medium">Subscription Required</span>
+								</div>
+								{message.text && (
+									<div className="text-vscode-descriptionForeground text-xs mb-3">
+										{formatErrorText(message.text)}
+									</div>
+								)}
+								<div className="text-vscode-foreground text-xs flex gap-3">
+									<span
+										className="underline cursor-pointer"
+										style={{ color: "var(--vscode-textLink-foreground)" }}
+										onClick={() => {
+											// Open upgrade page
+											window.open("https://app.cubent.dev/", "_blank")
+										}}>
+										{isExpiredTrial ? "Upgrade Now" : "Please Subscribe"}
+									</span>
+									<span
+										className="underline cursor-pointer"
+										style={{ color: "var(--vscode-textLink-foreground)" }}
+										onClick={() => {
+											// Open contact page
+											window.open("https://cubent.dev/contact", "_blank")
+										}}>
+										Contact Us
+									</span>
+								</div>
+							</div>
+						)
+					}
+
+					// Regular API error
 					return (
 						<div className="text-sm bg-vscode-editor-background border border-vscode-border rounded-xs p-3 mt-2">
 							<div className="flex items-center gap-2 mb-2">
