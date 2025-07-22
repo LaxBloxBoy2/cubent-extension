@@ -9,7 +9,7 @@ import { InceptionLabsProvider } from "./providers/InceptionLabsProvider"
 import { OllamaAutocompleteProvider } from "./providers/OllamaAutocompleteProvider"
 import { ContextRetrievalService } from "./context/ContextRetrievalService"
 import { PromptRenderer } from "./context/PromptRenderer"
-import { AutocompleteInput, ContextOptions, ContextPayload } from "./context/types"
+import { AutocompleteInput, ContextOptions, ContextPayload, AutocompleteCodeSnippet } from "./context/types"
 
 /**
  * Main autocomplete provider for Cubent extension
@@ -27,6 +27,17 @@ export class CubentAutocompleteProvider implements vscode.InlineCompletionItemPr
 	}
 	private onUsageStatsChanged?: (stats: typeof this.usageStats) => void
 	private contextRetrievalService: ContextRetrievalService
+	private autocompleteTrackingData: Map<
+		string,
+		{
+			modelId: string
+			provider: string
+			language: string
+			filepath: string
+			startTime: number
+			completion?: string
+		}
+	> = new Map()
 
 	constructor(
 		private readonly contextProxy: ContextProxy,
@@ -78,16 +89,38 @@ export class CubentAutocompleteProvider implements vscode.InlineCompletionItemPr
 			this.usageStats.totalRequests++
 			this.notifyUsageStatsChanged()
 
+			// Generate unique completion ID for tracking
+			const completionId = `completion-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`
+			const startTime = Date.now()
+			const language = getLanguageFromFilepath(document.fileName)
+
+			// Store tracking data for this completion
+			this.autocompleteTrackingData.set(completionId, {
+				modelId: this.currentModel || "unknown",
+				provider: this.getProviderName(this.currentModel || "unknown"),
+				language,
+				filepath: document.fileName,
+				startTime,
+			})
+
 			// Get completion from the appropriate provider
 			const completion = await this.getCompletion(document, position, token)
 
 			if (!completion) {
+				// Remove tracking data for failed completion
+				this.autocompleteTrackingData.delete(completionId)
 				return undefined
 			}
 
 			// Track successful completion
 			this.usageStats.successfulCompletions++
 			this.notifyUsageStatsChanged()
+
+			// Update tracking data with completion
+			const trackingData = this.autocompleteTrackingData.get(completionId)
+			if (trackingData) {
+				trackingData.completion = completion
+			}
 
 			// Log which model provided the completion
 			const currentProvider = this.getCurrentProvider()
@@ -98,7 +131,15 @@ export class CubentAutocompleteProvider implements vscode.InlineCompletionItemPr
 			// Track telemetry
 			this.trackCompletionRequest()
 
-			return [new vscode.InlineCompletionItem(completion, new vscode.Range(position, position))]
+			// Track autocomplete generation to webapp
+			await this.trackAutocompleteGeneration(completionId, completion, startTime)
+
+			const inlineItem = new vscode.InlineCompletionItem(completion, new vscode.Range(position, position))
+
+			// Store completion ID for acceptance tracking
+			;(inlineItem as any).completionId = completionId
+
+			return [inlineItem]
 		} catch (error) {
 			console.error("Autocomplete error:", error)
 			this.telemetryService?.captureEvent("AUTOCOMPLETE_ERROR" as any, {
@@ -521,6 +562,181 @@ export class CubentAutocompleteProvider implements vscode.InlineCompletionItemPr
 			model: this.currentModel,
 			timestamp: new Date().toISOString(),
 		})
+	}
+
+	/**
+	 * Get provider name from model ID
+	 */
+	private getProviderName(modelId: string): string {
+		switch (modelId) {
+			case "codestral":
+				return "mistral"
+			case "mercury-coder":
+				return "inception-labs"
+			case "qwen-coder":
+				return "ollama"
+			default:
+				return "unknown"
+		}
+	}
+
+	/**
+	 * Track autocomplete generation to webapp
+	 */
+	private async trackAutocompleteGeneration(
+		completionId: string,
+		completion: string,
+		startTime: number,
+	): Promise<void> {
+		console.log(`[Cubent Autocomplete] Starting to track generation for completion: ${completionId}`)
+
+		const trackingData = this.autocompleteTrackingData.get(completionId)
+		if (!trackingData) {
+			console.warn(`[Cubent Autocomplete] No tracking data found for completion: ${completionId}`)
+			return
+		}
+
+		const latency = Date.now() - startTime
+		const linesAdded = completion.split("\n").length // Count actual lines (single line = 1, multi-line = actual count)
+		const charactersAdded = completion.length
+
+		console.log(`[Cubent Autocomplete] Tracking data:`, {
+			modelId: trackingData.modelId,
+			provider: trackingData.provider,
+			linesAdded,
+			charactersAdded,
+			latency,
+		})
+
+		try {
+			// Import services dynamically to avoid circular dependencies
+			const { default: AuthenticationService } = await import("../../services/AuthenticationService")
+			const { default: CubentWebApiService } = await import("../../services/CubentWebApiService")
+
+			const authService = AuthenticationService.getInstance()
+			const apiService = CubentWebApiService.getInstance()
+
+			console.log(
+				`[Cubent Autocomplete] Auth check - isAuthenticated: ${authService.isAuthenticated()}, hasToken: ${!!authService.authToken}`,
+			)
+
+			if (authService.isAuthenticated()) {
+				if (authService.authToken) {
+					apiService.setAuthToken(authService.authToken)
+					console.log(`[Cubent Autocomplete] Auth token set, proceeding with tracking`)
+				} else {
+					console.warn("[Cubent Autocomplete] User is authenticated but no auth token found")
+					return
+				}
+
+				await apiService.trackAutocomplete({
+					modelId: trackingData.modelId,
+					provider: trackingData.provider,
+					completionsGenerated: 1,
+					completionsAccepted: 0, // Will be updated when accepted
+					linesAdded,
+					charactersAdded,
+					language: trackingData.language,
+					filepath: trackingData.filepath,
+					latency,
+					sessionId: `autocomplete-${Date.now()}`,
+					metadata: {
+						completionId,
+						timestamp: Date.now(),
+					},
+				})
+
+				console.log(
+					`[Cubent Autocomplete] Tracked generation: ${trackingData.modelId}, ${linesAdded} lines, ${charactersAdded} chars`,
+				)
+			}
+		} catch (error) {
+			console.error("[Cubent Autocomplete] Failed to track generation:", error)
+		}
+	}
+
+	/**
+	 * Track autocomplete acceptance to webapp
+	 */
+	public async trackAutocompleteAcceptance(completionId: string): Promise<void> {
+		const trackingData = this.autocompleteTrackingData.get(completionId)
+		if (!trackingData || !trackingData.completion) return
+
+		const linesAdded = trackingData.completion.split("\n").length
+		const charactersAdded = trackingData.completion.length
+
+		try {
+			// Import services dynamically to avoid circular dependencies
+			const { default: AuthenticationService } = await import("../../services/AuthenticationService")
+			const { default: CubentWebApiService } = await import("../../services/CubentWebApiService")
+
+			const authService = AuthenticationService.getInstance()
+			const apiService = CubentWebApiService.getInstance()
+
+			if (authService.isAuthenticated()) {
+				if (authService.authToken) {
+					apiService.setAuthToken(authService.authToken)
+				} else {
+					console.warn("[Cubent Autocomplete] User is authenticated but no auth token found")
+					return
+				}
+
+				await apiService.trackAutocomplete({
+					modelId: trackingData.modelId,
+					provider: trackingData.provider,
+					completionsGenerated: 0, // Don't double count generation
+					completionsAccepted: 1,
+					linesAdded,
+					charactersAdded,
+					language: trackingData.language,
+					filepath: trackingData.filepath,
+					sessionId: `autocomplete-${Date.now()}`,
+					metadata: {
+						completionId,
+						accepted: true,
+						timestamp: Date.now(),
+					},
+				})
+
+				console.log(
+					`[Cubent Autocomplete] Tracked acceptance: ${trackingData.modelId}, ${linesAdded} lines accepted`,
+				)
+			}
+		} catch (error) {
+			console.error("[Cubent Autocomplete] Failed to track acceptance:", error)
+		} finally {
+			// Clean up tracking data
+			this.autocompleteTrackingData.delete(completionId)
+		}
+	}
+
+	/**
+	 * Track potential autocomplete acceptance based on document changes
+	 * This is a heuristic approach since VSCode doesn't provide direct acceptance events
+	 */
+	public async trackPotentialAcceptance(insertedText: string, filepath: string): Promise<void> {
+		// Look for matching completions in our tracking data
+		for (const [completionId, trackingData] of this.autocompleteTrackingData.entries()) {
+			if (trackingData.filepath === filepath && trackingData.completion) {
+				// Check if the inserted text matches or is a prefix of our completion
+				if (
+					trackingData.completion.startsWith(insertedText) ||
+					insertedText.includes(trackingData.completion)
+				) {
+					// This looks like an acceptance of our completion
+					await this.trackAutocompleteAcceptance(completionId)
+
+					// Update local stats
+					this.usageStats.acceptedCompletions++
+					this.notifyUsageStatsChanged()
+
+					console.log(
+						`[Cubent Autocomplete] Detected acceptance via document change: ${trackingData.modelId}`,
+					)
+					break // Only track one acceptance per change
+				}
+			}
+		}
 	}
 
 	/**

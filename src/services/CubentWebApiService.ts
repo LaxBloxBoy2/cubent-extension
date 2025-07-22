@@ -204,6 +204,34 @@ class CubentWebApiService {
 			return null
 		}
 	}
+
+	async trackAutocomplete(autocompleteData: {
+		modelId: string
+		provider: string
+		completionsGenerated: number
+		completionsAccepted: number
+		linesAdded: number
+		charactersAdded: number
+		language?: string
+		filepath?: string
+		sessionId?: string
+		latency?: number
+		metadata?: any
+	}): Promise<void> {
+		try {
+			console.log("[CubentWebApiService] Tracking autocomplete data:", autocompleteData)
+
+			const response = await this.makeRequest("/api/extension/track-autocomplete", {
+				method: "POST",
+				body: JSON.stringify(autocompleteData),
+			})
+
+			console.log("[CubentWebApiService] Autocomplete tracking response:", response)
+		} catch (error) {
+			console.error("[CubentWebApiService] Error tracking autocomplete:", error)
+			throw error
+		}
+	}
 }
 
 export default CubentWebApiService

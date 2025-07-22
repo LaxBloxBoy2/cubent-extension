@@ -374,6 +374,33 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	console.log(`[Cubent Extension] Autocomplete enabled: ${autocompleteEnabled}`)
 
+	// Show autocomplete setup notification if not enabled (only once per session)
+	if (!autocompleteEnabled) {
+		const authService = AuthenticationService.getInstance()
+		if (authService.isAuthenticated()) {
+			// Check if we've already shown this notification
+			const hasShownNotification = context.globalState.get("cubent.autocomplete.notificationShown", false)
+
+			if (!hasShownNotification) {
+				// Show notification to enable autocomplete
+				vscode.window
+					.showInformationMessage(
+						"🚀 Enable Cubent Autocomplete to get AI-powered code completions!",
+						"Enable Now",
+						"Later",
+						"Don't Show Again",
+					)
+					.then((selection) => {
+						if (selection === "Enable Now") {
+							vscode.commands.executeCommand("cubent.setupAutocomplete")
+						} else if (selection === "Don't Show Again") {
+							context.globalState.update("cubent.autocomplete.notificationShown", true)
+						}
+					})
+			}
+		}
+	}
+
 	if (autocompleteEnabled) {
 		try {
 			console.log("[Cubent Extension] Creating autocomplete provider...")
@@ -394,6 +421,25 @@ Model: ${autocompleteConfig.get<string>("model", "none")}
 Click to view usage and settings`
 				console.log(`Status bar updated: ${cubentStatusBarItem.text}`)
 			})
+
+			// Set up document change listener for tracking autocomplete acceptance
+			const documentChangeListener = vscode.workspace.onDidChangeTextDocument((event) => {
+				// Check if this change might be an autocomplete acceptance
+				if (event.contentChanges.length === 1) {
+					const change = event.contentChanges[0]
+					if (change.text.length > 0 && change.rangeLength === 0) {
+						// This looks like an insertion, which could be an autocomplete acceptance
+						// We'll use a simple heuristic: if the inserted text is multi-line or substantial,
+						// it's likely an autocomplete acceptance
+						if (change.text.includes("\n") || change.text.length > 10) {
+							// Track this as a potential autocomplete acceptance
+							// Note: This is a heuristic and may not be 100% accurate
+							autocompleteProvider.trackPotentialAcceptance(change.text, event.document.fileName)
+						}
+					}
+				}
+			})
+			context.subscriptions.push(documentChangeListener)
 
 			// Initial status bar update when autocomplete is enabled
 			const initialStats = autocompleteProvider.getUsageStats()
@@ -431,15 +477,138 @@ Click to open sidebar`
 			console.log("Cubent autocomplete provider registered successfully")
 		} catch (error) {
 			console.error("Failed to register autocomplete provider:", error)
-			vscode.window.showWarningMessage(
-				"Failed to initialize Cubent autocomplete. Check your API keys in settings.",
-			)
+			vscode.window
+				.showWarningMessage(
+					"Failed to initialize Cubent autocomplete. Check your API keys in settings.",
+					"Open Settings",
+				)
+				.then((selection) => {
+					if (selection === "Open Settings") {
+						vscode.commands.executeCommand("workbench.action.openSettings", "cubent.autocomplete")
+					}
+				})
 		}
 	} else {
 		// Update status bar when autocomplete is disabled
 		cubentStatusBarItem.text = "$(cubent-icon) Cubent"
 		cubentStatusBarItem.tooltip = "Cubent AI Assistant\nAutocomplete: Disabled\nClick to open sidebar"
 	}
+
+	// Register autocomplete setup command
+	context.subscriptions.push(
+		vscode.commands.registerCommand("cubent.setupAutocomplete", async () => {
+			const authService = AuthenticationService.getInstance()
+
+			if (!authService.isAuthenticated()) {
+				vscode.window
+					.showWarningMessage("Please sign in to Cubent first to use autocomplete.", "Sign In")
+					.then((selection) => {
+						if (selection === "Sign In") {
+							vscode.commands.executeCommand("cubent.signIn")
+						}
+					})
+				return
+			}
+
+			const config = vscode.workspace.getConfiguration("cubent.autocomplete")
+			const currentModel = config.get<string>("model", "codestral")
+
+			// Show model selection
+			const modelChoice = await vscode.window.showQuickPick(
+				[
+					{
+						label: "Codestral (Mistral AI)",
+						description: "Best Performance - Requires Mistral API key",
+						detail: "Professional-grade code completion with excellent accuracy",
+						value: "codestral",
+					},
+					{
+						label: "Mercury Coder (Inception Labs)",
+						description: "Best Speed/Quality - Requires Inception Labs API key",
+						detail: "Fast and efficient code completion",
+						value: "mercury-coder",
+					},
+					{
+						label: "Qwen 2.5 Coder (Ollama)",
+						description: "Local/Privacy - Requires Ollama running locally",
+						detail: "Run locally for maximum privacy",
+						value: "qwen-coder",
+					},
+				],
+				{
+					placeHolder: "Choose your autocomplete model",
+					title: "Cubent Autocomplete Setup",
+				},
+			)
+
+			if (!modelChoice) return
+
+			// Set the model
+			await config.update("model", modelChoice.value, vscode.ConfigurationTarget.Global)
+
+			// Check for API keys based on model
+			let needsApiKey = false
+			let apiKeyName = ""
+			let apiKeyUrl = ""
+
+			switch (modelChoice.value) {
+				case "codestral":
+					needsApiKey = !config.get<string>("mistralApiKey")
+					apiKeyName = "Mistral API Key"
+					apiKeyUrl = "https://console.mistral.ai/"
+					break
+				case "mercury-coder":
+					needsApiKey = !config.get<string>("inceptionApiKey")
+					apiKeyName = "Inception Labs API Key"
+					apiKeyUrl = "https://console.inceptionlabs.ai/"
+					break
+				case "qwen-coder":
+					// Check if Ollama is running
+					needsApiKey = false // Ollama doesn't need API key, but we should check if it's running
+					break
+			}
+
+			if (needsApiKey) {
+				const action = await vscode.window.showInformationMessage(
+					`You need to set up your ${apiKeyName} to use ${modelChoice.label}.`,
+					"Open Settings",
+					"Get API Key",
+				)
+
+				if (action === "Open Settings") {
+					vscode.commands.executeCommand("workbench.action.openSettings", "cubent.autocomplete")
+				} else if (action === "Get API Key") {
+					vscode.env.openExternal(vscode.Uri.parse(apiKeyUrl))
+				}
+				return
+			}
+
+			// Enable autocomplete
+			await config.update("enabled", true, vscode.ConfigurationTarget.Global)
+
+			vscode.window
+				.showInformationMessage(
+					`Cubent Autocomplete enabled with ${modelChoice.label}! Start typing to see AI completions.`,
+					"Open Settings",
+				)
+				.then((selection) => {
+					if (selection === "Open Settings") {
+						vscode.commands.executeCommand("workbench.action.openSettings", "cubent.autocomplete")
+					}
+				})
+
+			// Reload window to activate autocomplete
+			const reload = await vscode.window.showInformationMessage(
+				"Reload VS Code to activate autocomplete?",
+				"Reload Now",
+				"Later",
+			)
+
+			if (reload === "Reload Now") {
+				vscode.commands.executeCommand("workbench.action.reloadWindow")
+			}
+		}),
+	)
 
 	// Listen for configuration changes to update status bar
 	context.subscriptions.push(
