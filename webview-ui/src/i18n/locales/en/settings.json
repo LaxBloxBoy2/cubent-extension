@@ -29,6 +29,7 @@
 		"providers": "Models",
 		"models": "Models",
 		"apiKeyManagement": "API Keys",
+		"autocomplete": "Autocomplete",
 		"indexing": "Indexing & Docs",
 		"userGuidelines": "User Guidelines",
 		"mcp": "MCP Tools",

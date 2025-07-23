@@ -293,6 +293,8 @@ export async function activate(context: vscode.ExtensionContext) {
 			"Gemini 1.5 Pro",
 			"Grok-3 Mini",
 			"Grok 2 Vision",
+			"Cube Max (Demo)",
+			"Cube Core (Preview)",
 		]
 		context.globalState.update("hiddenProfiles", defaultHiddenProfiles)
 	}

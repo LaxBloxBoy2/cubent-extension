@@ -94,321 +94,340 @@ const CodeAccordian = ({
 	}, [path])
 
 	return (
-		<ToolUseBlock>
-			{hasHeader && (
-				<ToolUseBlockHeader onClick={onToggleExpand}>
-					{isFeedback ? (
-						<div className="flex items-center">
-							<span className={`codicon codicon-${isFeedback ? "feedback" : "codicon-output"} mr-1.5`} />
-							<span className="whitespace-nowrap overflow-hidden text-ellipsis mr-2 rtl">
-								{isFeedback ? "Your Changes" : "Console Logs"}
-							</span>
-						</div>
-					) : isEditedFile ? (
-						<div className="flex flex-col flex-1 min-w-0">
-							<div className="flex items-center min-w-0">
-								<span className="codicon codicon-edit mr-1.5 flex-shrink-0" />
-								<span className="font-medium mr-2 flex-shrink-0">
-									{isLoading ? "Editing..." : "Edited file"}
-								</span>
-								{(diffStats.added > 0 || diffStats.removed > 0) && (
-									<span
-										className="text-xs mr-2 flex-shrink-0"
-										style={{
-											color: "var(--vscode-descriptionForeground)",
-											fontWeight: "normal",
-										}}>
-										{diffStats.added > 0 && (
-											<span style={{ color: "var(--vscode-charts-green)" }}>
-												+{diffStats.added}
-											</span>
-										)}
-										{diffStats.added > 0 && diffStats.removed > 0 && " "}
-										{diffStats.removed > 0 && (
-											<span style={{ color: "var(--vscode-charts-red)" }}>
-												-{diffStats.removed}
-											</span>
-										)}
-									</span>
-								)}
-							</div>
-							<div
-								className="text-xs text-vscode-descriptionForeground ml-6 mt-0.5 overflow-hidden whitespace-nowrap cursor-default"
-								style={{
-									textOverflow: "ellipsis",
-									maxWidth: "calc(100% + 20px)",
-									direction: "rtl",
-									textAlign: "left",
-								}}
-								title={
-									path ? (path.startsWith(".") ? "." : "") + removeLeadingNonAlphanumeric(path) : ""
-								}>
-								<span style={{ direction: "ltr" }}>
-									{path?.startsWith(".") && <span>.</span>}
-									{removeLeadingNonAlphanumeric(path ?? "")}
-								</span>
-							</div>
-						</div>
-					) : isSearchAndReplace ? (
-						<div className="flex flex-col flex-1 min-w-0">
-							<div className="flex items-center">
-								<span className="codicon codicon-replace mr-1.5" />
-								<span className="font-medium mr-2 whitespace-nowrap">
-									{isLoading ? "Searching and replacing..." : "Search and Replace"}
-								</span>
-								{(diffStats.added > 0 || diffStats.removed > 0) && (
-									<span
-										className="text-xs mr-2 flex-shrink-0"
-										style={{
-											color: "var(--vscode-descriptionForeground)",
-											fontWeight: "normal",
-										}}>
-										{diffStats.added > 0 && (
-											<span style={{ color: "var(--vscode-charts-green)" }}>
-												+{diffStats.added}
-											</span>
-										)}
-										{diffStats.added > 0 && diffStats.removed > 0 && " "}
-										{diffStats.removed > 0 && (
-											<span style={{ color: "var(--vscode-charts-red)" }}>
-												-{diffStats.removed}
-											</span>
-										)}
-									</span>
-								)}
-							</div>
-							<div
-								className="text-xs text-vscode-descriptionForeground ml-6 mt-0.5 overflow-hidden whitespace-nowrap cursor-default"
-								style={{
-									textOverflow: "ellipsis",
-									maxWidth: "calc(100% - 20px)",
-									direction: "rtl",
-									textAlign: "left",
-								}}
-								title={path ? (path.startsWith(".") ? "." : "") + path : ""}>
-								<span style={{ direction: "ltr" }}>
-									{path?.startsWith(".") && <span>.</span>}
-									{path ?? ""}
-								</span>
-							</div>
-						</div>
-					) : isCreatedFile ? (
-						<div className="flex flex-col flex-1 min-w-0">
-							<div className="flex items-center">
-								<span className="codicon codicon-new-file mr-1.5" />
-								<span className="font-medium mr-2 whitespace-nowrap">
-									{isLoading ? "Creating file..." : "Created file"}
-								</span>
-								{code && (
-									<span
-										className="text-xs mr-2 flex-shrink-0"
-										style={{
-											color: "var(--vscode-descriptionForeground)",
-											fontWeight: "normal",
-										}}>
-										<span style={{ color: "var(--vscode-charts-green)" }}>
-											+{code.split("\n").length}
-										</span>
-									</span>
-								)}
-							</div>
-							<div
-								className="text-xs text-vscode-descriptionForeground ml-6 mt-0.5 overflow-hidden whitespace-nowrap cursor-default"
-								style={{
-									textOverflow: "ellipsis",
-									maxWidth: "calc(100% - 20px)",
-									direction: "rtl",
-									textAlign: "left",
-								}}
-								title={path ? (path.startsWith(".") ? "." : "") + path : ""}>
-								<span style={{ direction: "ltr" }}>
-									{path?.startsWith(".") && <span>.</span>}
-									{path ?? ""}
-								</span>
-							</div>
-						</div>
-					) : isAppendContent ? (
-						<div className="flex flex-col flex-1 min-w-0">
-							<div className="flex items-center">
-								<span className="codicon codicon-add mr-1.5" />
-								<span className="font-medium mr-2 whitespace-nowrap">
-									{isLoading ? "Appending content..." : "Append content"}
-								</span>
-								{(diffStats.added > 0 || diffStats.removed > 0) && (
-									<span
-										className="text-xs mr-2 flex-shrink-0"
-										style={{
-											color: "var(--vscode-descriptionForeground)",
-											fontWeight: "normal",
-										}}>
-										{diffStats.added > 0 && (
-											<span style={{ color: "var(--vscode-charts-green)" }}>
-												+{diffStats.added}
-											</span>
-										)}
-										{diffStats.added > 0 && diffStats.removed > 0 && " "}
-										{diffStats.removed > 0 && (
-											<span style={{ color: "var(--vscode-charts-red)" }}>
-												-{diffStats.removed}
-											</span>
-										)}
-									</span>
-								)}
-							</div>
-							<div
-								className="text-xs text-vscode-descriptionForeground ml-6 mt-0.5 overflow-hidden whitespace-nowrap cursor-default"
-								style={{
-									textOverflow: "ellipsis",
-									maxWidth: "calc(100% - 20px)",
-									direction: "rtl",
-									textAlign: "left",
-								}}
-								title={path ? (path.startsWith(".") ? "." : "") + path : ""}>
-								<span style={{ direction: "ltr" }}>
-									{path?.startsWith(".") && <span>.</span>}
-									{path ?? ""}
-								</span>
-							</div>
-						</div>
-					) : customHeaderText ? (
-						<div className="flex flex-col flex-1 min-w-0">
+		<>
+			<ToolUseBlock>
+				{hasHeader && (
+					<ToolUseBlockHeader onClick={onToggleExpand}>
+						{isFeedback ? (
 							<div className="flex items-center">
 								<span
-									className={`codicon codicon-${customHeaderIcon || "file"} mr-1.5 flex-shrink-0`}
+									className={`codicon codicon-${isFeedback ? "feedback" : "codicon-output"} mr-1.5`}
 								/>
-								<span className="text-sm font-medium whitespace-nowrap">
-									{customHeaderText}
-									{customHighlightText && (
-										<>
-											{" "}
-											<code className="bg-vscode-textCodeBlock-background px-1 rounded text-xs">
-												{customHighlightText}
-											</code>
-										</>
-									)}
+								<span className="whitespace-nowrap overflow-hidden text-ellipsis mr-2 rtl">
+									{isFeedback ? "Your Changes" : "Console Logs"}
 								</span>
 							</div>
-							{(customSubText || path) && (
+						) : isEditedFile ? (
+							<div className="flex flex-col flex-1 min-w-0">
+								<div className="flex items-center min-w-0">
+									<span className="codicon codicon-edit mr-1.5 flex-shrink-0" />
+									<span className="font-medium mr-2 flex-shrink-0">
+										{isLoading ? "Editing..." : "Edited file"}
+									</span>
+									{(diffStats.added > 0 || diffStats.removed > 0) && (
+										<span
+											className="text-xs mr-2 flex-shrink-0"
+											style={{
+												color: "var(--vscode-descriptionForeground)",
+												fontWeight: "normal",
+											}}>
+											{diffStats.added > 0 && (
+												<span style={{ color: "var(--vscode-charts-green)" }}>
+													+{diffStats.added}
+												</span>
+											)}
+											{diffStats.added > 0 && diffStats.removed > 0 && " "}
+											{diffStats.removed > 0 && (
+												<span style={{ color: "var(--vscode-charts-red)" }}>
+													-{diffStats.removed}
+												</span>
+											)}
+										</span>
+									)}
+								</div>
 								<div
-									className="text-xs text-vscode-descriptionForeground ml-6 mt-0.5 overflow-hidden whitespace-nowrap"
+									className="text-xs text-vscode-descriptionForeground ml-6 mt-0.5 overflow-hidden whitespace-nowrap cursor-default"
+									style={{
+										textOverflow: "ellipsis",
+										maxWidth: "calc(100% + 20px)",
+										direction: "rtl",
+										textAlign: "left",
+									}}
+									title={
+										path
+											? (path.startsWith(".") ? "." : "") + removeLeadingNonAlphanumeric(path)
+											: ""
+									}>
+									<span style={{ direction: "ltr" }}>
+										{path?.startsWith(".") && <span>.</span>}
+										{removeLeadingNonAlphanumeric(path ?? "")}
+									</span>
+								</div>
+							</div>
+						) : isSearchAndReplace ? (
+							<div className="flex flex-col flex-1 min-w-0">
+								<div className="flex items-center">
+									<span className="codicon codicon-replace mr-1.5" />
+									<span className="font-medium mr-2 whitespace-nowrap">
+										{isLoading ? "Searching and replacing..." : "Search and Replace"}
+									</span>
+									{(diffStats.added > 0 || diffStats.removed > 0) && (
+										<span
+											className="text-xs mr-2 flex-shrink-0"
+											style={{
+												color: "var(--vscode-descriptionForeground)",
+												fontWeight: "normal",
+											}}>
+											{diffStats.added > 0 && (
+												<span style={{ color: "var(--vscode-charts-green)" }}>
+													+{diffStats.added}
+												</span>
+											)}
+											{diffStats.added > 0 && diffStats.removed > 0 && " "}
+											{diffStats.removed > 0 && (
+												<span style={{ color: "var(--vscode-charts-red)" }}>
+													-{diffStats.removed}
+												</span>
+											)}
+										</span>
+									)}
+								</div>
+								<div
+									className="text-xs text-vscode-descriptionForeground ml-6 mt-0.5 overflow-hidden whitespace-nowrap cursor-default"
 									style={{
 										textOverflow: "ellipsis",
 										maxWidth: "calc(100% - 20px)",
 										direction: "rtl",
 										textAlign: "left",
 									}}
-									title={customSubText || path}>
+									title={path ? (path.startsWith(".") ? "." : "") + path : ""}>
 									<span style={{ direction: "ltr" }}>
-										{(customSubText || path)?.startsWith(".") && <span>.</span>}
-										{removeLeadingNonAlphanumeric(customSubText || path || "")}
+										{path?.startsWith(".") && <span>.</span>}
+										{path ?? ""}
 									</span>
 								</div>
-							)}
-						</div>
-					) : (
-						<>
-							{path?.startsWith(".") && <span>.</span>}
-							<span className="whitespace-nowrap overflow-hidden text-ellipsis text-left mr-2 rtl">
-								{truncatedPath + "\u200E"}
-							</span>
-							{(diffStats.added > 0 || diffStats.removed > 0) && (
-								<span
-									className="text-xs mr-2 flex-shrink-0"
+							</div>
+						) : isCreatedFile ? (
+							<div className="flex flex-col flex-1 min-w-0">
+								<div className="flex items-center">
+									<span className="codicon codicon-new-file mr-1.5" />
+									<span className="font-medium mr-2 whitespace-nowrap">
+										{isLoading ? "Creating file..." : "Created file"}
+									</span>
+									{code && (
+										<span
+											className="text-xs mr-2 flex-shrink-0"
+											style={{
+												color: "var(--vscode-descriptionForeground)",
+												fontWeight: "normal",
+											}}>
+											<span style={{ color: "var(--vscode-charts-green)" }}>
+												+{code.split("\n").length}
+											</span>
+										</span>
+									)}
+								</div>
+								<div
+									className="text-xs text-vscode-descriptionForeground ml-6 mt-0.5 overflow-hidden whitespace-nowrap cursor-default"
 									style={{
-										color: "var(--vscode-descriptionForeground)",
-										fontWeight: "normal",
-									}}>
-									{diffStats.added > 0 && (
-										<span style={{ color: "var(--vscode-charts-green)" }}>+{diffStats.added}</span>
+										textOverflow: "ellipsis",
+										maxWidth: "calc(100% - 20px)",
+										direction: "rtl",
+										textAlign: "left",
+									}}
+									title={path ? (path.startsWith(".") ? "." : "") + path : ""}>
+									<span style={{ direction: "ltr" }}>
+										{path?.startsWith(".") && <span>.</span>}
+										{path ?? ""}
+									</span>
+								</div>
+							</div>
+						) : isAppendContent ? (
+							<div className="flex flex-col flex-1 min-w-0">
+								<div className="flex items-center">
+									<span className="codicon codicon-add mr-1.5" />
+									<span className="font-medium mr-2 whitespace-nowrap">
+										{isLoading ? "Appending content..." : "Append content"}
+									</span>
+									{(diffStats.added > 0 || diffStats.removed > 0) && (
+										<span
+											className="text-xs mr-2 flex-shrink-0"
+											style={{
+												color: "var(--vscode-descriptionForeground)",
+												fontWeight: "normal",
+											}}>
+											{diffStats.added > 0 && (
+												<span style={{ color: "var(--vscode-charts-green)" }}>
+													+{diffStats.added}
+												</span>
+											)}
+											{diffStats.added > 0 && diffStats.removed > 0 && " "}
+											{diffStats.removed > 0 && (
+												<span style={{ color: "var(--vscode-charts-red)" }}>
+													-{diffStats.removed}
+												</span>
+											)}
+										</span>
 									)}
-									{diffStats.added > 0 && diffStats.removed > 0 && " "}
-									{diffStats.removed > 0 && (
-										<span style={{ color: "var(--vscode-charts-red)" }}>-{diffStats.removed}</span>
-									)}
+								</div>
+								<div
+									className="text-xs text-vscode-descriptionForeground ml-6 mt-0.5 overflow-hidden whitespace-nowrap cursor-default"
+									style={{
+										textOverflow: "ellipsis",
+										maxWidth: "calc(100% - 20px)",
+										direction: "rtl",
+										textAlign: "left",
+									}}
+									title={path ? (path.startsWith(".") ? "." : "") + path : ""}>
+									<span style={{ direction: "ltr" }}>
+										{path?.startsWith(".") && <span>.</span>}
+										{path ?? ""}
+									</span>
+								</div>
+							</div>
+						) : customHeaderText ? (
+							<div className="flex flex-col flex-1 min-w-0">
+								<div className="flex items-center">
+									<span
+										className={`codicon codicon-${customHeaderIcon || "file"} mr-1.5 flex-shrink-0`}
+									/>
+									<span className="text-sm font-medium whitespace-nowrap">
+										{customHeaderText}
+										{customHighlightText && (
+											<>
+												{" "}
+												<code className="bg-vscode-textCodeBlock-background px-1 rounded text-xs">
+													{customHighlightText}
+												</code>
+											</>
+										)}
+									</span>
+								</div>
+								{(customSubText || path) && (
+									<div
+										className="text-xs text-vscode-descriptionForeground ml-6 mt-0.5 overflow-hidden whitespace-nowrap"
+										style={{
+											textOverflow: "ellipsis",
+											maxWidth: "calc(100% - 20px)",
+											direction: "rtl",
+											textAlign: "left",
+										}}
+										title={customSubText || path}>
+										<span style={{ direction: "ltr" }}>
+											{(customSubText || path)?.startsWith(".") && <span>.</span>}
+											{removeLeadingNonAlphanumeric(customSubText || path || "")}
+										</span>
+									</div>
+								)}
+							</div>
+						) : (
+							<>
+								{path?.startsWith(".") && <span>.</span>}
+								<span className="whitespace-nowrap overflow-hidden text-ellipsis text-left mr-2 rtl">
+									{truncatedPath + "\u200E"}
 								</span>
-							)}
-						</>
-					)}
-					<div className="flex-grow-1" />
-					{progressStatus && progressStatus.text && (
-						<>
-							{progressStatus.icon && <span className={`codicon codicon-${progressStatus.icon} mr-1`} />}
-							<span className="mr-1 ml-auto text-vscode-descriptionForeground">
-								{progressStatus.text}
-							</span>
-						</>
-					)}
-					{/* Show diff button for edited files - MOVED TO EXPANDED AREA */}
-					{/* Open file button for edited files */}
-					{isEditedFile && path && onViewFile && (
-						<button
-							className="flex items-center justify-center w-5 h-5 mr-2 text-vscode-descriptionForeground hover:text-vscode-foreground transition-colors cursor-pointer"
-							title="Open file"
-							onClick={(e) => {
-								e.stopPropagation()
-								onViewFile()
-							}}>
-							<span className="codicon codicon-link-external text-[10px]"></span>
-						</button>
-					)}
-					{/* Status dot for edited files */}
-					{isEditedFile && <StatusDot state={isLoading ? "building" : code ? "success" : "error"} />}
-					{/* Show diff button for append content - MOVED TO EXPANDED AREA */}
-					{/* View file and success icons for append content */}
-					{isAppendContent && showViewFileIcon && path && onViewFile && (
-						<button
-							className="flex items-center justify-center w-5 h-5 mr-2 text-vscode-descriptionForeground hover:text-vscode-foreground transition-colors cursor-pointer"
-							title="Open file"
-							onClick={(e) => {
-								e.stopPropagation()
-								onViewFile()
-							}}>
-							<span className="codicon codicon-link-external text-[10px]"></span>
-						</button>
-					)}
-					{/* Show diff button for search and replace - MOVED TO EXPANDED AREA */}
-					{/* External link icon for search and replace */}
-					{isSearchAndReplace && path && showViewFileIcon && onViewFile && (
-						<button
-							className="flex items-center justify-center w-5 h-5 mr-2 text-vscode-descriptionForeground hover:text-vscode-foreground transition-colors cursor-pointer"
-							title="Open file"
-							onClick={(e) => {
-								e.stopPropagation()
-								onViewFile()
-							}}>
-							<span className="codicon codicon-link-external text-[10px]"></span>
-						</button>
-					)}
-					{/* Status dot for search and replace */}
-					{isSearchAndReplace && <StatusDot state={isLoading ? "building" : code ? "success" : "error"} />}
-					{/* External link icon for created files */}
-					{isCreatedFile && path && showViewFileIcon && onViewFile && (
-						<button
-							className="flex items-center justify-center w-5 h-5 mr-2 text-vscode-descriptionForeground hover:text-vscode-foreground transition-colors cursor-pointer"
-							title="Open file"
-							onClick={(e) => {
-								e.stopPropagation()
-								onViewFile()
-							}}>
-							<span className="codicon codicon-link-external text-[10px]"></span>
-						</button>
-					)}
-					{/* Status dot for created files */}
-					{isCreatedFile && <StatusDot state={isLoading ? "building" : code ? "success" : "error"} />}
-					{/* Status dot for append content */}
-					{isAppendContent && <StatusDot state={isLoading ? "building" : code ? "success" : "error"} />}
+								{(diffStats.added > 0 || diffStats.removed > 0) && (
+									<span
+										className="text-xs mr-2 flex-shrink-0"
+										style={{
+											color: "var(--vscode-descriptionForeground)",
+											fontWeight: "normal",
+										}}>
+										{diffStats.added > 0 && (
+											<span style={{ color: "var(--vscode-charts-green)" }}>
+												+{diffStats.added}
+											</span>
+										)}
+										{diffStats.added > 0 && diffStats.removed > 0 && " "}
+										{diffStats.removed > 0 && (
+											<span style={{ color: "var(--vscode-charts-red)" }}>
+												-{diffStats.removed}
+											</span>
+										)}
+									</span>
+								)}
+							</>
+						)}
+						<div className="flex-grow-1" />
+						{progressStatus && progressStatus.text && (
+							<>
+								{progressStatus.icon && (
+									<span className={`codicon codicon-${progressStatus.icon} mr-1`} />
+								)}
+								<span className="mr-1 ml-auto text-vscode-descriptionForeground">
+									{progressStatus.text}
+								</span>
+							</>
+						)}
+						{/* Show diff button for edited files - MOVED TO EXPANDED AREA */}
+						{/* Open file button for edited files */}
+						{isEditedFile && path && onViewFile && (
+							<button
+								className="flex items-center justify-center w-5 h-5 mr-2 text-vscode-descriptionForeground hover:text-vscode-foreground transition-colors cursor-pointer"
+								title="Open file"
+								onClick={(e) => {
+									e.stopPropagation()
+									onViewFile()
+								}}>
+								<span className="codicon codicon-link-external text-[10px]"></span>
+							</button>
+						)}
+						{/* Status dot for edited files */}
+						{isEditedFile && <StatusDot state={isLoading ? "building" : code ? "success" : "error"} />}
+						{/* Show diff button for append content - MOVED TO EXPANDED AREA */}
+						{/* View file and success icons for append content */}
+						{isAppendContent && showViewFileIcon && path && onViewFile && (
+							<button
+								className="flex items-center justify-center w-5 h-5 mr-2 text-vscode-descriptionForeground hover:text-vscode-foreground transition-colors cursor-pointer"
+								title="Open file"
+								onClick={(e) => {
+									e.stopPropagation()
+									onViewFile()
+								}}>
+								<span className="codicon codicon-link-external text-[10px]"></span>
+							</button>
+						)}
+						{/* Show diff button for search and replace - MOVED TO EXPANDED AREA */}
+						{/* External link icon for search and replace */}
+						{isSearchAndReplace && path && showViewFileIcon && onViewFile && (
+							<button
+								className="flex items-center justify-center w-5 h-5 mr-2 text-vscode-descriptionForeground hover:text-vscode-foreground transition-colors cursor-pointer"
+								title="Open file"
+								onClick={(e) => {
+									e.stopPropagation()
+									onViewFile()
+								}}>
+								<span className="codicon codicon-link-external text-[10px]"></span>
+							</button>
+						)}
+						{/* Status dot for search and replace */}
+						{isSearchAndReplace && (
+							<StatusDot state={isLoading ? "building" : code ? "success" : "error"} />
+						)}
+						{/* External link icon for created files */}
+						{isCreatedFile && path && showViewFileIcon && onViewFile && (
+							<button
+								className="flex items-center justify-center w-5 h-5 mr-2 text-vscode-descriptionForeground hover:text-vscode-foreground transition-colors cursor-pointer"
+								title="Open file"
+								onClick={(e) => {
+									e.stopPropagation()
+									onViewFile()
+								}}>
+								<span className="codicon codicon-link-external text-[10px]"></span>
+							</button>
+						)}
+						{/* Status dot for created files */}
+						{isCreatedFile && <StatusDot state={isLoading ? "building" : code ? "success" : "error"} />}
+						{/* Status dot for append content */}
+						{isAppendContent && <StatusDot state={isLoading ? "building" : code ? "success" : "error"} />}
 
-					{/* Status dot for custom header tools (search, list, etc.) */}
-					{customHeaderText && <StatusDot state={isLoading ? "building" : code ? "success" : "error"} />}
+						{/* Status dot for custom header tools (search, list, etc.) */}
+						{customHeaderText && <StatusDot state={isLoading ? "building" : code ? "success" : "error"} />}
 
-					{/* Chevron for all file types - smaller with tighter right spacing */}
-					<span
-						className={`codicon codicon-chevron-${isExpanded ? "up" : "down"} scale-75 -ml-1 -mr-2`}></span>
-				</ToolUseBlockHeader>
-			)}
-			{/* Approval buttons below header for custom headers and append content */}
+						{/* Chevron for all file types - smaller with tighter right spacing */}
+						<span
+							className={`codicon codicon-chevron-${isExpanded ? "up" : "down"} scale-75 -ml-1 -mr-2`}></span>
+					</ToolUseBlockHeader>
+				)}
+				{(!hasHeader || isExpanded) && (
+					<div className="overflow-x-auto overflow-y-hidden max-w-full">
+						<CodeBlock source={source} language={inferredLanguage} />
+					</div>
+				)}
+			</ToolUseBlock>
+			{/* Approval buttons outside ToolUseBlock for consistent styling */}
 			{(customHeaderText || isAppendContent) && showApprovalButtons && (
-				<div className="flex justify-end gap-2 mt-2">
+				<div className="flex justify-end gap-1 mt-2">
 					{primaryButtonText && (
 						<button
 							disabled={!enableApprovalButtons}
@@ -435,12 +454,7 @@ const CodeAccordian = ({
 					)}
 				</div>
 			)}
-			{(!hasHeader || isExpanded) && (
-				<div className="overflow-x-auto overflow-y-hidden max-w-full">
-					<CodeBlock source={source} language={inferredLanguage} />
-				</div>
-			)}
-		</ToolUseBlock>
+		</>
 	)
 }
 
