@@ -165,9 +165,9 @@ export const ApiKeyManagerContent = ({
 	const [baseUrlToggles, setBaseUrlToggles] = useState<BaseUrlState>({})
 	const [baseUrlValues, setBaseUrlValues] = useState<ApiKeyState>({})
 	const [searchQuery, setSearchQuery] = useState("")
-	const [byakSearchQuery, setByakSearchQuery] = useState("")
+	const [byokSearchQuery, setByokSearchQuery] = useState("")
 	const [builtinSearchQuery, setBuiltinSearchQuery] = useState("")
-	const [activeTab, setActiveTab] = useState<"api-key" | "byak-models" | "builtin-models">("api-key")
+	const [activeTab, setActiveTab] = useState<"api-key" | "byok-models" | "builtin-models">("api-key")
 	const [localHiddenProfiles, setLocalHiddenProfiles] = useState<Set<string>>(new Set())
 	const [isLoaded, setIsLoaded] = useState(false)
 
@@ -205,29 +205,29 @@ export const ApiKeyManagerContent = ({
 		)
 	}, [searchQuery])
 
-	// Filter BYAK models based on search query
-	const filteredByakModels = useMemo(() => {
-		if (!byakSearchQuery.trim()) return listApiConfigMeta?.filter((config) => config.name.includes("(BYAK)")) || []
-		const query = byakSearchQuery.toLowerCase()
+	// Filter BYOK models based on search query
+	const filteredByokModels = useMemo(() => {
+		if (!byokSearchQuery.trim()) return listApiConfigMeta?.filter((config) => config.name.includes("(BYOK)")) || []
+		const query = byokSearchQuery.toLowerCase()
 		return (
 			listApiConfigMeta?.filter(
 				(config) =>
-					config.name.includes("(BYAK)") &&
+					config.name.includes("(BYOK)") &&
 					(config.name.toLowerCase().includes(query) ||
 						(config.apiProvider?.toLowerCase().includes(query) ?? false)),
 			) || []
 		)
-	}, [byakSearchQuery, listApiConfigMeta])
+	}, [byokSearchQuery, listApiConfigMeta])
 
 	// Filter Built-in models based on search query
 	const filteredBuiltinModels = useMemo(() => {
 		if (!builtinSearchQuery.trim())
-			return listApiConfigMeta?.filter((config) => !config.name.includes("(BYAK)")) || []
+			return listApiConfigMeta?.filter((config) => !config.name.includes("(BYOK)")) || []
 		const query = builtinSearchQuery.toLowerCase()
 		return (
 			listApiConfigMeta?.filter(
 				(config) =>
-					!config.name.includes("(BYAK)") &&
+					!config.name.includes("(BYOK)") &&
 					(config.name.toLowerCase().includes(query) ||
 						(config.apiProvider?.toLowerCase().includes(query) ?? false)),
 			) || []
@@ -263,14 +263,14 @@ export const ApiKeyManagerContent = ({
 
 	const loadApiKeys = () => {
 		// Request current API keys from extension
-		vscode.postMessage({ type: "getByakApiKeys" })
+		vscode.postMessage({ type: "getByokApiKeys" })
 	}
 
 	// Listen for API key response from extension
 	useEffect(() => {
 		const handleMessage = (event: MessageEvent) => {
 			const message = event.data
-			if (message.type === "byakApiKeysResponse") {
+			if (message.type === "byokApiKeysResponse") {
 				// Initialize all provider keys, base URL toggles, and base URL values
 				const keys: ApiKeyState = {}
 				const toggles: BaseUrlState = {}
@@ -380,12 +380,12 @@ export const ApiKeyManagerContent = ({
 				</button>
 				<button
 					className={`px-2 py-1 text-sm font-medium ${
-						activeTab === "byak-models"
+						activeTab === "byok-models"
 							? "text-vscode-foreground border-b-2 border-vscode-focusBorder"
 							: "text-vscode-descriptionForeground"
 					}`}
-					onClick={() => setActiveTab("byak-models")}>
-					BYAK Models
+					onClick={() => setActiveTab("byok-models")}>
+					BYOK Models
 				</button>
 				<button
 					className={`px-2 py-1 text-sm font-medium ${
@@ -492,30 +492,30 @@ export const ApiKeyManagerContent = ({
 				</>
 			)}
 
-			{/* BYAK Models Tab Content */}
-			{activeTab === "byak-models" && (
+			{/* BYOK Models Tab Content */}
+			{activeTab === "byok-models" && (
 				<>
-					{/* Search Bar for BYAK Models */}
+					{/* Search Bar for BYOK Models */}
 					<div className="relative flex-shrink-0">
 						<Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-3 h-3 text-vscode-descriptionForeground" />
 						<Input
 							type="text"
-							placeholder="Search BYAK models..."
-							value={byakSearchQuery}
-							onChange={(e) => setByakSearchQuery(e.target.value)}
+							placeholder="Search BYOK models..."
+							value={byokSearchQuery}
+							onChange={(e) => setByokSearchQuery(e.target.value)}
 							className="pl-7 h-7 text-xs bg-vscode-input-background border-vscode-input-border text-vscode-foreground placeholder-vscode-descriptionForeground"
 						/>
 					</div>
 
-					{/* BYAK Models Description */}
+					{/* BYOK Models Description */}
 					<div className="flex-shrink-0 px-1 py-2">
 						<p className="text-xs text-vscode-descriptionForeground">
-							Bring Your API Key (BYAK) models use your own API credentials. You manage your own usage and
+							Bring Your API Key (BYOK) models use your own API credentials. You manage your own usage and
 							billing directly with the provider.
 						</p>
 					</div>
 					<div className="flex-1 overflow-y-auto min-h-0 pr-1">
-						{filteredByakModels.map((config, index, array) => (
+						{filteredByokModels.map((config, index, array) => (
 							<div key={config.id}>
 								<div className="flex items-center justify-between py-2 px-1">
 									<div className="flex-1 min-w-0">
@@ -558,9 +558,9 @@ export const ApiKeyManagerContent = ({
 								)}
 							</div>
 						))}
-						{filteredByakModels.length === 0 && (
+						{filteredByokModels.length === 0 && (
 							<div className="text-center py-4 text-vscode-descriptionForeground text-xs">
-								{byakSearchQuery.trim() ? "No BYAK models match your search" : "No BYAK models found"}
+								{byokSearchQuery.trim() ? "No BYOK models match your search" : "No BYOK models found"}
 							</div>
 						)}
 					</div>
@@ -646,9 +646,9 @@ const ApiKeyManagerPopupContent = () => {
 	const [apiKeys, setApiKeys] = useState<ApiKeyState>({})
 	const [isLoading, setIsLoading] = useState(false)
 	const [searchQuery, setSearchQuery] = useState("")
-	const [byakSearchQuery, setByakSearchQuery] = useState("")
+	const [byokSearchQuery, setByokSearchQuery] = useState("")
 	const [builtinSearchQuery, setBuiltinSearchQuery] = useState("")
-	const [activeTab, setActiveTab] = useState<"api-key" | "byak-models" | "builtin-models">("api-key")
+	const [activeTab, setActiveTab] = useState<"api-key" | "byok-models" | "builtin-models">("api-key")
 	const [hiddenProfiles, setHiddenProfiles] = useState<Set<string>>(new Set())
 
 	const { listApiConfigMeta, hiddenProfiles: globalHiddenProfiles } = useExtensionState()
@@ -674,29 +674,29 @@ const ApiKeyManagerPopupContent = () => {
 		)
 	}, [searchQuery])
 
-	// Filter BYAK models based on search query
-	const filteredByakModels = useMemo(() => {
-		if (!byakSearchQuery.trim()) return listApiConfigMeta?.filter((config) => config.name.includes("(BYAK)")) || []
-		const query = byakSearchQuery.toLowerCase()
+	// Filter BYOK models based on search query
+	const filteredByokModels = useMemo(() => {
+		if (!byokSearchQuery.trim()) return listApiConfigMeta?.filter((config) => config.name.includes("(BYOK)")) || []
+		const query = byokSearchQuery.toLowerCase()
 		return (
 			listApiConfigMeta?.filter(
 				(config) =>
-					config.name.includes("(BYAK)") &&
+					config.name.includes("(BYOK)") &&
 					(config.name.toLowerCase().includes(query) ||
 						(config.apiProvider?.toLowerCase().includes(query) ?? false)),
 			) || []
 		)
-	}, [byakSearchQuery, listApiConfigMeta])
+	}, [byokSearchQuery, listApiConfigMeta])
 
 	// Filter Built-in models based on search query
 	const filteredBuiltinModels = useMemo(() => {
 		if (!builtinSearchQuery.trim())
-			return listApiConfigMeta?.filter((config) => !config.name.includes("(BYAK)")) || []
+			return listApiConfigMeta?.filter((config) => !config.name.includes("(BYOK)")) || []
 		const query = builtinSearchQuery.toLowerCase()
 		return (
 			listApiConfigMeta?.filter(
 				(config) =>
-					!config.name.includes("(BYAK)") &&
+					!config.name.includes("(BYOK)") &&
 					(config.name.toLowerCase().includes(query) ||
 						(config.apiProvider?.toLowerCase().includes(query) ?? false)),
 			) || []
@@ -712,15 +712,15 @@ const ApiKeyManagerPopupContent = () => {
 
 	const loadApiKeys = () => {
 		// Request current API keys from extension
-		vscode.postMessage({ type: "getByakApiKeys" })
+		vscode.postMessage({ type: "getByokApiKeys" })
 	}
 
 	const handleConnect = async () => {
 		setIsLoading(true)
 		try {
-			// Send API keys to extension to update all BYAK models
+			// Send API keys to extension to update all BYOK models
 			vscode.postMessage({
-				type: "updateByakApiKeys",
+				type: "updateByokApiKeys",
 				keys: apiKeys,
 			})
 
@@ -754,12 +754,12 @@ const ApiKeyManagerPopupContent = () => {
 				</button>
 				<button
 					className={`px-2 py-1 text-sm font-medium ${
-						activeTab === "byak-models"
+						activeTab === "byok-models"
 							? "text-vscode-foreground border-b-2 border-vscode-focusBorder"
 							: "text-vscode-descriptionForeground"
 					}`}
-					onClick={() => setActiveTab("byak-models")}>
-					BYAK Models
+					onClick={() => setActiveTab("byok-models")}>
+					BYOK Models
 				</button>
 				<button
 					className={`px-2 py-1 text-sm font-medium ${
@@ -858,31 +858,31 @@ const ApiKeyManagerPopupContent = () => {
 				</>
 			)}
 
-			{/* BYAK Models Tab Content */}
-			{activeTab === "byak-models" && (
+			{/* BYOK Models Tab Content */}
+			{activeTab === "byok-models" && (
 				<>
-					{/* Search Bar for BYAK Models */}
+					{/* Search Bar for BYOK Models */}
 					<div className="relative flex-shrink-0">
 						<Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-3 h-3 text-vscode-descriptionForeground" />
 						<Input
 							type="text"
-							placeholder="Search BYAK models..."
-							value={byakSearchQuery}
-							onChange={(e) => setByakSearchQuery(e.target.value)}
+							placeholder="Search BYOK models..."
+							value={byokSearchQuery}
+							onChange={(e) => setByokSearchQuery(e.target.value)}
 							className="pl-7 h-7 text-xs bg-vscode-input-background border-vscode-input-border text-vscode-foreground placeholder-vscode-descriptionForeground"
 						/>
 					</div>
 
-					{/* BYAK Models Description */}
+					{/* BYOK Models Description */}
 					<div className="flex-shrink-0 px-1 py-2">
 						<p className="text-xs text-vscode-descriptionForeground">
-							Bring Your API Key (BYAK) models use your own API credentials. You manage your own usage and
+							Bring Your API Key (BYOK) models use your own API credentials. You manage your own usage and
 							billing directly with the provider.
 						</p>
 					</div>
 
 					<div className="flex-1 overflow-y-auto min-h-0 pr-1">
-						{filteredByakModels.map((config, index, array) => (
+						{filteredByokModels.map((config, index, array) => (
 							<div key={config.id}>
 								<div className="flex items-center justify-between py-2 px-1">
 									<div className="flex-1 min-w-0">
@@ -939,9 +939,9 @@ const ApiKeyManagerPopupContent = () => {
 								)}
 							</div>
 						))}
-						{filteredByakModels.length === 0 && (
+						{filteredByokModels.length === 0 && (
 							<div className="text-center py-4 text-vscode-descriptionForeground text-xs">
-								{byakSearchQuery.trim() ? "No BYAK models match your search" : "No BYAK models found"}
+								{byokSearchQuery.trim() ? "No BYOK models match your search" : "No BYOK models found"}
 							</div>
 						)}
 					</div>

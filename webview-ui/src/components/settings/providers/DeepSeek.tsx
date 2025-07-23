@@ -11,10 +11,10 @@ import { inputEventTransform } from "../transforms"
 type DeepSeekProps = {
 	apiConfiguration: ProviderSettings
 	setApiConfigurationField: (field: keyof ProviderSettings, value: ProviderSettings[keyof ProviderSettings]) => void
-	isByakProfile?: boolean
+	isByokProfile?: boolean
 }
 
-export const DeepSeek = ({ apiConfiguration, setApiConfigurationField, isByakProfile = false }: DeepSeekProps) => {
+export const DeepSeek = ({ apiConfiguration, setApiConfigurationField, isByokProfile = false }: DeepSeekProps) => {
 	const { t } = useAppTranslation()
 
 	const handleInputChange = useCallback(
@@ -30,8 +30,8 @@ export const DeepSeek = ({ apiConfiguration, setApiConfigurationField, isByakPro
 
 	return (
 		<>
-			{/* API key input hidden for BYAK profiles as requested */}
-			{/* {isByakProfile && (
+			{/* API key input hidden for BYOK profiles as requested */}
+			{/* {isByokProfile && (
 				<>
 					<VSCodeTextField
 						value={apiConfiguration?.deepSeekApiKey || ""}
@@ -51,7 +51,7 @@ export const DeepSeek = ({ apiConfiguration, setApiConfigurationField, isByakPro
 					)}
 				</>
 			)} */}
-			{!isByakProfile && (
+			{!isByokProfile && (
 				<div className="text-sm text-vscode-descriptionForeground">
 					API key is pre-configured for this model.
 				</div>

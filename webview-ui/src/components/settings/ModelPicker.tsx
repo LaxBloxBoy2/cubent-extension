@@ -38,7 +38,7 @@ interface ModelPickerProps {
 	apiConfiguration: ProviderSettings
 	setApiConfigurationField: <K extends keyof ProviderSettings>(field: K, value: ProviderSettings[K]) => void
 	organizationAllowList: OrganizationAllowList
-	isByakProfile?: boolean
+	isByokProfile?: boolean
 }
 
 export const ModelPicker = ({
@@ -50,7 +50,7 @@ export const ModelPicker = ({
 	apiConfiguration,
 	setApiConfigurationField,
 	organizationAllowList,
-	isByakProfile = false,
+	isByokProfile = false,
 }: ModelPickerProps) => {
 	const { t } = useAppTranslation()
 
@@ -186,7 +186,7 @@ export const ModelPicker = ({
 					modelInfo={selectedModelInfo}
 					isDescriptionExpanded={isDescriptionExpanded}
 					setIsDescriptionExpanded={setIsDescriptionExpanded}
-					isByakProfile={isByakProfile}
+					isByokProfile={isByokProfile}
 				/>
 			)}
 			<div className="text-sm text-vscode-descriptionForeground">

@@ -12,10 +12,10 @@ import { inputEventTransform, noTransform } from "../transforms"
 type AnthropicProps = {
 	apiConfiguration: ProviderSettings
 	setApiConfigurationField: (field: keyof ProviderSettings, value: ProviderSettings[keyof ProviderSettings]) => void
-	isByakProfile?: boolean
+	isByokProfile?: boolean
 }
 
-export const Anthropic = ({ apiConfiguration, setApiConfigurationField, isByakProfile = false }: AnthropicProps) => {
+export const Anthropic = ({ apiConfiguration, setApiConfigurationField, isByokProfile = false }: AnthropicProps) => {
 	const { t } = useAppTranslation()
 
 	const [anthropicBaseUrlSelected, setAnthropicBaseUrlSelected] = useState(!!apiConfiguration?.anthropicBaseUrl)
@@ -33,8 +33,8 @@ export const Anthropic = ({ apiConfiguration, setApiConfigurationField, isByakPr
 
 	return (
 		<>
-			{/* API key input hidden for BYAK profiles as requested */}
-			{/* {isByakProfile && (
+			{/* API key input hidden for BYOK profiles as requested */}
+			{/* {isByokProfile && (
 				<>
 					<VSCodeTextField
 						value={apiConfiguration?.apiKey || ""}
@@ -54,12 +54,12 @@ export const Anthropic = ({ apiConfiguration, setApiConfigurationField, isByakPr
 					)}
 				</>
 			)} */}
-			{!isByakProfile && (
+			{!isByokProfile && (
 				<div className="text-sm text-vscode-descriptionForeground mb-3">
 					API key is pre-configured for this model.
 				</div>
 			)}
-			{isByakProfile && (
+			{isByokProfile && (
 				<div>
 					<Checkbox
 						checked={anthropicBaseUrlSelected}

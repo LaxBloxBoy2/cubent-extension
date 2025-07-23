@@ -2257,9 +2257,9 @@ export const webviewMessageHandler = async (provider: ClineProvider, message: We
 			}
 			break
 		}
-		case "getByakApiKeys": {
+		case "getByokApiKeys": {
 			try {
-				// Get current API keys and base URLs from all BYAK profiles
+				// Get current API keys and base URLs from all BYOK profiles
 				const currentConfig = await provider.getState()
 				const apiConfig = currentConfig.apiConfiguration
 
@@ -2278,13 +2278,13 @@ export const webviewMessageHandler = async (provider: ClineProvider, message: We
 				}
 
 				provider.postMessageToWebview({
-					type: "byakApiKeysResponse",
+					type: "byokApiKeysResponse",
 					keys,
 				})
 			} catch (error) {
-				console.error("Error getting BYAK API keys:", error)
+				console.error("Error getting BYOK API keys:", error)
 				provider.postMessageToWebview({
-					type: "byakApiKeysResponse",
+					type: "byokApiKeysResponse",
 					keys: {
 						openAiApiKey: "",
 						anthropicApiKey: "",
@@ -2302,19 +2302,19 @@ export const webviewMessageHandler = async (provider: ClineProvider, message: We
 			}
 			break
 		}
-		case "updateByakApiKeys": {
+		case "updateByokApiKeys": {
 			try {
 				if (!message.keys) {
 					break
 				}
 
-				// Update all BYAK profiles with the new API keys
-				await provider.updateByakApiKeys(message.keys)
+				// Update all BYOK profiles with the new API keys
+				await provider.updateByokApiKeys(message.keys)
 
 				// Broadcast the change to other instances
 				ClineProvider.broadcastStateChange(provider, "configProfile")
 			} catch (error) {
-				console.error("Error updating BYAK API keys:", error)
+				console.error("Error updating BYOK API keys:", error)
 			}
 			break
 		}

@@ -12,10 +12,10 @@ import { inputEventTransform } from "../transforms"
 type OpenAIProps = {
 	apiConfiguration: ProviderSettings
 	setApiConfigurationField: (field: keyof ProviderSettings, value: ProviderSettings[keyof ProviderSettings]) => void
-	isByakProfile?: boolean
+	isByokProfile?: boolean
 }
 
-export const OpenAI = ({ apiConfiguration, setApiConfigurationField, isByakProfile = false }: OpenAIProps) => {
+export const OpenAI = ({ apiConfiguration, setApiConfigurationField, isByokProfile = false }: OpenAIProps) => {
 	const { t } = useAppTranslation()
 
 	const [openAiNativeBaseUrlSelected, setOpenAiNativeBaseUrlSelected] = useState(
@@ -35,7 +35,7 @@ export const OpenAI = ({ apiConfiguration, setApiConfigurationField, isByakProfi
 
 	return (
 		<>
-			{isByakProfile && (
+			{isByokProfile && (
 				<>
 					<Checkbox
 						checked={openAiNativeBaseUrlSelected}
@@ -61,13 +61,13 @@ export const OpenAI = ({ apiConfiguration, setApiConfigurationField, isByakProfi
 					)}
 				</>
 			)}
-			{!isByakProfile && (
+			{!isByokProfile && (
 				<div className="text-sm text-vscode-descriptionForeground mb-3">
 					API key is pre-configured for this model.
 				</div>
 			)}
-			{/* API key input hidden for BYAK profiles as requested */}
-			{/* {isByakProfile && (
+			{/* API key input hidden for BYOK profiles as requested */}
+			{/* {isByokProfile && (
 				<>
 					<VSCodeTextField
 						value={apiConfiguration?.openAiNativeApiKey || ""}

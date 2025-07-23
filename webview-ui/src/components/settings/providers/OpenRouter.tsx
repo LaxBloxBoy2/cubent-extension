@@ -30,7 +30,7 @@ type OpenRouterProps = {
 	uriScheme: string | undefined
 	fromWelcomeView?: boolean
 	organizationAllowList: OrganizationAllowList
-	isByakProfile?: boolean
+	isByokProfile?: boolean
 }
 
 export const OpenRouter = ({
@@ -41,7 +41,7 @@ export const OpenRouter = ({
 	uriScheme,
 	fromWelcomeView,
 	organizationAllowList,
-	isByakProfile = false,
+	isByokProfile = false,
 }: OpenRouterProps) => {
 	const { t } = useAppTranslation()
 
@@ -94,7 +94,7 @@ export const OpenRouter = ({
 			)}
 			{!fromWelcomeView && (
 				<>
-					{isByakProfile && (
+					{isByokProfile && (
 						<div>
 							<Checkbox
 								checked={openRouterBaseUrlSelected}
@@ -139,7 +139,7 @@ export const OpenRouter = ({
 				serviceName="OpenRouter"
 				serviceUrl="https://openrouter.ai/models"
 				organizationAllowList={organizationAllowList}
-				isByakProfile={true}
+				isByokProfile={true}
 			/>
 			{openRouterModelProviders && Object.keys(openRouterModelProviders).length > 0 && (
 				<div>

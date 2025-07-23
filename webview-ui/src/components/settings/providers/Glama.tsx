@@ -67,7 +67,7 @@ export const Glama = ({
 				serviceName="Glama"
 				serviceUrl="https://glama.ai/models"
 				organizationAllowList={organizationAllowList}
-				isByakProfile={true}
+				isByokProfile={true}
 			/>
 		</>
 	)

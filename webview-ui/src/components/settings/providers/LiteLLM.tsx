@@ -143,7 +143,7 @@ export const LiteLLM = ({ apiConfiguration, setApiConfigurationField, organizati
 				serviceUrl="https://docs.litellm.ai/"
 				setApiConfigurationField={setApiConfigurationField}
 				organizationAllowList={organizationAllowList}
-				isByakProfile={true}
+				isByokProfile={true}
 			/>
 		</>
 	)

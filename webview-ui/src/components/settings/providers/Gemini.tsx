@@ -12,10 +12,10 @@ import { inputEventTransform } from "../transforms"
 type GeminiProps = {
 	apiConfiguration: ProviderSettings
 	setApiConfigurationField: (field: keyof ProviderSettings, value: ProviderSettings[keyof ProviderSettings]) => void
-	isByakProfile?: boolean
+	isByokProfile?: boolean
 }
 
-export const Gemini = ({ apiConfiguration, setApiConfigurationField, isByakProfile = false }: GeminiProps) => {
+export const Gemini = ({ apiConfiguration, setApiConfigurationField, isByokProfile = false }: GeminiProps) => {
 	const { t } = useAppTranslation()
 
 	const [googleGeminiBaseUrlSelected, setGoogleGeminiBaseUrlSelected] = useState(
@@ -35,8 +35,8 @@ export const Gemini = ({ apiConfiguration, setApiConfigurationField, isByakProfi
 
 	return (
 		<>
-			{/* API key input hidden for BYAK profiles as requested */}
-			{/* {isByakProfile && (
+			{/* API key input hidden for BYOK profiles as requested */}
+			{/* {isByokProfile && (
 				<>
 					<VSCodeTextField
 						value={apiConfiguration?.geminiApiKey || ""}
@@ -56,12 +56,12 @@ export const Gemini = ({ apiConfiguration, setApiConfigurationField, isByakProfi
 					)}
 				</>
 			)} */}
-			{!isByakProfile && (
+			{!isByokProfile && (
 				<div className="text-sm text-vscode-descriptionForeground mb-3">
 					API key is pre-configured for this model.
 				</div>
 			)}
-			{isByakProfile && (
+			{isByokProfile && (
 				<div>
 					<Checkbox
 						checked={googleGeminiBaseUrlSelected}

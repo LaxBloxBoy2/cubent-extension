@@ -11,10 +11,10 @@ import { inputEventTransform } from "../transforms"
 type XAIProps = {
 	apiConfiguration: ProviderSettings
 	setApiConfigurationField: (field: keyof ProviderSettings, value: ProviderSettings[keyof ProviderSettings]) => void
-	isByakProfile?: boolean
+	isByokProfile?: boolean
 }
 
-export const XAI = ({ apiConfiguration, setApiConfigurationField, isByakProfile = false }: XAIProps) => {
+export const XAI = ({ apiConfiguration, setApiConfigurationField, isByokProfile = false }: XAIProps) => {
 	const { t } = useAppTranslation()
 
 	const handleInputChange = useCallback(
@@ -30,8 +30,8 @@ export const XAI = ({ apiConfiguration, setApiConfigurationField, isByakProfile 
 
 	return (
 		<>
-			{/* API key input hidden for BYAK profiles as requested */}
-			{/* {isByakProfile && (
+			{/* API key input hidden for BYOK profiles as requested */}
+			{/* {isByokProfile && (
 				<>
 					<VSCodeTextField
 						value={apiConfiguration?.xaiApiKey || ""}
@@ -51,7 +51,7 @@ export const XAI = ({ apiConfiguration, setApiConfigurationField, isByakProfile 
 					)}
 				</>
 			)} */}
-			{!isByakProfile && (
+			{!isByokProfile && (
 				<div className="text-sm text-vscode-descriptionForeground">
 					API key is pre-configured for this model.
 				</div>

@@ -96,7 +96,7 @@ export const Requesty = ({
 				serviceName="Requesty"
 				serviceUrl="https://requesty.ai"
 				organizationAllowList={organizationAllowList}
-				isByakProfile={true}
+				isByokProfile={true}
 			/>
 		</>
 	)

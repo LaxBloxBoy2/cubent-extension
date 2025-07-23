@@ -1236,9 +1236,9 @@ export class ClineProvider
 		await this.upsertProviderProfile(currentApiConfigName, newConfiguration)
 	}
 
-	// BYAK API Key Management
+	// BYOK API Key Management
 
-	async updateByakApiKeys(keys: {
+	async updateByokApiKeys(keys: {
 		openAiApiKey?: string
 		anthropicApiKey?: string
 		geminiApiKey?: string
@@ -1252,12 +1252,12 @@ export class ClineProvider
 		googleGeminiBaseUrl?: string
 	}) {
 		try {
-			// Get all BYAK profiles
+			// Get all BYOK profiles
 			const listApiConfig = await this.providerSettingsManager.listConfig()
-			const byakProfiles = listApiConfig.filter((profile) => profile.name.includes("(BYAK)"))
+			const byokProfiles = listApiConfig.filter((profile) => profile.name.includes("(BYOK)"))
 
-			// Update each BYAK profile with the corresponding API key
-			for (const profile of byakProfiles) {
+			// Update each BYOK profile with the corresponding API key
+			for (const profile of byokProfiles) {
 				const { name, ...providerSettings } = await this.providerSettingsManager.getProfile({ id: profile.id })
 
 				let updatedSettings = { ...providerSettings }
@@ -1266,7 +1266,7 @@ export class ClineProvider
 				// Update API keys based on provider type
 				const apiProvider = providerSettings.apiProvider
 
-				// Update OpenAI BYAK profiles
+				// Update OpenAI BYOK profiles
 				if (
 					apiProvider === "openai-native" ||
 					name.toLowerCase().includes("openai") ||
@@ -1278,7 +1278,7 @@ export class ClineProvider
 					}
 				}
 
-				// Update Anthropic BYAK profiles
+				// Update Anthropic BYOK profiles
 				if (
 					apiProvider === "anthropic" ||
 					name.toLowerCase().includes("anthropic") ||
@@ -1290,7 +1290,7 @@ export class ClineProvider
 					}
 				}
 
-				// Update Gemini BYAK profiles
+				// Update Gemini BYOK profiles
 				if (
 					apiProvider === "gemini" ||
 					name.toLowerCase().includes("gemini") ||
@@ -1302,7 +1302,7 @@ export class ClineProvider
 					}
 				}
 
-				// Update xAI BYAK profiles
+				// Update xAI BYOK profiles
 				if (
 					apiProvider === "xai" ||
 					name.toLowerCase().includes("xai") ||
@@ -1314,7 +1314,7 @@ export class ClineProvider
 					}
 				}
 
-				// Update DeepSeek BYAK profiles
+				// Update DeepSeek BYOK profiles
 				if (apiProvider === "deepseek" || name.toLowerCase().includes("deepseek")) {
 					if (keys.deepSeekApiKey !== undefined) {
 						updatedSettings.deepSeekApiKey = keys.deepSeekApiKey
@@ -1322,7 +1322,7 @@ export class ClineProvider
 					}
 				}
 
-				// Update Groq BYAK profiles
+				// Update Groq BYOK profiles
 				if (apiProvider === "groq" || name.toLowerCase().includes("groq")) {
 					if (keys.groqApiKey !== undefined) {
 						updatedSettings.groqApiKey = keys.groqApiKey
@@ -1330,7 +1330,7 @@ export class ClineProvider
 					}
 				}
 
-				// Update Mistral BYAK profiles
+				// Update Mistral BYOK profiles
 				if (apiProvider === "mistral" || name.toLowerCase().includes("mistral")) {
 					if (keys.mistralApiKey !== undefined) {
 						updatedSettings.mistralApiKey = keys.mistralApiKey
@@ -1382,9 +1382,9 @@ export class ClineProvider
 			await this.updateGlobalState("listApiConfigMeta", await this.providerSettingsManager.listConfig())
 			await this.postStateToWebview()
 
-			this.log("Successfully updated BYAK API keys")
+			this.log("Successfully updated BYOK API keys")
 		} catch (error) {
-			this.log(`Error updating BYAK API keys: ${JSON.stringify(error, Object.getOwnPropertyNames(error), 2)}`)
+			this.log(`Error updating BYOK API keys: ${JSON.stringify(error, Object.getOwnPropertyNames(error), 2)}`)
 			throw error
 		}
 	}

@@ -78,8 +78,8 @@ const ApiOptions = ({
 	const { t } = useAppTranslation()
 	const { organizationAllowList } = useExtensionState()
 
-	// Check if this is a BYAK profile (Bring Your API Key)
-	const isByakProfile = configName?.includes("(BYAK)") ?? false
+	// Check if this is a BYOK profile (Bring Your API Key)
+	const isByokProfile = configName?.includes("(BYOK)") ?? false
 
 	const [customHeaders, setCustomHeaders] = useState<[string, string][]>(() => {
 		const headers = apiConfiguration?.openAiHeaders || {}
@@ -113,8 +113,6 @@ const ApiOptions = ({
 		300,
 		[customHeaders, apiConfiguration?.openAiHeaders, setApiConfigurationField],
 	)
-
-
 
 	const handleInputChange = useCallback(
 		<K extends keyof ProviderSettings, E>(
@@ -311,7 +309,7 @@ const ApiOptions = ({
 					uriScheme={uriScheme}
 					fromWelcomeView={fromWelcomeView}
 					organizationAllowList={organizationAllowList}
-					isByakProfile={isByakProfile}
+					isByokProfile={isByokProfile}
 				/>
 			)}
 
@@ -345,11 +343,19 @@ const ApiOptions = ({
 			)}
 
 			{selectedProvider === "anthropic" && (
-				<Anthropic apiConfiguration={apiConfiguration} setApiConfigurationField={setApiConfigurationField} isByakProfile={isByakProfile} />
+				<Anthropic
+					apiConfiguration={apiConfiguration}
+					setApiConfigurationField={setApiConfigurationField}
+					isByokProfile={isByokProfile}
+				/>
 			)}
 
 			{selectedProvider === "openai-native" && (
-				<OpenAI apiConfiguration={apiConfiguration} setApiConfigurationField={setApiConfigurationField} isByakProfile={isByakProfile} />
+				<OpenAI
+					apiConfiguration={apiConfiguration}
+					setApiConfigurationField={setApiConfigurationField}
+					isByokProfile={isByokProfile}
+				/>
 			)}
 
 			{selectedProvider === "mistral" && (
@@ -369,7 +375,11 @@ const ApiOptions = ({
 			)}
 
 			{selectedProvider === "gemini" && (
-				<Gemini apiConfiguration={apiConfiguration} setApiConfigurationField={setApiConfigurationField} isByakProfile={isByakProfile} />
+				<Gemini
+					apiConfiguration={apiConfiguration}
+					setApiConfigurationField={setApiConfigurationField}
+					isByokProfile={isByokProfile}
+				/>
 			)}
 
 			{selectedProvider === "openai" && (
@@ -385,7 +395,11 @@ const ApiOptions = ({
 			)}
 
 			{selectedProvider === "deepseek" && (
-				<DeepSeek apiConfiguration={apiConfiguration} setApiConfigurationField={setApiConfigurationField} isByakProfile={isByakProfile} />
+				<DeepSeek
+					apiConfiguration={apiConfiguration}
+					setApiConfigurationField={setApiConfigurationField}
+					isByokProfile={isByokProfile}
+				/>
 			)}
 
 			{selectedProvider === "vscode-lm" && (
@@ -397,7 +411,11 @@ const ApiOptions = ({
 			)}
 
 			{selectedProvider === "xai" && (
-				<XAI apiConfiguration={apiConfiguration} setApiConfigurationField={setApiConfigurationField} isByakProfile={isByakProfile} />
+				<XAI
+					apiConfiguration={apiConfiguration}
+					setApiConfigurationField={setApiConfigurationField}
+					isByokProfile={isByokProfile}
+				/>
 			)}
 
 			{selectedProvider === "groq" && (
@@ -472,10 +490,9 @@ const ApiOptions = ({
 							modelInfo={selectedModelInfo}
 							isDescriptionExpanded={isDescriptionExpanded}
 							setIsDescriptionExpanded={setIsDescriptionExpanded}
-							isByakProfile={isByakProfile}
+							isByokProfile={isByokProfile}
 						/>
 					)}
-
 				</>
 			)}
 
@@ -486,7 +503,7 @@ const ApiOptions = ({
 				modelInfo={selectedModelInfo}
 			/>
 
-			{isByakProfile && (
+			{isByokProfile && (
 				<>
 					{/* DiffSettingsControl hidden as requested */}
 					{/* <DiffSettingsControl

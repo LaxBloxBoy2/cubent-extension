@@ -305,7 +305,7 @@ describe("webviewMessageHandler - requestRouterModels", () => {
 		it("blocks expired trial users", async () => {
 			mockClineProvider.getState = jest.fn().mockResolvedValue({
 				currentUser: {
-					subscriptionTier: "byak",
+					subscriptionTier: "byok",
 					subscriptionStatus: "trialing",
 					daysLeftInTrial: 0,
 				},
@@ -330,7 +330,7 @@ describe("webviewMessageHandler - requestRouterModels", () => {
 		it("allows active paid subscription users", async () => {
 			mockClineProvider.getState = jest.fn().mockResolvedValue({
 				currentUser: {
-					subscriptionTier: "byak",
+					subscriptionTier: "byok",
 					subscriptionStatus: "active",
 				},
 			})
@@ -352,7 +352,7 @@ describe("webviewMessageHandler - requestRouterModels", () => {
 		it("allows trial users with days remaining", async () => {
 			mockClineProvider.getState = jest.fn().mockResolvedValue({
 				currentUser: {
-					subscriptionTier: "byak",
+					subscriptionTier: "byok",
 					subscriptionStatus: "trialing",
 					daysLeftInTrial: 5,
 				},

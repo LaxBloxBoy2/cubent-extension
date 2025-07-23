@@ -177,7 +177,7 @@ export const Unbound = ({
 				serviceUrl="https://api.getunbound.ai/models"
 				setApiConfigurationField={setApiConfigurationField}
 				organizationAllowList={organizationAllowList}
-				isByakProfile={true}
+				isByokProfile={true}
 			/>
 		</>
 	)

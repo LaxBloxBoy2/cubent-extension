@@ -26,10 +26,10 @@ export const TrialStatusBanner = () => {
 	}
 
 	// Handle different plan types - only show if actually paid
-	if (hasActivePaidSubscription && tier === "byak") {
+	if (hasActivePaidSubscription && tier === "byok") {
 		return (
 			<div className="flex items-center text-[0.65rem] text-vscode-foreground">
-				<span>{formatPlanName("Byak Plan")}</span>
+				<span>{formatPlanName("Byok Plan")}</span>
 			</div>
 		)
 	} else if (hasActivePaidSubscription && tier === "pro") {

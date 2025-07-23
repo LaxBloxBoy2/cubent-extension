@@ -45,8 +45,8 @@ const ApiConfigManager = ({
 }: ApiConfigManagerProps) => {
 	const { t } = useAppTranslation()
 
-	// Check if this is a BYAK profile (Bring Your API Key)
-	const isByakProfile = currentApiConfigName?.includes("(BYAK)") ?? false
+	// Check if this is a BYOK profile (Bring Your API Key)
+	const isByokProfile = currentApiConfigName?.includes("(BYOK)") ?? false
 
 	const [isRenaming, setIsRenaming] = useState(false)
 	const [isCreating, setIsCreating] = useState(false)
@@ -364,7 +364,7 @@ const ApiConfigManager = ({
 						</Popover>
 
 						{/* Profile management buttons hidden as requested */}
-						{/* {isByakProfile && (
+						{/* {isByokProfile && (
 							<>
 								<Button
 									variant="ghost"
