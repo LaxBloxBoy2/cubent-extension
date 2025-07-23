@@ -33,7 +33,7 @@ import {
 	TrendingUp,
 	BookOpen,
 	Ruler,
-	Zap,
+	Code2,
 } from "lucide-react"
 
 import type { ProviderSettings, ExperimentId } from "@cubent/types"
@@ -473,7 +473,7 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 			{ id: "general", icon: Settings },
 			{ id: "providers", icon: Settings },
 			{ id: "apiKeyManagement", icon: Key },
-			{ id: "autocomplete", icon: Zap },
+			{ id: "autocomplete", icon: Code2 },
 			{ id: "userGuidelines", icon: Ruler },
 			{ id: "mcp", icon: Server },
 			{ id: "indexing", icon: Database },
