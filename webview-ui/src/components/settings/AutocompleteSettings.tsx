@@ -8,7 +8,7 @@ import { Button } from "@src/components/ui/button"
 import { Badge } from "@src/components/ui/badge"
 import { SectionHeader } from "./SectionHeader"
 
-// Thin toggle switch component - matching general settings design
+// Toggle switch component matching header style
 const ToggleSwitch = ({
 	checked,
 	onChange,
@@ -18,23 +18,18 @@ const ToggleSwitch = ({
 	onChange: (checked: boolean) => void
 	testId?: string
 }) => (
-	<label className="relative inline-flex h-5 w-9 cursor-pointer select-none items-center">
-		<input
-			type="checkbox"
-			className="sr-only"
-			checked={checked}
-			onChange={(e) => onChange(e.target.checked)}
-			data-testid={testId}
+	<button
+		onClick={() => onChange(!checked)}
+		className={`relative inline-flex h-4 w-7 items-center rounded-full transition-colors focus:outline-none ${
+			checked ? "bg-blue-600" : "bg-gray-600"
+		}`}
+		data-testid={testId}>
+		<span
+			className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${
+				checked ? "translate-x-3.5" : "translate-x-0.5"
+			}`}
 		/>
-		{/* Track - thinner design */}
-		<div
-			className={`relative h-5 w-9 rounded-full transition-colors duration-200 ${checked ? "bg-vscode-button-background" : "bg-vscode-input-border"}`}>
-			{/* Knob - smaller and thinner */}
-			<div
-				className={`absolute top-0.5 h-4 w-4 rounded-full bg-vscode-button-foreground shadow-sm transition-transform duration-200 ${checked ? "translate-x-4" : "translate-x-0.5"}`}
-			/>
-		</div>
-	</label>
+	</button>
 )
 
 // Row component matching the reference design
@@ -51,14 +46,16 @@ const SettingRow = ({
 	onChange: (checked: boolean) => void
 	testId?: string
 }) => (
-	<div className="flex items-start justify-between py-3">
+	<div className="flex items-start justify-between py-3 pr-2">
 		{/* Text content */}
 		<div className="pr-4">
 			<p className="text-sm font-medium text-vscode-foreground">{title}</p>
 			<p className="mt-1 text-xs leading-snug text-vscode-descriptionForeground max-w-xs">{description}</p>
 		</div>
 		{/* Toggle switch */}
-		<ToggleSwitch checked={checked} onChange={onChange} testId={testId} />
+		<div className="flex-shrink-0">
+			<ToggleSwitch checked={checked} onChange={onChange} testId={testId} />
+		</div>
 	</div>
 )
 
@@ -84,22 +81,6 @@ const AUTOCOMPLETE_MODELS: ModelInfo[] = [
 		provider: "Mistral AI",
 		requiresApiKey: true,
 		apiKeyField: "mistralApiKey",
-	},
-	{
-		id: "mercury-coder",
-		name: "Mercury Coder Small",
-		description: "Best Speed/Quality - Fast diffusion model for code completion",
-		provider: "Inception Labs",
-		requiresApiKey: true,
-		apiKeyField: "inceptionApiKey",
-	},
-	{
-		id: "qwen-coder",
-		name: "Qwen 2.5 Coder 1.5B",
-		description: "Local/Privacy - Fully local model via Ollama",
-		provider: "Ollama",
-		requiresApiKey: false,
-		isLocal: true,
 	},
 ]
 
@@ -127,6 +108,12 @@ export const AutocompleteSettings: React.FC<AutocompleteSettingsProps> = () => {
 				type: "getConfiguration",
 				section: "cubent.autocomplete",
 			})
+
+			// Request Mistral API key from secure storage
+			vscode.postMessage({
+				type: "getSecret",
+				key: "mistralApiKey",
+			})
 		}
 
 		loadSettings()
@@ -139,12 +126,16 @@ export const AutocompleteSettings: React.FC<AutocompleteSettingsProps> = () => {
 				console.log("Received autocomplete config:", config)
 				setEnabled(config.enabled || false)
 				setSelectedModel(config.model || "codestral")
-				setMistralApiKey(config.mistralApiKey || "")
 				setInceptionApiKey(config.inceptionApiKey || "")
 				setOllamaBaseUrl(config.ollamaBaseUrl || "http://localhost:11434")
 				setAllowWithCopilot(config.allowWithCopilot || false)
 				setDebounceDelay(config.debounceDelay || 300)
 				setMaxTokens(config.maxTokens || 256)
+			}
+
+			// Handle secure storage responses for API keys
+			if (message.type === "secretValue" && message.key === "mistralApiKey") {
+				setMistralApiKey(message.secretValue || "")
 			}
 		}
 
@@ -157,7 +148,6 @@ export const AutocompleteSettings: React.FC<AutocompleteSettingsProps> = () => {
 		const configToSave = {
 			enabled,
 			model: selectedModel,
-			mistralApiKey,
 			inceptionApiKey,
 			ollamaBaseUrl,
 			allowWithCopilot,
@@ -172,6 +162,15 @@ export const AutocompleteSettings: React.FC<AutocompleteSettingsProps> = () => {
 			section: "cubent.autocomplete",
 			configuration: configToSave,
 		})
+
+		// Save Mistral API key to secure storage separately
+		if (mistralApiKey) {
+			vscode.postMessage({
+				type: "storeSecret",
+				key: "mistralApiKey",
+				secretValue: mistralApiKey,
+			})
+		}
 	}, [
 		enabled,
 		selectedModel,
@@ -234,50 +233,39 @@ export const AutocompleteSettings: React.FC<AutocompleteSettingsProps> = () => {
 
 	return (
 		<div>
-			<SectionHeader description="Configure AI-powered code completion (experimental feature)">
-				<div className="flex items-center gap-2">
-					<Code2 className="w-4" />
-					<div>Autocomplete Settings</div>
+			<SectionHeader description="Enable AI-powered inline code completion">
+				<div className="flex items-center justify-between w-full">
+					<div className="flex items-center gap-2">
+						<div>Enable Autocomplete</div>
+					</div>
+					<div className="flex items-center">
+						<button
+							onClick={() => setEnabled(!enabled)}
+							className={`relative inline-flex h-4 w-7 items-center rounded-full transition-colors focus:outline-none ${
+								enabled ? "bg-blue-600" : "bg-gray-600"
+							}`}
+							title={enabled ? "Disable autocomplete" : "Enable autocomplete"}>
+							<span
+								className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${
+									enabled ? "translate-x-3.5" : "translate-x-0.5"
+								}`}
+							/>
+						</button>
+					</div>
 				</div>
 			</SectionHeader>
 
 			{/* Content without Section wrapper - no card background */}
 			<div className="w-full p-6">
-				{/* Enable/Disable Toggle */}
-				<div className="space-y-4">
-					<SettingRow
-						title="Enable Autocomplete"
-						description="Enable AI-powered inline code completion"
-						checked={enabled}
-						onChange={setEnabled}
-						testId="autocomplete-enabled-toggle"
-					/>
-				</div>
-
-				{/* Conflict Warning */}
-				{enabled && (
-					<div className="flex items-start gap-2 p-3 border border-vscode-inputValidation-warningBorder bg-vscode-inputValidation-warningBackground rounded-md">
-						<AlertTriangle className="h-4 w-4 text-vscode-inputValidation-warningForeground mt-0.5 flex-shrink-0" />
-						<p className="text-sm text-vscode-inputValidation-warningForeground">
-							Autocomplete is experimental and may conflict with GitHub Copilot. Enable "Allow with
-							Copilot" below if you want to use both.
-						</p>
-					</div>
-				)}
-
 				{/* Model Selection */}
 				{enabled && (
-					<div className="space-y-3">
+					<div className="space-y-3 mb-6 mt-2">
 						<h3 className="text-sm font-medium">Model Selection</h3>
 						<div className="space-y-2">
 							{AUTOCOMPLETE_MODELS.map((model) => (
 								<div
 									key={model.id}
-									className={`p-3 border rounded-md cursor-pointer transition-colors ${
-										selectedModel === model.id
-											? "border-vscode-focusBorder bg-vscode-list-activeSelectionBackground"
-											: "border-vscode-widget-border hover:border-vscode-focusBorder"
-									}`}
+									className="p-3 border border-vscode-widget-border rounded-md cursor-pointer transition-colors hover:border-vscode-focusBorder"
 									onClick={() => setSelectedModel(model.id)}>
 									<div className="flex items-start justify-between">
 										<div className="flex-1">
@@ -297,9 +285,6 @@ export const AutocompleteSettings: React.FC<AutocompleteSettingsProps> = () => {
 											</p>
 										</div>
 										<div className="flex items-center gap-2">
-											{selectedModel === model.id && (
-												<Check className="h-4 w-4 text-vscode-charts-green" />
-											)}
 											{model.requiresApiKey && (
 												<Button
 													variant="outline"
@@ -343,6 +328,12 @@ export const AutocompleteSettings: React.FC<AutocompleteSettingsProps> = () => {
 									placeholder="Enter your Mistral API key"
 									type="password"
 									className="w-full mt-1"
+									style={{
+										backgroundColor: "var(--vscode-input-background)",
+										border: "1px solid var(--vscode-input-border)",
+										borderRadius: "6px",
+										filter: "brightness(0.85)",
+									}}
 								/>
 								<p className="text-xs text-vscode-descriptionForeground mt-1">
 									Get your API key from{" "}
@@ -440,6 +431,12 @@ export const AutocompleteSettings: React.FC<AutocompleteSettingsProps> = () => {
 										setDebounceDelay(Math.max(0, Math.min(2000, value)))
 									}}
 									className="w-full mt-1"
+									style={{
+										backgroundColor: "var(--vscode-input-background)",
+										border: "1px solid var(--vscode-input-border)",
+										borderRadius: "6px",
+										filter: "brightness(0.85)",
+									}}
 								/>
 								<p className="text-xs text-vscode-descriptionForeground mt-1">
 									Delay before triggering completion
@@ -455,6 +452,12 @@ export const AutocompleteSettings: React.FC<AutocompleteSettingsProps> = () => {
 										setMaxTokens(Math.max(50, Math.min(1000, value)))
 									}}
 									className="w-full mt-1"
+									style={{
+										backgroundColor: "var(--vscode-input-background)",
+										border: "1px solid var(--vscode-input-border)",
+										borderRadius: "6px",
+										filter: "brightness(0.85)",
+									}}
 								/>
 								<p className="text-xs text-vscode-descriptionForeground mt-1">
 									Maximum completion length
@@ -462,66 +465,13 @@ export const AutocompleteSettings: React.FC<AutocompleteSettingsProps> = () => {
 							</div>
 						</div>
 
-						<div className="flex items-center justify-between">
-							<div>
-								<h4 className="text-sm">Allow with GitHub Copilot</h4>
-								<p className="text-xs text-vscode-descriptionForeground">
-									Enable autocomplete even when Copilot is active (may cause conflicts)
-								</p>
-							</div>
-							<Button
-								variant={allowWithCopilot ? "default" : "outline"}
-								size="sm"
-								onClick={() => setAllowWithCopilot(!allowWithCopilot)}
-								className="min-w-[80px]">
-								{allowWithCopilot ? "Allowed" : "Blocked"}
-							</Button>
-						</div>
-					</div>
-				)}
-
-				{/* Status Information */}
-				{enabled && (
-					<div className="space-y-2">
-						<h3 className="text-sm font-medium">Status</h3>
-
-						{/* Active Model Indicator */}
-						<div className="flex items-center gap-2 text-xs">
-							<Code2 className="w-3 h-3 text-vscode-charts-blue" />
-							<span className="text-vscode-descriptionForeground">
-								<strong>Active Model:</strong> {selectedModelInfo?.name} ({selectedModelInfo?.provider})
-							</span>
-						</div>
-
-						<div className="flex items-center gap-2 text-xs">
-							<div
-								className={`w-2 h-2 rounded-full ${
-									hasRequiredApiKey ? "bg-vscode-charts-green" : "bg-vscode-charts-red"
-								}`}
-							/>
-							<span className="text-vscode-descriptionForeground">
-								{hasRequiredApiKey ? "Ready for completion" : "API key required"}
-							</span>
-						</div>
-						{connectionResults[selectedModel] !== undefined && (
-							<div className="flex items-center gap-2 text-xs">
-								<div
-									className={`w-2 h-2 rounded-full ${
-										connectionResults[selectedModel]
-											? "bg-vscode-charts-green"
-											: "bg-vscode-charts-red"
-									}`}
-								/>
-								<span className="text-vscode-descriptionForeground">
-									{connectionResults[selectedModel] ? "Connection successful" : "Connection failed"}
-								</span>
-							</div>
-						)}
-
-						{/* Debug Info */}
-						<div className="text-xs text-vscode-descriptionForeground opacity-75">
-							💡 Check VSCode Developer Console for autocomplete logs
-						</div>
+						<SettingRow
+							title="Allow with GitHub Copilot"
+							description="Enable autocomplete even when Copilot is active (may cause conflicts)"
+							checked={allowWithCopilot}
+							onChange={setAllowWithCopilot}
+							testId="allow-with-copilot-toggle"
+						/>
 					</div>
 				)}
 			</div>

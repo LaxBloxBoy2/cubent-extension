@@ -1246,10 +1246,12 @@ export class ClineProvider
 		deepSeekApiKey?: string
 		groqApiKey?: string
 		mistralApiKey?: string
+		openRouterApiKey?: string
 		// Base URLs
 		openAiNativeBaseUrl?: string
 		anthropicBaseUrl?: string
 		googleGeminiBaseUrl?: string
+		openRouterBaseUrl?: string
 	}) {
 		try {
 			// Get all BYOK profiles
@@ -1338,6 +1340,14 @@ export class ClineProvider
 					}
 				}
 
+				// Update OpenRouter BYOK profiles
+				if (apiProvider === "openrouter" || name.toLowerCase().includes("openrouter")) {
+					if (keys.openRouterApiKey !== undefined) {
+						updatedSettings.openRouterApiKey = keys.openRouterApiKey
+						hasChanges = true
+					}
+				}
+
 				// Update Base URLs for supported providers
 				if (
 					apiProvider === "openai-native" ||
@@ -1368,6 +1378,14 @@ export class ClineProvider
 				) {
 					if (keys.googleGeminiBaseUrl !== undefined) {
 						updatedSettings.googleGeminiBaseUrl = keys.googleGeminiBaseUrl
+						hasChanges = true
+					}
+				}
+
+				// Update OpenRouter base URL
+				if (apiProvider === "openrouter" || name.toLowerCase().includes("openrouter")) {
+					if (keys.openRouterBaseUrl !== undefined) {
+						updatedSettings.openRouterBaseUrl = keys.openRouterBaseUrl
 						hasChanges = true
 					}
 				}

@@ -1071,7 +1071,7 @@ export const toolNames = [
 	"read_file",
 	"write_to_file",
 	"apply_diff",
-	"insert_content",
+	"insert_content", // Content insertion operation for roo-code functionality - enhanced with profile loading fixes
 	"search_and_replace",
 	"search_files",
 	"list_files",

@@ -86,6 +86,7 @@ export interface ExtensionMessage {
 		| "messageUsageData"
 		| "configuration"
 		| "autocompleteConnectionResult"
+		| "secretValue"
 	text?: string
 	action?:
 		| "chatButtonClicked"
@@ -139,6 +140,8 @@ export interface ExtensionMessage {
 	section?: string
 	configuration?: Record<string, any>
 	modelId?: string
+	key?: string
+	secretValue?: string
 }
 
 export type ExtensionState = Pick<

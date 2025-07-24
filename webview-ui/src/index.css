@@ -436,12 +436,12 @@ body:focus-within .code-block-scrollable {
  * Thinner horizontal scrollbar
  */
 ::-webkit-scrollbar:horizontal {
-	height: 6px; /* Make horizontal scrollbar thinner */
+	height: 3px; /* Make horizontal scrollbar much thinner */
 }
 
 ::-webkit-scrollbar-thumb:horizontal {
 	background-color: var(--vscode-scrollbarSlider-background);
-	border-radius: 3px;
+	border-radius: 2px;
 }
 
 ::-webkit-scrollbar-thumb:horizontal:hover {
@@ -449,7 +449,7 @@ body:focus-within .code-block-scrollable {
 }
 
 ::-webkit-scrollbar-track:horizontal {
-	background: var(--vscode-editor-background);
+	background: transparent;
 }
 
 /**

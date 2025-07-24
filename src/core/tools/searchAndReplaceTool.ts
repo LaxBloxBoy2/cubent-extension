@@ -183,6 +183,9 @@ export async function searchAndReplaceTool(
 			newContent = fileContent.replace(searchPattern, validReplace)
 		}
 
+		// Capture state BEFORE making changes (like Augment's 'view' tool)
+		await cline.diffViewProvider.captureFileState(validRelPath)
+
 		// Initialize diff view
 		cline.diffViewProvider.editType = "modify"
 		cline.diffViewProvider.originalContent = fileContent
@@ -221,6 +224,9 @@ export async function searchAndReplaceTool(
 
 		// Call saveChanges to update the DiffViewProvider properties
 		await cline.diffViewProvider.saveChanges()
+
+		// Update state after edit (like Augment's verification)
+		await cline.diffViewProvider.updateFileState(validRelPath)
 
 		// Track file edit operation
 		if (relPath) {

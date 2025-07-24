@@ -185,6 +185,9 @@ export interface WebviewMessage {
 		| "getConfiguration"
 		| "updateConfiguration"
 		| "testAutocompleteConnection"
+		| "updateOpenRouterModel"
+		| "storeSecret"
+		| "getSecret"
 	text?: string
 	disabled?: boolean
 	askResponse?: ClineAskResponse
@@ -214,6 +217,8 @@ export interface WebviewMessage {
 	ids?: string[]
 	hasSystemPromptOverride?: boolean
 	terminalOperation?: "continue" | "abort"
+	key?: string
+	secretValue?: string
 	historyPreviewCollapsed?: boolean
 	feedbackType?: "positive" | "negative"
 	messageTs?: number

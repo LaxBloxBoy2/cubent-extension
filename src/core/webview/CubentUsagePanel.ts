@@ -50,9 +50,6 @@ export class CubentUsagePanel {
 					case "resetStats":
 						this.resetStats()
 						break
-					case "openSettings":
-						vscode.commands.executeCommand("workbench.action.openSettings", "cubent.autocomplete")
-						break
 					case "toggleAutocomplete":
 						this.toggleAutocomplete()
 						break
@@ -118,10 +115,6 @@ export class CubentUsagePanel {
 			switch (modelId) {
 				case "codestral":
 					return mistralApiKey ? "✅ Configured" : "❌ API key required"
-				case "mercury-coder":
-					return inceptionApiKey ? "✅ Configured" : "❌ API key required"
-				case "qwen-coder":
-					return "✅ Local (Ollama)"
 				default:
 					return "❌ Unknown"
 			}
@@ -330,14 +323,6 @@ export class CubentUsagePanel {
                 <span class="model-name">Codestral (Mistral AI)</span>
                 <span class="model-status">${getModelStatus("codestral")}</span>
             </div>
-            <div class="model-option ${model === "mercury-coder" ? "active" : ""}" onclick="changeModel('mercury-coder')">
-                <span class="model-name">Mercury Coder Small</span>
-                <span class="model-status">${getModelStatus("mercury-coder")}</span>
-            </div>
-            <div class="model-option ${model === "qwen-coder" ? "active" : ""}" onclick="changeModel('qwen-coder')">
-                <span class="model-name">Qwen 2.5 Coder (Local)</span>
-                <span class="model-status">${getModelStatus("qwen-coder")}</span>
-            </div>
         </div>
     </div>
     
@@ -350,9 +335,6 @@ export class CubentUsagePanel {
             <button class="btn btn-secondary" onclick="resetStats()">
                 Reset Statistics
             </button>
-            <button class="btn btn-secondary" onclick="openSettings()">
-                Open Settings
-            </button>
         </div>
     </div>
     
@@ -362,11 +344,7 @@ export class CubentUsagePanel {
         function resetStats() {
             vscode.postMessage({ type: 'resetStats' });
         }
-        
-        function openSettings() {
-            vscode.postMessage({ type: 'openSettings' });
-        }
-        
+
         function toggleAutocomplete() {
             vscode.postMessage({ type: 'toggleAutocomplete' });
         }

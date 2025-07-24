@@ -156,8 +156,8 @@ export class CubentAutocompleteProvider implements vscode.InlineCompletionItemPr
 	private initializeProviders(): void {
 		const config = vscode.workspace.getConfiguration("cubent.autocomplete")
 
-		// Initialize Mistral provider
-		const mistralApiKey = config.get<string>("mistralApiKey")
+		// Initialize Mistral provider - use secure storage for API key
+		const mistralApiKey = this.contextProxy.getSecret("mistralApiKey")
 		if (mistralApiKey) {
 			this.providers.set(
 				"codestral",

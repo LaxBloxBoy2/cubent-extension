@@ -1000,11 +1000,15 @@ export const ChatRowContent = ({
 				case "diff_error":
 					return (
 						<div>
+							{/* Horizontal line separator above error */}
+							<div className="w-full h-px mb-3" style={{ backgroundColor: "rgba(255, 255, 255, 0.1)" }} />
+							{/* Header with warning icon and "Edit Unsuccessful" title is hidden */}
 							<div
 								style={{
 									marginTop: "0px",
 									overflow: "hidden",
 									marginBottom: "8px",
+									display: "none", // Hide the entire header section
 								}}>
 								<div
 									style={{

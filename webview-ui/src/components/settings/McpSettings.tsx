@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from "react"
 import { useEvent } from "react-use"
 import { VSCodeLink } from "@vscode/webview-ui-toolkit/react"
-import { Server, CheckSquare, HelpCircle, Edit } from "lucide-react"
+import { CheckSquare, HelpCircle, Edit } from "lucide-react"
 
 import { ExtensionMessage } from "@shared/ExtensionMessage"
 import { McpServer } from "@shared/mcp"
@@ -14,7 +14,7 @@ import { Button } from "@src/components/ui"
 
 import { SectionHeader } from "./SectionHeader"
 
-// Thin toggle switch component - rebuilt from scratch
+// Toggle switch component matching header style
 const ToggleSwitch = ({
 	checked,
 	onChange,
@@ -24,20 +24,18 @@ const ToggleSwitch = ({
 	onChange: (checked: boolean) => void
 	testId?: string
 }) => (
-	<label className="relative inline-flex h-5 w-9 cursor-pointer select-none items-center">
-		<input
-			type="checkbox"
-			className="sr-only"
-			checked={checked}
-			onChange={(e) => onChange(e.target.checked)}
-			data-testid={testId}
+	<button
+		onClick={() => onChange(!checked)}
+		className={`relative inline-flex h-4 w-7 items-center rounded-full transition-colors focus:outline-none ${
+			checked ? "bg-blue-600" : "bg-gray-600"
+		}`}
+		data-testid={testId}>
+		<span
+			className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${
+				checked ? "translate-x-3.5" : "translate-x-0.5"
+			}`}
 		/>
-		{/* Track - thinner design */}
-		<div className={`relative h-5 w-9 rounded-full transition-colors duration-200 ${checked ? 'bg-vscode-button-background' : 'bg-vscode-input-border'}`}>
-			{/* Knob - smaller and thinner */}
-			<div className={`absolute top-0.5 h-4 w-4 rounded-full bg-vscode-button-foreground shadow-sm transition-transform duration-200 ${checked ? 'translate-x-4' : 'translate-x-0.5'}`} />
-		</div>
-	</label>
+	</button>
 )
 
 // Row component matching the General Settings design
@@ -54,14 +52,16 @@ const SettingRow = ({
 	onChange: (checked: boolean) => void
 	testId?: string
 }) => (
-	<div className="flex items-start justify-between py-3">
+	<div className="flex items-start justify-between py-3 pr-2">
 		{/* Text content */}
 		<div className="pr-4">
 			<p className="text-sm font-medium text-vscode-foreground">{title}</p>
 			<p className="mt-1 text-xs leading-snug text-vscode-descriptionForeground max-w-xs">{description}</p>
 		</div>
 		{/* Toggle switch */}
-		<ToggleSwitch checked={checked} onChange={onChange} testId={testId} />
+		<div className="flex-shrink-0">
+			<ToggleSwitch checked={checked} onChange={onChange} testId={testId} />
+		</div>
 	</div>
 )
 
@@ -79,8 +79,6 @@ export const McpSettings = ({ className, ...props }: McpSettingsProps) => {
 		setMcpEnabled,
 		setAlwaysAllowMcp,
 	} = useExtensionState()
-
-
 
 	const { t } = useAppTranslation()
 
@@ -139,10 +137,25 @@ export const McpSettings = ({ className, ...props }: McpSettingsProps) => {
 
 	return (
 		<div className={className} {...props}>
-			<SectionHeader>
-				<div className="flex items-center gap-2">
-					<Server className="w-4" />
-					<div>Model Context Protocol (MCP)</div>
+			<SectionHeader description="Access connected MCP servers. Turn off to save tokens.">
+				<div className="flex items-center justify-between w-full">
+					<div className="flex items-center gap-2">
+						<div>Enable MCP Servers</div>
+					</div>
+					<div className="flex items-center">
+						<button
+							onClick={() => handleMcpEnabledChange(!mcpEnabled)}
+							className={`relative inline-flex h-4 w-7 items-center rounded-full transition-colors focus:outline-none ${
+								mcpEnabled ? "bg-blue-600" : "bg-gray-600"
+							}`}
+							title={mcpEnabled ? "Disable MCP servers" : "Enable MCP servers"}>
+							<span
+								className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${
+									mcpEnabled ? "translate-x-3.5" : "translate-x-0.5"
+								}`}
+							/>
+						</button>
+					</div>
 				</div>
 			</SectionHeader>
 
@@ -150,13 +163,6 @@ export const McpSettings = ({ className, ...props }: McpSettingsProps) => {
 			<div className="w-full p-6">
 				{/* MCP Settings */}
 				<div className="divide-y divide-vscode-input-border">
-					<SettingRow
-						title="Enable MCP Servers"
-						description="Access connected MCP servers. Turn off to save tokens."
-						checked={mcpEnabled}
-						onChange={handleMcpEnabledChange}
-					/>
-
 					{/* Server Creation Toggle */}
 					{mcpEnabled && (
 						<SettingRow

@@ -94,20 +94,8 @@ function showCubentUsagePopup(autocompleteProvider?: CubentAutocompleteProvider)
 			detail: "Clear all usage data",
 		},
 		{
-			label: "⚙️ Open Settings",
-			detail: "Configure autocomplete options",
-		},
-		{
 			label: "🎯 Switch to Codestral",
 			detail: model === "codestral" ? "✅ Currently active" : "Mistral AI model",
-		},
-		{
-			label: "🚀 Switch to Mercury Coder",
-			detail: model === "mercury-coder" ? "✅ Currently active" : "Inception AI model",
-		},
-		{
-			label: "🏠 Switch to Qwen Coder",
-			detail: model === "qwen-coder" ? "✅ Currently active" : "Local Ollama model",
 		},
 	]
 
@@ -129,17 +117,9 @@ function showCubentUsagePopup(autocompleteProvider?: CubentAutocompleteProvider)
 				autocompleteProvider.resetUsageStats()
 				vscode.window.showInformationMessage("Statistics reset")
 			}
-		} else if (selected.label.includes("Open Settings")) {
-			vscode.commands.executeCommand("workbench.action.openSettings", "cubent.autocomplete")
 		} else if (selected.label.includes("Codestral")) {
 			config.update("model", "codestral", vscode.ConfigurationTarget.Global)
 			vscode.window.showInformationMessage("Switched to Codestral")
-		} else if (selected.label.includes("Mercury Coder")) {
-			config.update("model", "mercury-coder", vscode.ConfigurationTarget.Global)
-			vscode.window.showInformationMessage("Switched to Mercury Coder")
-		} else if (selected.label.includes("Qwen Coder")) {
-			config.update("model", "qwen-coder", vscode.ConfigurationTarget.Global)
-			vscode.window.showInformationMessage("Switched to Qwen Coder")
 		}
 
 		quickPick.dispose()
@@ -479,16 +459,9 @@ Click to open sidebar`
 			console.log("Cubent autocomplete provider registered successfully")
 		} catch (error) {
 			console.error("Failed to register autocomplete provider:", error)
-			vscode.window
-				.showWarningMessage(
-					"Failed to initialize Cubent autocomplete. Check your API keys in settings.",
-					"Open Settings",
-				)
-				.then((selection) => {
-					if (selection === "Open Settings") {
-						vscode.commands.executeCommand("workbench.action.openSettings", "cubent.autocomplete")
-					}
-				})
+			vscode.window.showWarningMessage(
+				"Failed to initialize Cubent autocomplete. Check your API keys in Cubent settings.",
+			)
 		}
 	} else {
 		// Update status bar when autocomplete is disabled
@@ -524,18 +497,6 @@ Click to open sidebar`
 						detail: "Professional-grade code completion with excellent accuracy",
 						value: "codestral",
 					},
-					{
-						label: "Mercury Coder (Inception Labs)",
-						description: "Best Speed/Quality - Requires Inception Labs API key",
-						detail: "Fast and efficient code completion",
-						value: "mercury-coder",
-					},
-					{
-						label: "Qwen 2.5 Coder (Ollama)",
-						description: "Local/Privacy - Requires Ollama running locally",
-						detail: "Run locally for maximum privacy",
-						value: "qwen-coder",
-					},
 				],
 				{
 					placeHolder: "Choose your autocomplete model",
@@ -559,27 +520,15 @@ Click to open sidebar`
 					apiKeyName = "Mistral API Key"
 					apiKeyUrl = "https://console.mistral.ai/"
 					break
-				case "mercury-coder":
-					needsApiKey = !config.get<string>("inceptionApiKey")
-					apiKeyName = "Inception Labs API Key"
-					apiKeyUrl = "https://console.inceptionlabs.ai/"
-					break
-				case "qwen-coder":
-					// Check if Ollama is running
-					needsApiKey = false // Ollama doesn't need API key, but we should check if it's running
-					break
 			}
 
 			if (needsApiKey) {
 				const action = await vscode.window.showInformationMessage(
-					`You need to set up your ${apiKeyName} to use ${modelChoice.label}.`,
-					"Open Settings",
+					`You need to set up your ${apiKeyName} to use ${modelChoice.label}. Configure it in Cubent settings.`,
 					"Get API Key",
 				)
 
-				if (action === "Open Settings") {
-					vscode.commands.executeCommand("workbench.action.openSettings", "cubent.autocomplete")
-				} else if (action === "Get API Key") {
+				if (action === "Get API Key") {
 					vscode.env.openExternal(vscode.Uri.parse(apiKeyUrl))
 				}
 				return

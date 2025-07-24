@@ -1,6 +1,5 @@
-import { Ruler, X } from "lucide-react"
+import { X } from "lucide-react"
 import { useAppTranslation } from "@/i18n/TranslationContext"
-import { SectionHeader } from "./SectionHeader"
 import { SetCachedStateField } from "./types"
 import { HTMLAttributes, useState } from "react"
 import { VSCodeTextArea, VSCodeButton } from "@vscode/webview-ui-toolkit/react"
@@ -44,13 +43,6 @@ export default function UserGuidelinesSettings({
 
 	return (
 		<div {...props}>
-			<SectionHeader>
-				<div className="flex items-center gap-2">
-					<Ruler className="w-4" />
-					<div>{t("settings:sections.userGuidelines")}</div>
-				</div>
-			</SectionHeader>
-
 			{/* Content without Section wrapper - no card background */}
 			<div className="w-full p-6">
 				{/* User Guidelines Section */}

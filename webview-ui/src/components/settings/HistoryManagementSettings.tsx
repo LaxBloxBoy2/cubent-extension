@@ -15,33 +15,28 @@ type HistoryManagementSettingsProps = HTMLAttributes<HTMLDivElement> & {
 	setCachedStateField: SetCachedStateField<any>
 }
 
-// Thin toggle switch component - matching GeneralSettings design
+// Toggle switch component matching header style
 const ToggleSwitch = ({
 	checked,
 	onChange,
 	testId,
 }: {
 	checked: boolean
-	onChange: (checked: boolean) => void
+	onChange: (changed: boolean) => void
 	testId?: string
 }) => (
-	<label className="relative inline-flex h-5 w-9 cursor-pointer select-none items-center">
-		<input
-			type="checkbox"
-			className="sr-only"
-			checked={checked}
-			onChange={(e) => onChange(e.target.checked)}
-			data-testid={testId}
+	<button
+		onClick={() => onChange(!checked)}
+		className={`relative inline-flex h-4 w-7 items-center rounded-full transition-colors focus:outline-none ${
+			checked ? "bg-blue-600" : "bg-gray-600"
+		}`}
+		data-testid={testId}>
+		<span
+			className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${
+				checked ? "translate-x-3.5" : "translate-x-0.5"
+			}`}
 		/>
-		{/* Track - thinner design */}
-		<div
-			className={`relative h-5 w-9 rounded-full transition-colors duration-200 ${checked ? "bg-vscode-button-background" : "bg-vscode-input-border"}`}>
-			{/* Knob - smaller and thinner */}
-			<div
-				className={`absolute top-0.5 h-4 w-4 rounded-full bg-vscode-button-foreground shadow-sm transition-transform duration-200 ${checked ? "translate-x-4" : "translate-x-0.5"}`}
-			/>
-		</div>
-	</label>
+	</button>
 )
 
 // Row component matching the GeneralSettings design
@@ -58,14 +53,16 @@ const SettingRow = ({
 	onChange: (checked: boolean) => void
 	testId?: string
 }) => (
-	<div className="flex items-start justify-between py-3">
+	<div className="flex items-start justify-between py-3 pr-2">
 		{/* Text content */}
 		<div className="pr-4">
 			<p className="text-sm font-medium text-vscode-foreground">{title}</p>
 			<p className="mt-1 text-xs leading-snug text-vscode-descriptionForeground max-w-xs">{description}</p>
 		</div>
 		{/* Toggle switch */}
-		<ToggleSwitch checked={checked} onChange={onChange} testId={testId} />
+		<div className="flex-shrink-0">
+			<ToggleSwitch checked={checked} onChange={onChange} testId={testId} />
+		</div>
 	</div>
 )
 

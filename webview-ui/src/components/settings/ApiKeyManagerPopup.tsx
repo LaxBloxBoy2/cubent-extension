@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react"
 import { VSCodeTextField, VSCodeButton } from "@vscode/webview-ui-toolkit/react"
-import { ExternalLink, Key, Settings, Search, Lock } from "lucide-react"
+import { ExternalLink, Key, Settings, Search, Lock, Check, Info } from "lucide-react"
 
 import { useAppTranslation } from "@/i18n/TranslationContext"
 import { cn } from "@/lib/utils"
@@ -9,6 +9,8 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { vscode } from "@/utils/vscode"
 import { useExtensionState } from "@/context/ExtensionStateContext"
+import { getOpenRouterAuthUrl } from "@/oauth/urls"
+import { useRouterModels } from "@/components/ui/hooks/useRouterModels"
 
 interface ApiKeyManagerPopupProps {
 	trigger?: React.ReactNode
@@ -25,6 +27,7 @@ interface Provider {
 	logo: React.ReactNode
 	baseUrlField?: string
 	baseUrlPlaceholder?: string
+	supportsOAuth?: boolean
 }
 
 interface ApiKeyState {
@@ -62,6 +65,28 @@ const PROVIDERS: Provider[] = [
 		logo: (
 			<svg className="w-5 h-5 text-vscode-foreground" viewBox="0 0 24 24" fill="currentColor">
 				<path d="M22.2819 9.8211a5.9847 5.9847 0 0 0-.5157-4.9108 6.0462 6.0462 0 0 0-6.5098-2.9A6.0651 6.0651 0 0 0 4.9807 4.1818a5.9847 5.9847 0 0 0-3.9977 2.9 6.0462 6.0462 0 0 0 .7427 7.0966 5.98 5.98 0 0 0 .511 4.9107 6.051 6.051 0 0 0 6.5146 2.9001A5.9847 5.9847 0 0 0 13.2599 24a6.0557 6.0557 0 0 0 5.7718-4.2058 5.9894 5.9894 0 0 0 3.9977-2.9001 6.0557 6.0557 0 0 0-.7475-7.0729zm-9.022 12.6081a4.4755 4.4755 0 0 1-2.8764-1.0408l.1419-.0804 4.7783-2.7582a.7948.7948 0 0 0 .3927-.6813v-6.7369l2.02 1.1686a.071.071 0 0 1 .038.052v5.5826a4.504 4.504 0 0 1-4.4945 4.4944zm-9.6607-4.1254a4.4708 4.4708 0 0 1-.5346-3.0137l.142.0852 4.783 2.7582a.7712.7712 0 0 0 .7806 0l5.8428-3.3685v2.3324a.0804.0804 0 0 1-.0332.0615L9.74 19.9502a4.4992 4.4992 0 0 1-6.1408-1.6464zM2.3408 7.8956a4.485 4.485 0 0 1 2.3655-1.9728V11.6a.7664.7664 0 0 0 .3879.6765l5.8144 3.3543-2.0201 1.1685a.0757.0757 0 0 1-.071 0l-4.8303-2.7865A4.504 4.504 0 0 1 2.3408 7.872zm16.5963 3.8558L13.1038 8.364 15.1192 7.2a.0757.0757 0 0 1 .071 0l4.8303 2.7913a4.4944 4.4944 0 0 1-.6765 8.1042v-5.6772a.79.79 0 0 0-.407-.667zm2.0107-3.0231l-.142-.0852-4.7735-2.7818a.7759.7759 0 0 0-.7854 0L9.409 9.2297V6.8974a.0662.0662 0 0 1 .0284-.0615l4.8303-2.7866a4.4992 4.4992 0 0 1 6.6802 4.66zM8.3065 12.863l-2.02-1.1638a.0804.0804 0 0 1-.038-.0567V6.0742a4.4992 4.4992 0 0 1 7.3757-3.4537l-.142.0805L8.704 5.459a.7948.7948 0 0 0-.3927.6813zm1.0976-2.3654l2.602-1.4998 2.6069 1.4998v2.9994l-2.5974 1.4997-2.6067-1.4997Z" />
+			</svg>
+		),
+	},
+	{
+		id: "openrouter",
+		name: "OpenRouter",
+		description: "Access to 200+ AI models through OpenRouter",
+		apiKeyField: "openRouterApiKey",
+		createKeyUrl: "https://openrouter.ai/keys",
+		baseUrlField: "openRouterBaseUrl",
+		baseUrlPlaceholder: "https://openrouter.ai/api/v1",
+		supportsOAuth: true,
+		logo: (
+			<svg className="w-5 h-5 text-vscode-foreground" viewBox="0 0 24 24" fill="currentColor">
+				<path
+					d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"
+					stroke="currentColor"
+					strokeWidth="2"
+					fill="none"
+					strokeLinecap="round"
+					strokeLinejoin="round"
+				/>
 			</svg>
 		),
 	},
@@ -167,11 +192,24 @@ export const ApiKeyManagerContent = ({
 	const [searchQuery, setSearchQuery] = useState("")
 	const [byokSearchQuery, setByokSearchQuery] = useState("")
 	const [builtinSearchQuery, setBuiltinSearchQuery] = useState("")
-	const [activeTab, setActiveTab] = useState<"api-key" | "byok-models" | "builtin-models">("api-key")
+	const [openrouterSearchQuery, setOpenrouterSearchQuery] = useState("")
+	const [selectedOpenRouterModel, setSelectedOpenRouterModel] = useState<string>("")
+	const [activeTab, setActiveTab] = useState<"api-key" | "byok-models" | "builtin-models" | "openrouter">("api-key")
 	const [localHiddenProfiles, setLocalHiddenProfiles] = useState<Set<string>>(new Set())
 	const [isLoaded, setIsLoaded] = useState(false)
 
 	const { listApiConfigMeta, hiddenProfiles: globalHiddenProfiles } = useExtensionState()
+
+	// Initialize selectedOpenRouterModel from apiConfiguration
+	useEffect(() => {
+		console.log(
+			"Settings: Initializing selectedOpenRouterModel from apiConfiguration:",
+			apiConfiguration?.openRouterModelId,
+		)
+		if (apiConfiguration?.openRouterModelId) {
+			setSelectedOpenRouterModel(apiConfiguration.openRouterModelId)
+		}
+	}, [apiConfiguration?.openRouterModelId])
 
 	// Use external hidden profiles if provided (for settings), otherwise use local state
 	const hiddenProfiles = externalHiddenProfiles ? new Set(externalHiddenProfiles) : localHiddenProfiles
@@ -222,12 +260,17 @@ export const ApiKeyManagerContent = ({
 	// Filter Built-in models based on search query
 	const filteredBuiltinModels = useMemo(() => {
 		if (!builtinSearchQuery.trim())
-			return listApiConfigMeta?.filter((config) => !config.name.includes("(BYOK)")) || []
+			return (
+				listApiConfigMeta?.filter(
+					(config) => !config.name.includes("(BYOK)") && config.apiProvider !== "openrouter",
+				) || []
+			)
 		const query = builtinSearchQuery.toLowerCase()
 		return (
 			listApiConfigMeta?.filter(
 				(config) =>
 					!config.name.includes("(BYOK)") &&
+					config.apiProvider !== "openrouter" &&
 					(config.name.toLowerCase().includes(query) ||
 						(config.apiProvider?.toLowerCase().includes(query) ?? false)),
 			) || []
@@ -287,12 +330,23 @@ export const ApiKeyManagerContent = ({
 				setBaseUrlToggles(toggles)
 				setBaseUrlValues(urls)
 				setIsLoaded(true)
+			} else if (message.type === "state" && message.state?.apiConfiguration?.openRouterApiKey) {
+				// Update OpenRouter API key when OAuth completes
+				const newApiKey = message.state.apiConfiguration.openRouterApiKey
+				if (newApiKey && newApiKey !== apiKeys.openRouterApiKey) {
+					setApiKeys((prev) => ({
+						...prev,
+						openRouterApiKey: newApiKey,
+					}))
+					// Show success notification
+					console.log("OpenRouter connected successfully!")
+				}
 			}
 		}
 
 		window.addEventListener("message", handleMessage)
 		return () => window.removeEventListener("message", handleMessage)
-	}, [])
+	}, [apiKeys.openRouterApiKey])
 
 	const handleApiKeyChange = (apiKeyField: string, value: string) => {
 		setApiKeys((prev) => ({
@@ -365,12 +419,34 @@ export const ApiKeyManagerContent = ({
 		vscode.postMessage({ type: "openExternalUrl", url })
 	}
 
+	const handleOAuthConnect = (providerId: string) => {
+		if (providerId === "openrouter") {
+			const authUrl = getOpenRouterAuthUrl()
+			vscode.postMessage({ type: "openExternalUrl", url: authUrl })
+		}
+	}
+
+	const handleModelSelect = (modelId: string) => {
+		setSelectedOpenRouterModel(modelId)
+		// Save the selected model to the current API configuration
+		if (onApiConfigurationChange && apiConfiguration) {
+			onApiConfigurationChange({
+				...apiConfiguration,
+				openRouterModelId: modelId,
+			})
+		} else {
+			// For popup mode, just store the selection locally
+			// The actual saving will be handled when the user saves their configuration
+			console.log(`Selected OpenRouter model: ${modelId}`)
+		}
+	}
+
 	return (
 		<div className="flex flex-col space-y-3 flex-1 min-h-0">
 			{/* Tabs */}
-			<div className="flex border-b border-vscode-input-border flex-shrink-0">
+			<div className="flex border-b border-vscode-input-border flex-shrink-0 overflow-x-auto">
 				<button
-					className={`px-2 py-1 text-sm font-medium ${
+					className={`px-2 py-1 text-base font-medium whitespace-nowrap ${
 						activeTab === "api-key"
 							? "text-vscode-foreground border-b-2 border-vscode-focusBorder"
 							: "text-vscode-descriptionForeground"
@@ -379,7 +455,7 @@ export const ApiKeyManagerContent = ({
 					Api Keys
 				</button>
 				<button
-					className={`px-2 py-1 text-sm font-medium ${
+					className={`px-2 py-1 text-base font-medium whitespace-nowrap ${
 						activeTab === "byok-models"
 							? "text-vscode-foreground border-b-2 border-vscode-focusBorder"
 							: "text-vscode-descriptionForeground"
@@ -388,7 +464,16 @@ export const ApiKeyManagerContent = ({
 					BYOK Models
 				</button>
 				<button
-					className={`px-2 py-1 text-sm font-medium ${
+					className={`px-2 py-1 text-base font-medium whitespace-nowrap ${
+						activeTab === "openrouter"
+							? "text-vscode-foreground border-b-2 border-vscode-focusBorder"
+							: "text-vscode-descriptionForeground"
+					}`}
+					onClick={() => setActiveTab("openrouter")}>
+					OpenRouter
+				</button>
+				<button
+					className={`px-2 py-1 text-base font-medium whitespace-nowrap ${
 						activeTab === "builtin-models"
 							? "text-vscode-foreground border-b-2 border-vscode-focusBorder"
 							: "text-vscode-descriptionForeground"
@@ -430,34 +515,81 @@ export const ApiKeyManagerContent = ({
 										</p>
 									</div>
 								</div>
-								<VSCodeTextField
-									value={apiKeys[provider.apiKeyField] || ""}
-									type="password"
-									onInput={(e) =>
-										handleApiKeyChange(provider.apiKeyField, (e.target as HTMLInputElement).value)
-									}
-									placeholder={`Enter your ${provider.name} API key`}
-									className="w-full text-xs -mt-0.5"
-								/>
-								<div className="flex items-center justify-between">
-									<button
-										onClick={() => handleLinkClick(provider.createKeyUrl)}
-										className="text-xs text-vscode-foreground hover:text-vscode-descriptionForeground flex items-center gap-1 transition-colors cursor-pointer">
-										Get {provider.name} API key
-										<ExternalLink className="w-3 h-3" />
-									</button>
-									{provider.baseUrlField && (
-										<div className="flex items-center gap-2">
-											<span className="text-xs text-vscode-foreground">URL</span>
-											<ToggleSwitch
-												checked={baseUrlToggles[provider.id] || false}
-												onChange={(checked: boolean) =>
-													handleBaseUrlToggle(provider.id, checked)
-												}
-											/>
+								{provider.supportsOAuth ? (
+									<div className="space-y-2">
+										<VSCodeTextField
+											value={apiKeys[provider.apiKeyField] || ""}
+											type="password"
+											onInput={(e) =>
+												handleApiKeyChange(
+													provider.apiKeyField,
+													(e.target as HTMLInputElement).value,
+												)
+											}
+											placeholder={`Enter your ${provider.name} API key`}
+											className="w-full text-xs -mt-0.5"
+										/>
+										<div className="flex items-center justify-between">
+											<VSCodeButton
+												onClick={() => handleOAuthConnect(provider.id)}
+												style={{
+													padding: "2px 8px",
+													height: "20px",
+													fontSize: "8px",
+													minHeight: "auto",
+													display: "flex",
+													alignItems: "center",
+													justifyContent: "center",
+													border: "none !important",
+													outline: "none !important",
+													boxShadow: "inset 0 0 0 0 transparent !important",
+													borderRadius: "3px",
+												}}>
+												Connect
+											</VSCodeButton>
+											<button
+												onClick={() => handleLinkClick(provider.createKeyUrl)}
+												className="text-xs text-vscode-foreground hover:text-vscode-descriptionForeground flex items-center gap-1 transition-colors cursor-pointer">
+												Manual setup
+												<ExternalLink className="w-3 h-3" />
+											</button>
 										</div>
-									)}
-								</div>
+									</div>
+								) : (
+									<>
+										<VSCodeTextField
+											value={apiKeys[provider.apiKeyField] || ""}
+											type="password"
+											onInput={(e) =>
+												handleApiKeyChange(
+													provider.apiKeyField,
+													(e.target as HTMLInputElement).value,
+												)
+											}
+											placeholder={`Enter your ${provider.name} API key`}
+											className="w-full text-xs -mt-0.5"
+										/>
+										<div className="flex items-center justify-between">
+											<button
+												onClick={() => handleLinkClick(provider.createKeyUrl)}
+												className="text-xs text-vscode-foreground hover:text-vscode-descriptionForeground flex items-center gap-1 transition-colors cursor-pointer">
+												Get {provider.name} API key
+												<ExternalLink className="w-3 h-3" />
+											</button>
+											{provider.baseUrlField && (
+												<div className="flex items-center gap-2">
+													<span className="text-xs text-vscode-foreground">URL</span>
+													<ToggleSwitch
+														checked={baseUrlToggles[provider.id] || false}
+														onChange={(checked: boolean) =>
+															handleBaseUrlToggle(provider.id, checked)
+														}
+													/>
+												</div>
+											)}
+										</div>
+									</>
+								)}
 								{provider.baseUrlField && (
 									<div className={`mt-1 ${baseUrlToggles[provider.id] ? "block" : "hidden"}`}>
 										<input
@@ -510,7 +642,7 @@ export const ApiKeyManagerContent = ({
 					{/* BYOK Models Description */}
 					<div className="flex-shrink-0 px-1 py-2">
 						<p className="text-xs text-vscode-descriptionForeground">
-							Bring Your API Key (BYOK) models use your own API credentials. You manage your own usage and
+							Bring Your Own Key (BYOK) models use your own API credentials. You manage your own usage and
 							billing directly with the provider.
 						</p>
 					</div>
@@ -637,6 +769,19 @@ export const ApiKeyManagerContent = ({
 					</div>
 				</>
 			)}
+
+			{/* OpenRouter Tab Content */}
+			{activeTab === "openrouter" && (
+				<OpenRouterTabContent
+					apiKeys={apiKeys}
+					openrouterSearchQuery={openrouterSearchQuery}
+					setOpenrouterSearchQuery={setOpenrouterSearchQuery}
+					selectedOpenRouterModel={selectedOpenRouterModel}
+					handleModelSelect={handleModelSelect}
+					handleOAuthConnect={handleOAuthConnect}
+					handleLinkClick={handleLinkClick}
+				/>
+			)}
 		</div>
 	)
 }
@@ -648,10 +793,23 @@ const ApiKeyManagerPopupContent = () => {
 	const [searchQuery, setSearchQuery] = useState("")
 	const [byokSearchQuery, setByokSearchQuery] = useState("")
 	const [builtinSearchQuery, setBuiltinSearchQuery] = useState("")
-	const [activeTab, setActiveTab] = useState<"api-key" | "byok-models" | "builtin-models">("api-key")
+	const [openrouterSearchQuery, setOpenrouterSearchQuery] = useState("")
+	const [selectedOpenRouterModel, setSelectedOpenRouterModel] = useState<string>("")
+	const [activeTab, setActiveTab] = useState<"api-key" | "byok-models" | "builtin-models" | "openrouter">("api-key")
 	const [hiddenProfiles, setHiddenProfiles] = useState<Set<string>>(new Set())
 
-	const { listApiConfigMeta, hiddenProfiles: globalHiddenProfiles } = useExtensionState()
+	const { listApiConfigMeta, hiddenProfiles: globalHiddenProfiles, apiConfiguration } = useExtensionState()
+
+	// Initialize selectedOpenRouterModel from extension state
+	useEffect(() => {
+		console.log(
+			"Popup: Initializing selectedOpenRouterModel from apiConfiguration:",
+			apiConfiguration?.openRouterModelId,
+		)
+		if (apiConfiguration?.openRouterModelId) {
+			setSelectedOpenRouterModel(apiConfiguration.openRouterModelId)
+		}
+	}, [apiConfiguration?.openRouterModelId])
 
 	// Initialize hidden profiles from global state
 	useEffect(() => {
@@ -691,12 +849,17 @@ const ApiKeyManagerPopupContent = () => {
 	// Filter Built-in models based on search query
 	const filteredBuiltinModels = useMemo(() => {
 		if (!builtinSearchQuery.trim())
-			return listApiConfigMeta?.filter((config) => !config.name.includes("(BYOK)")) || []
+			return (
+				listApiConfigMeta?.filter(
+					(config) => !config.name.includes("(BYOK)") && config.apiProvider !== "openrouter",
+				) || []
+			)
 		const query = builtinSearchQuery.toLowerCase()
 		return (
 			listApiConfigMeta?.filter(
 				(config) =>
 					!config.name.includes("(BYOK)") &&
+					config.apiProvider !== "openrouter" &&
 					(config.name.toLowerCase().includes(query) ||
 						(config.apiProvider?.toLowerCase().includes(query) ?? false)),
 			) || []
@@ -739,12 +902,30 @@ const ApiKeyManagerPopupContent = () => {
 		vscode.postMessage({ type: "openExternalUrl", url })
 	}
 
+	const handleOAuthConnect = (providerId: string) => {
+		if (providerId === "openrouter") {
+			const authUrl = getOpenRouterAuthUrl()
+			vscode.postMessage({ type: "openExternalUrl", url: authUrl })
+		}
+	}
+
+	const handleModelSelect = (modelId: string) => {
+		setSelectedOpenRouterModel(modelId)
+		console.log(`Selected OpenRouter model: ${modelId}`)
+
+		// Update the OpenRouter profile directly, regardless of which profile is currently selected
+		vscode.postMessage({
+			type: "updateOpenRouterModel",
+			modelId: modelId,
+		})
+	}
+
 	return (
 		<div className="flex flex-col space-y-3 flex-1 min-h-0">
 			{/* Tabs */}
-			<div className="flex border-b border-vscode-input-border flex-shrink-0">
+			<div className="flex border-b border-vscode-input-border flex-shrink-0 overflow-x-auto">
 				<button
-					className={`px-2 py-1 text-sm font-medium ${
+					className={`px-2 py-1 text-base font-medium whitespace-nowrap ${
 						activeTab === "api-key"
 							? "text-vscode-foreground border-b-2 border-vscode-focusBorder"
 							: "text-vscode-descriptionForeground"
@@ -753,7 +934,7 @@ const ApiKeyManagerPopupContent = () => {
 					Api Keys
 				</button>
 				<button
-					className={`px-2 py-1 text-sm font-medium ${
+					className={`px-2 py-1 text-base font-medium whitespace-nowrap ${
 						activeTab === "byok-models"
 							? "text-vscode-foreground border-b-2 border-vscode-focusBorder"
 							: "text-vscode-descriptionForeground"
@@ -762,7 +943,16 @@ const ApiKeyManagerPopupContent = () => {
 					BYOK Models
 				</button>
 				<button
-					className={`px-2 py-1 text-sm font-medium ${
+					className={`px-2 py-1 text-base font-medium whitespace-nowrap ${
+						activeTab === "openrouter"
+							? "text-vscode-foreground border-b-2 border-vscode-focusBorder"
+							: "text-vscode-descriptionForeground"
+					}`}
+					onClick={() => setActiveTab("openrouter")}>
+					OpenRouter
+				</button>
+				<button
+					className={`px-2 py-1 text-base font-medium whitespace-nowrap ${
 						activeTab === "builtin-models"
 							? "text-vscode-foreground border-b-2 border-vscode-focusBorder"
 							: "text-vscode-descriptionForeground"
@@ -876,7 +1066,7 @@ const ApiKeyManagerPopupContent = () => {
 					{/* BYOK Models Description */}
 					<div className="flex-shrink-0 px-1 py-2">
 						<p className="text-xs text-vscode-descriptionForeground">
-							Bring Your API Key (BYOK) models use your own API credentials. You manage your own usage and
+							Bring Your Own Key (BYOK) models use your own API credentials. You manage your own usage and
 							billing directly with the provider.
 						</p>
 					</div>
@@ -1019,6 +1209,19 @@ const ApiKeyManagerPopupContent = () => {
 					</div>
 				</>
 			)}
+
+			{/* OpenRouter Tab Content */}
+			{activeTab === "openrouter" && (
+				<OpenRouterTabContent
+					apiKeys={apiKeys}
+					openrouterSearchQuery={openrouterSearchQuery}
+					setOpenrouterSearchQuery={setOpenrouterSearchQuery}
+					selectedOpenRouterModel={selectedOpenRouterModel}
+					handleModelSelect={handleModelSelect}
+					handleOAuthConnect={handleOAuthConnect}
+					handleLinkClick={handleLinkClick}
+				/>
+			)}
 		</div>
 	)
 }
@@ -1054,5 +1257,192 @@ export const ApiKeyManagerPopup = ({
 				<ApiKeyManagerPopupContent />
 			</DialogContent>
 		</Dialog>
+	)
+}
+
+// OpenRouter Tab Content Component
+const OpenRouterTabContent = ({
+	apiKeys,
+	openrouterSearchQuery,
+	setOpenrouterSearchQuery,
+	selectedOpenRouterModel,
+	handleModelSelect,
+	handleOAuthConnect,
+	handleLinkClick,
+}: {
+	apiKeys: ApiKeyState
+	openrouterSearchQuery: string
+	setOpenrouterSearchQuery: (query: string) => void
+	selectedOpenRouterModel: string
+	handleModelSelect: (model: string) => void
+	handleOAuthConnect: (providerId: string) => void
+	handleLinkClick: (url: string) => void
+}) => {
+	const { data: routerModels, isLoading, error } = useRouterModels()
+	const hasApiKey = !!apiKeys.openRouterApiKey
+
+	// Filter OpenRouter models based on search query
+	const filteredModels = useMemo(() => {
+		if (!routerModels?.openrouter) return []
+
+		const models = Object.entries(routerModels.openrouter)
+		if (!openrouterSearchQuery.trim()) return models
+
+		const query = openrouterSearchQuery.toLowerCase()
+		return models.filter(
+			([id, model]) => id.toLowerCase().includes(query) || model.description?.toLowerCase().includes(query),
+		)
+	}, [routerModels, openrouterSearchQuery])
+
+	if (!hasApiKey) {
+		return (
+			<>
+				{/* Search Bar - disabled when no API key */}
+				<div className="relative flex-shrink-0">
+					<Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-3 h-3 text-vscode-descriptionForeground opacity-50" />
+					<Input
+						type="text"
+						placeholder="Connect to search models..."
+						disabled
+						className="pl-7 text-xs h-7 bg-vscode-input-background border-vscode-input-border text-vscode-input-foreground opacity-50"
+					/>
+				</div>
+
+				{/* Connect Prompt */}
+				<div className="flex-1 overflow-y-auto space-y-2 min-h-0 pr-1">
+					<div className="text-center py-8 text-vscode-descriptionForeground">
+						<div className="mb-4">
+							<svg
+								className="w-12 h-12 mx-auto text-vscode-descriptionForeground"
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								strokeWidth="2">
+								<path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+							</svg>
+						</div>
+						<h3 className="text-sm font-medium text-vscode-foreground mb-2">OpenRouter Models</h3>
+						<p className="text-xs mb-3 max-w-md mx-auto">Access 200+ AI models through OpenRouter.</p>
+						<div className="flex items-center justify-between">
+							<VSCodeButton
+								onClick={() => handleOAuthConnect("openrouter")}
+								style={{
+									padding: "2px 8px",
+									height: "20px",
+									fontSize: "8px",
+									minHeight: "auto",
+									display: "flex",
+									alignItems: "center",
+									justifyContent: "center",
+									border: "none !important",
+									outline: "none !important",
+									boxShadow: "inset 0 0 0 0 transparent !important",
+									borderRadius: "3px",
+								}}>
+								Connect
+							</VSCodeButton>
+							<button
+								onClick={() => handleLinkClick("https://openrouter.ai/keys")}
+								className="text-xs text-vscode-foreground hover:text-vscode-descriptionForeground flex items-center gap-1 transition-colors cursor-pointer">
+								Manual setup
+								<ExternalLink className="w-3 h-3" />
+							</button>
+						</div>
+					</div>
+				</div>
+			</>
+		)
+	}
+
+	return (
+		<>
+			{/* Search Bar */}
+			<div className="relative flex-shrink-0">
+				<Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-3 h-3 text-vscode-descriptionForeground" />
+				<Input
+					type="text"
+					placeholder="Search OpenRouter models..."
+					value={openrouterSearchQuery}
+					onChange={(e) => setOpenrouterSearchQuery(e.target.value)}
+					className="pl-7 text-xs h-7 bg-vscode-input-background border-vscode-input-border text-vscode-input-foreground"
+				/>
+			</div>
+
+			{/* OpenRouter Description */}
+			<div className="flex-shrink-0 px-1 py-2">
+				<p className="text-xs text-vscode-descriptionForeground">
+					Access 200+ AI models from leading providers through OpenRouter. Pay-per-use pricing with your own
+					API key.
+				</p>
+			</div>
+
+			{/* Models List */}
+			<div className="flex-1 overflow-y-auto space-y-3 min-h-0 pr-1">
+				{isLoading ? (
+					<div className="text-center py-4 text-vscode-descriptionForeground text-xs">
+						Loading OpenRouter models...
+					</div>
+				) : error ? (
+					<div className="text-center py-4 text-vscode-descriptionForeground text-xs">
+						Failed to load models. Please check your connection.
+					</div>
+				) : filteredModels.length === 0 ? (
+					<div className="text-center py-4 text-vscode-descriptionForeground text-xs">
+						{openrouterSearchQuery.trim() ? "No models match your search" : "No models available"}
+					</div>
+				) : (
+					filteredModels.map(([modelId, modelInfo]) => (
+						<div
+							key={modelId}
+							onClick={() => handleModelSelect(modelId)}
+							className={`px-3 py-1.5 rounded border cursor-pointer transition-colors ${
+								selectedOpenRouterModel === modelId
+									? "bg-vscode-list-activeSelectionBackground border-vscode-focusBorder"
+									: "bg-vscode-editor-background border-vscode-input-border hover:bg-vscode-list-hoverBackground"
+							}`}>
+							<div className="flex items-center justify-between">
+								<div className="flex-1 min-w-0">
+									<div className="flex items-center gap-2">
+										<h4 className="text-sm font-medium text-vscode-foreground truncate">
+											{modelId}
+										</h4>
+										{(modelInfo.contextWindow || modelInfo.inputPrice || modelInfo.outputPrice) && (
+											<div className="group relative">
+												<Info className="w-3 h-3 text-vscode-descriptionForeground hover:text-vscode-foreground transition-colors cursor-help" />
+												<div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-vscode-editor-background border border-vscode-input-border rounded shadow-lg text-xs text-vscode-foreground opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 min-w-max">
+													{modelInfo.contextWindow && (
+														<div className="whitespace-nowrap">
+															Context: {modelInfo.contextWindow.toLocaleString()}
+														</div>
+													)}
+													{modelInfo.inputPrice && (
+														<div className="whitespace-nowrap">
+															Input: ${modelInfo.inputPrice}/1M tokens
+														</div>
+													)}
+													{modelInfo.outputPrice && (
+														<div className="whitespace-nowrap">
+															Output: ${modelInfo.outputPrice}/1M tokens
+														</div>
+													)}
+												</div>
+											</div>
+										)}
+										{selectedOpenRouterModel === modelId && (
+											<Check className="w-3 h-3 text-vscode-foreground flex-shrink-0" />
+										)}
+									</div>
+									{modelInfo.description && (
+										<p className="text-xs text-vscode-descriptionForeground truncate mt-0.5">
+											{modelInfo.description}
+										</p>
+									)}
+								</div>
+							</div>
+						</div>
+					))
+				)}
+			</div>
+		</>
 	)
 }

@@ -116,6 +116,22 @@ export const webviewMessageHandler = async (provider: ClineProvider, message: We
 								await provider.activateProviderProfile({ name })
 								return
 							}
+						} else {
+							// Check if current config is OpenRouter and sync the display name
+							if (currentConfigName === "OpenRouter (BYOK)") {
+								const currentConfig = await provider.providerSettingsManager.getCurrentConfig()
+								if (currentConfig?.apiProvider === "openrouter" && currentConfig.openRouterModelId) {
+									// Find the matching OpenRouter entry in listApiConfig with the current model
+									const openRouterEntry = listApiConfig.find(
+										(config) =>
+											config.name.startsWith("OpenRouter (") &&
+											config.name.includes(currentConfig.openRouterModelId!),
+									)
+									if (openRouterEntry) {
+										await updateGlobalState("currentApiConfigName", openRouterEntry.name)
+									}
+								}
+							}
 						}
 					}
 
@@ -1338,6 +1354,80 @@ export const webviewMessageHandler = async (provider: ClineProvider, message: We
 				ClineProvider.broadcastStateChange(provider, "configProfile")
 			}
 			break
+		case "updateOpenRouterModel":
+			if (message.modelId) {
+				try {
+					console.log(`[updateOpenRouterModel] Updating OpenRouter model to: ${message.modelId}`)
+
+					// Find the OpenRouter (BYOK) profile and update its model
+					const profiles = await provider.providerSettingsManager.load()
+					const openRouterProfileName = "OpenRouter (BYOK)"
+
+					if (profiles.apiConfigs[openRouterProfileName]) {
+						const updatedConfig = {
+							...profiles.apiConfigs[openRouterProfileName],
+							openRouterModelId: message.modelId,
+						}
+
+						console.log(`[updateOpenRouterModel] Saving updated config for ${openRouterProfileName}`)
+						await provider.providerSettingsManager.saveConfig(openRouterProfileName, updatedConfig)
+
+						// If the current profile is OpenRouter, update it too
+						const currentConfig = await provider.providerSettingsManager.getCurrentConfig()
+						console.log(`[updateOpenRouterModel] Current config provider: ${currentConfig?.apiProvider}`)
+
+						if (currentConfig?.apiProvider === "openrouter") {
+							const updatedCurrentConfig = {
+								...currentConfig,
+								openRouterModelId: message.modelId,
+							}
+							console.log(`[updateOpenRouterModel] Updating current config with new model`)
+							await provider.providerSettingsManager.setCurrentConfig(updatedCurrentConfig)
+						}
+
+						const listApiConfig = await provider.providerSettingsManager.listConfig()
+						await updateGlobalState("listApiConfigMeta", listApiConfig)
+
+						// Update currentApiConfigName to match the new display name if OpenRouter is currently selected
+						const currentApiConfigName = getGlobalState("currentApiConfigName")
+						console.log(`[updateOpenRouterModel] Current API config name: ${currentApiConfigName}`)
+
+						if (
+							currentApiConfigName === openRouterProfileName ||
+							currentApiConfigName?.startsWith("OpenRouter (")
+						) {
+							// Find the updated OpenRouter entry in the list to get the new display name
+							const openRouterEntry = listApiConfig.find(
+								(config) =>
+									config.name.startsWith("OpenRouter (") && config.name.includes(message.modelId),
+							)
+							if (openRouterEntry) {
+								console.log(
+									`[updateOpenRouterModel] Updating currentApiConfigName to: ${openRouterEntry.name}`,
+								)
+								await updateGlobalState("currentApiConfigName", openRouterEntry.name)
+							}
+						}
+
+						// Send updated state to webview immediately
+						console.log(`[updateOpenRouterModel] Sending updated state to webview`)
+						await provider.postStateToWebview()
+
+						// Broadcast the change to other instances
+						ClineProvider.broadcastStateChange(provider, "configProfile")
+
+						console.log(`[updateOpenRouterModel] Successfully updated OpenRouter model`)
+					} else {
+						console.warn(`[updateOpenRouterModel] OpenRouter profile not found`)
+					}
+				} catch (error) {
+					console.error(`[updateOpenRouterModel] Error:`, error)
+					provider.log(
+						`Error updating OpenRouter model: ${JSON.stringify(error, Object.getOwnPropertyNames(error), 2)}`,
+					)
+				}
+			}
+			break
 		case "renameApiConfiguration":
 			if (message.values && message.apiConfiguration) {
 				try {
@@ -2384,7 +2474,6 @@ export const webviewMessageHandler = async (provider: ClineProvider, message: We
 					if (message.section === "cubent.autocomplete") {
 						configObject.enabled = config.get("enabled", false)
 						configObject.model = config.get("model", "codestral")
-						configObject.mistralApiKey = config.get("mistralApiKey", "")
 						configObject.inceptionApiKey = config.get("inceptionApiKey", "")
 						configObject.ollamaBaseUrl = config.get("ollamaBaseUrl", "http://localhost:11434")
 						configObject.allowWithCopilot = config.get("allowWithCopilot", false)
@@ -2434,7 +2523,6 @@ export const webviewMessageHandler = async (provider: ClineProvider, message: We
 						// Get specific autocomplete keys
 						configObject.enabled = updatedConfig.get("enabled", false)
 						configObject.model = updatedConfig.get("model", "codestral")
-						configObject.mistralApiKey = updatedConfig.get("mistralApiKey", "")
 						configObject.inceptionApiKey = updatedConfig.get("inceptionApiKey", "")
 						configObject.ollamaBaseUrl = updatedConfig.get("ollamaBaseUrl", "http://localhost:11434")
 						configObject.allowWithCopilot = updatedConfig.get("allowWithCopilot", false)
@@ -2511,6 +2599,33 @@ export const webviewMessageHandler = async (provider: ClineProvider, message: We
 						success: false,
 						error: error instanceof Error ? error.message : String(error),
 					})
+				}
+			}
+			break
+		}
+		case "storeSecret": {
+			if (message.key && message.secretValue !== undefined) {
+				try {
+					console.log(`Storing secret for key: ${message.key}`)
+					await provider.contextProxy.storeSecret(message.key as any, message.secretValue)
+				} catch (error) {
+					console.error(`Failed to store secret for ${message.key}:`, error)
+				}
+			}
+			break
+		}
+		case "getSecret": {
+			if (message.key) {
+				try {
+					console.log(`Getting secret for key: ${message.key}`)
+					const value = provider.contextProxy.getSecret(message.key as any)
+					await provider.postMessageToWebview({
+						type: "secretValue",
+						key: message.key,
+						secretValue: value || "",
+					})
+				} catch (error) {
+					console.error(`Failed to get secret for ${message.key}:`, error)
 				}
 			}
 			break

@@ -45,7 +45,7 @@ const ApiConfigManager = ({
 }: ApiConfigManagerProps) => {
 	const { t } = useAppTranslation()
 
-	// Check if this is a BYOK profile (Bring Your API Key)
+	// Check if this is a BYOK profile (Bring Your Own Key)
 	const isByokProfile = currentApiConfigName?.includes("(BYOK)") ?? false
 
 	const [isRenaming, setIsRenaming] = useState(false)

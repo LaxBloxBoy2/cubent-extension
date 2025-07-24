@@ -283,7 +283,10 @@
 					"default": [
 						"*"
 					],
-					"description": "%commands.allowedCommands.description%"
+					"description": "%commands.allowedCommands.description%",
+					"tags": [
+						"@ext:hidden"
+					]
 				},
 				"cubent.vsCodeLmModelSelector": {
 					"type": "object",
@@ -297,29 +300,44 @@
 							"description": "%settings.vsCodeLmModelSelector.family.description%"
 						}
 					},
-					"description": "%settings.vsCodeLmModelSelector.description%"
+					"description": "%settings.vsCodeLmModelSelector.description%",
+					"tags": [
+						"@ext:hidden"
+					]
 				},
 				"cubent.customStoragePath": {
 					"type": "string",
 					"default": "",
-					"description": "%settings.customStoragePath.description%"
+					"description": "%settings.customStoragePath.description%",
+					"tags": [
+						"@ext:hidden"
+					]
 				},
 				"cubent.cubentCloudEnabled": {
 					"type": "boolean",
 					"default": false,
-					"description": "%settings.cubentCoderCloudEnabled.description%"
+					"description": "%settings.cubentCoderCloudEnabled.description%",
+					"tags": [
+						"@ext:hidden"
+					]
 				},
 				"cubent.ttsEnabled": {
 					"type": "boolean",
 					"default": false,
-					"description": "Enable Text-to-Speech for reading AI responses aloud"
+					"description": "Enable Text-to-Speech for reading AI responses aloud",
+					"tags": [
+						"@ext:hidden"
+					]
 				},
 				"cubent.ttsSpeed": {
 					"type": "number",
 					"default": 1,
 					"minimum": 0.5,
 					"maximum": 2,
-					"description": "Text-to-Speech playback speed (0.5x to 2.0x)"
+					"description": "Text-to-Speech playback speed (0.5x to 2.0x)",
+					"tags": [
+						"@ext:hidden"
+					]
 				},
 				"cubent.database.neon.url": {
 					"type": "string",
@@ -332,77 +350,122 @@
 				"cubent.database.supabase.url": {
 					"type": "string",
 					"default": "",
-					"description": "Supabase project URL"
+					"description": "Supabase project URL",
+					"tags": [
+						"@ext:hidden"
+					]
 				},
 				"cubent.database.supabase.anonkey": {
 					"type": "string",
 					"default": "",
-					"description": "Supabase anonymous key"
+					"description": "Supabase anonymous key",
+					"tags": [
+						"@ext:hidden"
+					]
 				},
 				"cubent.analytics.posthog.apikey": {
 					"type": "string",
 					"default": "",
-					"description": "PostHog API key for analytics"
+					"description": "PostHog API key for analytics",
+					"tags": [
+						"@ext:hidden"
+					]
 				},
 				"cubent.analytics.posthog.host": {
 					"type": "string",
 					"default": "https://app.posthog.com",
-					"description": "PostHog host URL"
+					"description": "PostHog host URL",
+					"tags": [
+						"@ext:hidden"
+					]
 				},
 				"cubent.auth.oauth.clientid": {
 					"type": "string",
 					"default": "",
-					"description": "OAuth client ID for authentication"
+					"description": "OAuth client ID for authentication",
+					"tags": [
+						"@ext:hidden"
+					]
 				},
 				"cubent.auth.device.baseurl": {
 					"type": "string",
 					"default": "https://app.cubent.dev",
-					"description": "Device authentication base URL"
+					"description": "Device authentication base URL",
+					"tags": [
+						"@ext:hidden"
+					]
 				},
 				"cubent.features.usage.tracking": {
 					"type": "boolean",
 					"default": true,
-					"description": "Enable usage tracking"
+					"description": "Enable usage tracking",
+					"tags": [
+						"@ext:hidden"
+					]
 				},
 				"cubent.features.trial.management": {
 					"type": "boolean",
 					"default": true,
-					"description": "Enable trial management"
+					"description": "Enable trial management",
+					"tags": [
+						"@ext:hidden"
+					]
 				},
 				"cubent.features.cubent.units.limit": {
 					"type": "number",
 					"default": 50,
-					"description": "Default Cubent Units limit"
+					"description": "Default Cubent Units limit",
+					"tags": [
+						"@ext:hidden"
+					]
 				},
 				"cubent.authState": {
 					"type": "object",
 					"default": null,
-					"description": "Stored authentication state (internal use)"
+					"description": "Stored authentication state (internal use)",
+					"tags": [
+						"@ext:hidden"
+					]
 				},
 				"cubent.session": {
 					"type": "string",
 					"default": "",
-					"description": "Stored user session data (internal use)"
+					"description": "Stored user session data (internal use)",
+					"tags": [
+						"@ext:hidden"
+					]
 				},
 				"cubent.mcp.enabled": {
 					"type": "boolean",
 					"default": false,
-					"description": "Enable Model Context Protocol (MCP) to access external tools and services"
+					"description": "Enable Model Context Protocol (MCP) to access external tools and services",
+					"tags": [
+						"@ext:hidden"
+					]
 				},
 				"cubent.mcp.serverCreationEnabled": {
 					"type": "boolean",
 					"default": false,
-					"description": "Allow Cubent to create new MCP servers on demand"
+					"description": "Allow Cubent to create new MCP servers on demand",
+					"tags": [
+						"@ext:hidden"
+					]
 				},
 				"cubent.mcp.alwaysAllow": {
 					"type": "boolean",
 					"default": false,
-					"description": "Always allow MCP tool usage without prompting"
+					"description": "Always allow MCP tool usage without prompting",
+					"tags": [
+						"@ext:hidden"
+					]
 				},
 				"cubent.autocomplete.enabled": {
 					"type": "boolean",
 					"default": false,
-					"description": "Enable AI-powered code autocomplete (experimental)"
+					"description": "Enable AI-powered code autocomplete (experimental)",
+					"tags": [
+						"@ext:hidden"
+					]
 				},
 				"cubent.autocomplete.model": {
 					"type": "string",
@@ -417,41 +480,54 @@
 						"Codestral (Mistral AI) - Best Performance",
 						"Mercury Coder Small (Inception Labs) - Best Speed/Quality",
 						"Qwen 2.5 Coder 1.5B (Ollama) - Local/Privacy"
+					],
+					"tags": [
+						"@ext:hidden"
 					]
-				},
-				"cubent.autocomplete.mistralApiKey": {
-					"type": "string",
-					"default": "",
-					"description": "Mistral API key for Codestral model"
 				},
 				"cubent.autocomplete.inceptionApiKey": {
 					"type": "string",
 					"default": "",
-					"description": "Inception Labs API key for Mercury Coder model"
+					"description": "Inception Labs API key for Mercury Coder model",
+					"tags": [
+						"@ext:hidden"
+					]
 				},
 				"cubent.autocomplete.ollamaBaseUrl": {
 					"type": "string",
 					"default": "http://localhost:11434",
-					"description": "Ollama base URL for local models"
+					"description": "Ollama base URL for local models",
+					"tags": [
+						"@ext:hidden"
+					]
 				},
 				"cubent.autocomplete.allowWithCopilot": {
 					"type": "boolean",
 					"default": false,
-					"description": "Allow autocomplete to run alongside GitHub Copilot (may cause conflicts)"
+					"description": "Allow autocomplete to run alongside GitHub Copilot (may cause conflicts)",
+					"tags": [
+						"@ext:hidden"
+					]
 				},
 				"cubent.autocomplete.debounceDelay": {
 					"type": "number",
 					"default": 300,
 					"minimum": 0,
 					"maximum": 2000,
-					"description": "Delay in milliseconds before triggering autocomplete"
+					"description": "Delay in milliseconds before triggering autocomplete",
+					"tags": [
+						"@ext:hidden"
+					]
 				},
 				"cubent.autocomplete.maxTokens": {
 					"type": "number",
 					"default": 256,
 					"minimum": 50,
 					"maximum": 1000,
-					"description": "Maximum tokens to generate for completions"
+					"description": "Maximum tokens to generate for completions",
+					"tags": [
+						"@ext:hidden"
+					]
 				}
 			}
 		}

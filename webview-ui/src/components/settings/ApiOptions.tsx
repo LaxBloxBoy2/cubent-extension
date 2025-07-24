@@ -78,7 +78,7 @@ const ApiOptions = ({
 	const { t } = useAppTranslation()
 	const { organizationAllowList } = useExtensionState()
 
-	// Check if this is a BYOK profile (Bring Your API Key)
+	// Check if this is a BYOK profile (Bring Your Own Key)
 	const isByokProfile = configName?.includes("(BYOK)") ?? false
 
 	const [customHeaders, setCustomHeaders] = useState<[string, string][]>(() => {
