@@ -650,6 +650,45 @@ export const webviewMessageHandler = async (provider: ClineProvider, message: We
 
 			break
 		}
+		case "openFolder":
+			await vscode.commands.executeCommand("vscode.openFolder")
+			break
+		case "cloneRepository":
+			await vscode.commands.executeCommand("git.clone")
+			break
+		case "newProject":
+			// Open command palette to show project creation options
+			await vscode.commands.executeCommand("workbench.action.quickOpen", ">create")
+			break
+		case "createWorkspaceFolder":
+			if (message.text) {
+				const folderName = message.text.trim()
+				if (folderName) {
+					// Ask user where to create the folder
+					const folderUri = await vscode.window.showOpenDialog({
+						canSelectFiles: false,
+						canSelectFolders: true,
+						canSelectMany: false,
+						openLabel: `Create "${folderName}" here`,
+						title: `Select location to create "${folderName}" folder`,
+					})
+
+					if (folderUri && folderUri[0]) {
+						const parentPath = folderUri[0].fsPath
+						const newFolderPath = path.join(parentPath, folderName)
+
+						try {
+							// Create the folder
+							await vscode.workspace.fs.createDirectory(vscode.Uri.file(newFolderPath))
+							// Open the new folder as workspace
+							await vscode.commands.executeCommand("vscode.openFolder", vscode.Uri.file(newFolderPath))
+						} catch (error) {
+							vscode.window.showErrorMessage(`Failed to create folder: ${error}`)
+						}
+					}
+				}
+			}
+			break
 		case "openProjectMcpSettings": {
 			if (!vscode.workspace.workspaceFolders?.length) {
 				vscode.window.showErrorMessage(t("common:errors.no_workspace"))

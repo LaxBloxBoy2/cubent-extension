@@ -22,6 +22,7 @@ import {
 } from "@src/utils/context-mentions"
 import { convertToMentionPath } from "@/utils/path-mentions"
 import { SelectDropdown, DropdownOptionType, Button } from "@/components/ui"
+import StatusBadge from "@/components/ui/StatusBadge"
 
 import Thumbnails from "../common/Thumbnails"
 
@@ -57,6 +58,7 @@ interface ChatTextAreaProps {
 	selectedModel?: string
 	onModelChange?: (modelId: string) => void
 	onModelSettingsClick?: () => void
+	diffBarVisible?: boolean
 }
 
 const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
@@ -86,6 +88,7 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 			selectedModel = "cube-1-lite",
 			onModelChange = () => {},
 			onModelSettingsClick = () => {},
+			diffBarVisible = false,
 		},
 		ref,
 	) => {
@@ -1170,6 +1173,18 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 						</div>
 					)}
 					<div className="relative">
+						{/* Status badge when streaming - centered with dynamic positioning */}
+						<div
+							className={cn(
+								"absolute left-1/2 transform -translate-x-1/2 z-50 transition-all duration-300 ease-in-out",
+								diffBarVisible ? "-top-18" : "-top-10",
+								isStreaming
+									? "opacity-100 translate-y-0 scale-100"
+									: "opacity-0 translate-y-2 scale-95 pointer-events-none",
+							)}>
+							<StatusBadge text="Working on it" />
+						</div>
+
 						<div
 							className={cn(
 								"chat-text-area",
@@ -1452,6 +1467,18 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 									title={t("chat:selectApiConfig")}
 									placeholder={displayName}
 									options={[
+										// Manage Models header
+										{
+											value: "header-model-management",
+											label: "Manage Models",
+											type: DropdownOptionType.ACTION,
+											icon: "settings",
+										},
+										{
+											value: "separator-after-header",
+											label: "",
+											type: DropdownOptionType.SEPARATOR,
+										},
 										// Process all configurations in order (preserving backend sorting with headers)
 										...(listApiConfigMeta || [])
 											.filter((config) => {
@@ -1502,6 +1529,12 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 									title={t("chat:selectApiConfig")}
 									placeholder={displayName}
 									options={[
+										// Model Management header
+										{
+											value: "header-model-management",
+											label: "Model Management",
+											type: DropdownOptionType.SEPARATOR,
+										},
 										// Process all configurations in order (preserving backend sorting with headers)
 										...(listApiConfigMeta || [])
 											.filter((config) => {

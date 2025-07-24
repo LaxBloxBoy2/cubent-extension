@@ -600,3 +600,86 @@ input[cmdk-input]:focus {
 a:focus {
 	outline: 1px solid var(--vscode-focusBorder);
 }
+
+/*
+ * Status Badge Animations
+ */
+
+/* Smooth fade in/out with scale and translate */
+@keyframes statusBadgeFadeIn {
+	0% {
+		opacity: 0;
+		transform: translateX(-50%) translateY(8px) scale(0.95);
+	}
+	100% {
+		opacity: 1;
+		transform: translateX(-50%) translateY(0) scale(1);
+	}
+}
+
+@keyframes statusBadgeFadeOut {
+	0% {
+		opacity: 1;
+		transform: translateX(-50%) translateY(0) scale(1);
+	}
+	100% {
+		opacity: 0;
+		transform: translateX(-50%) translateY(8px) scale(0.95);
+	}
+}
+
+/* Enhanced pulsing animation for the status indicator */
+@keyframes statusPulse {
+	0%,
+	100% {
+		opacity: 1;
+		transform: scale(1);
+	}
+	50% {
+		opacity: 0.7;
+		transform: scale(1.1);
+	}
+}
+
+@keyframes statusPing {
+	0% {
+		opacity: 0.2;
+		transform: scale(1);
+	}
+	75%,
+	100% {
+		opacity: 0;
+		transform: scale(1.4);
+	}
+}
+
+.status-badge-enter {
+	animation: statusBadgeFadeIn 0.3s ease-out forwards;
+}
+
+.status-badge-exit {
+	animation: statusBadgeFadeOut 0.3s ease-in forwards;
+}
+
+/* Thin scrollbar for dropdowns */
+.thin-scrollbar {
+	scrollbar-width: thin;
+	scrollbar-color: var(--vscode-scrollbarSlider-background) transparent;
+}
+
+.thin-scrollbar::-webkit-scrollbar {
+	width: 6px;
+}
+
+.thin-scrollbar::-webkit-scrollbar-track {
+	background: transparent;
+}
+
+.thin-scrollbar::-webkit-scrollbar-thumb {
+	background-color: var(--vscode-scrollbarSlider-background);
+	border-radius: 3px;
+}
+
+.thin-scrollbar::-webkit-scrollbar-thumb:hover {
+	background-color: var(--vscode-scrollbarSlider-hoverBackground);
+}

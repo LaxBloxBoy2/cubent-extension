@@ -173,7 +173,16 @@ export const SelectDropdown = React.memo(
 					if (!option) return
 
 					if (option.type === DropdownOptionType.ACTION) {
-						window.postMessage({ type: "action", action: option.value })
+						// Special handling for Model Management header
+						if (option.value === "header-model-management") {
+							window.postMessage({
+								type: "action",
+								action: "settingsButtonClicked",
+								values: { section: "apiKeyManagement" },
+							})
+						} else {
+							window.postMessage({ type: "action", action: option.value })
+						}
 						setSearchValue("")
 						setOpen(false)
 						return
@@ -236,7 +245,7 @@ export const SelectDropdown = React.memo(
 						)}>
 						<div className="flex flex-col w-full">
 							{/* Dropdown items - Use windowing for large lists */}
-							<div className="max-h-[240px] overflow-y-auto">
+							<div className="max-h-[240px] overflow-y-auto thin-scrollbar">
 								{groupedOptions.length === 0 && searchValue ? (
 									<div className="py-2 px-3 text-sm text-vscode-foreground/70">No results found</div>
 								) : (
@@ -244,6 +253,35 @@ export const SelectDropdown = React.memo(
 										{groupedOptions.map((option, index) => {
 											// Memoize rendering of each item type for better performance
 											if (option.type === DropdownOptionType.SEPARATOR) {
+												// Special handling for Manage Models header
+												if (option.value === "header-model-management") {
+													return (
+														<div
+															key={`header-${index}`}
+															className="flex items-center justify-between px-3 py-2 bg-vscode-editor-background border-b border-vscode-dropdown-border/20"
+															data-testid="dropdown-header">
+															<span className="text-sm font-medium text-vscode-foreground">
+																{option.label}
+															</span>
+															<div className="flex-1"></div>
+															<button
+																className="p-1 rounded hover:bg-vscode-list-hoverBackground ml-2"
+																title="API Key & Models Management"
+																onClick={(e) => {
+																	e.stopPropagation()
+																	window.postMessage({
+																		type: "action",
+																		action: "settingsButtonClicked",
+																		values: { section: "apiKeyManagement" },
+																	})
+																}}>
+																<Settings className="size-3 text-vscode-foreground opacity-70 hover:opacity-100" />
+															</button>
+														</div>
+													)
+												}
+
+												// Regular separator
 												return (
 													<div
 														key={`sep-${index}`}

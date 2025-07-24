@@ -4,6 +4,7 @@ import { SetCachedStateField } from "./types"
 import { HTMLAttributes, useState } from "react"
 import { VSCodeTextArea, VSCodeButton } from "@vscode/webview-ui-toolkit/react"
 import { Input, Button } from "../ui"
+import { Switch } from "../ui/switch"
 
 declare const vscode: {
 	postMessage: (message: any) => void
@@ -24,6 +25,9 @@ export default function UserGuidelinesSettings({
 	const { t } = useAppTranslation()
 	const [commandInput, setCommandInput] = useState("")
 
+	// Check if "Allow All" is currently enabled
+	const isAllowAllEnabled = allowedCommands?.includes("*") ?? false
+
 	const handleAddCommand = () => {
 		const currentCommands = allowedCommands ?? []
 
@@ -35,10 +39,19 @@ export default function UserGuidelinesSettings({
 		}
 	}
 
-	const handleAllowAllCommands = () => {
-		const newCommands = ["*"]
-		setCachedStateField("allowedCommands", newCommands)
-		vscode.postMessage({ type: "allowedCommands", commands: newCommands })
+	const handleAllowAllToggle = (enabled: boolean) => {
+		if (enabled) {
+			// Enable "Allow All" - set commands to ["*"]
+			const newCommands = ["*"]
+			setCachedStateField("allowedCommands", newCommands)
+			vscode.postMessage({ type: "allowedCommands", commands: newCommands })
+		} else {
+			// Disable "Allow All" - remove "*" and keep other commands
+			const currentCommands = allowedCommands ?? []
+			const newCommands = currentCommands.filter((cmd) => cmd !== "*")
+			setCachedStateField("allowedCommands", newCommands)
+			vscode.postMessage({ type: "allowedCommands", commands: newCommands })
+		}
 	}
 
 	return (
@@ -79,15 +92,26 @@ export default function UserGuidelinesSettings({
 				</div>
 
 				{/* Allowed Auto-Execute Commands Section */}
-				<h2 className="text-base font-semibold text-vscode-foreground mt-8">
-					{t("settings:autoApprove.execute.allowedCommands")}
-				</h2>
-				<p className="text-sm text-vscode-descriptionForeground mt-1 mb-1">
-					{t("settings:autoApprove.execute.allowedCommandsDescription")}
+				<h2 className="text-base font-semibold text-vscode-foreground mt-8">Allowed Auto-Execute Commands</h2>
+				<p className="text-sm text-vscode-descriptionForeground mt-1 mb-3">
+					Command prefixes that can be auto-executed when "Always approve execute operations" is enabled. This
+					setting overrides the auto-approve execute operations setting.
 				</p>
-				<p className="text-sm text-vscode-descriptionForeground text-xs italic mb-3">
-					Note: This setting overrides the auto-approve execute operations setting.
-				</p>
+
+				{/* Allow All toggle */}
+				<div className="flex items-center justify-between gap-3 mb-3">
+					<div className="flex flex-col">
+						<span className="text-sm font-medium">Allow All</span>
+						<span className="text-xs text-vscode-descriptionForeground">
+							Allow all commands (use with caution)
+						</span>
+					</div>
+					<Switch
+						checked={isAllowAllEnabled}
+						onCheckedChange={handleAllowAllToggle}
+						data-testid="allow-all-commands-toggle"
+					/>
+				</div>
 
 				<div className="flex gap-2 mb-3">
 					<Input
@@ -99,20 +123,12 @@ export default function UserGuidelinesSettings({
 								handleAddCommand()
 							}
 						}}
-						placeholder={t("settings:autoApprove.execute.commandPlaceholder")}
-						className="grow"
+						placeholder="Enter command prefix (e.g., 'git ')"
+						className="grow rounded-lg"
 						data-testid="command-input"
 					/>
-					<Button className="h-8" onClick={handleAddCommand} data-testid="add-command-button">
-						{t("settings:autoApprove.execute.addButton")}
-					</Button>
-					<Button
-						className="h-8"
-						variant="outline"
-						onClick={handleAllowAllCommands}
-						data-testid="allow-all-commands-button"
-						title="Allow all commands (use with caution)">
-						Allow All (*)
+					<Button className="h-8 rounded-lg" onClick={handleAddCommand} data-testid="add-command-button">
+						Add
 					</Button>
 				</div>
 
@@ -121,6 +137,7 @@ export default function UserGuidelinesSettings({
 						<Button
 							key={index}
 							variant="secondary"
+							className="rounded-lg"
 							data-testid={`remove-command-${index}`}
 							onClick={() => {
 								const newCommands = (allowedCommands ?? []).filter((_, i) => i !== index)
@@ -128,7 +145,7 @@ export default function UserGuidelinesSettings({
 								vscode.postMessage({ type: "allowedCommands", commands: newCommands })
 							}}>
 							<div className="flex flex-row items-center gap-1">
-								<div>{cmd}</div>
+								<div>{cmd === "*" ? "Allowed All" : cmd}</div>
 								<X className="text-foreground scale-75" />
 							</div>
 						</Button>

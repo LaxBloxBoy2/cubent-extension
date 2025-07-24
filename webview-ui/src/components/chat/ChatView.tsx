@@ -94,6 +94,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 		soundEnabled,
 		soundVolume,
 		currentUser,
+		cwd,
 	} = useExtensionState()
 
 	const messagesRef = useRef(messages)
@@ -145,6 +146,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 	const [primaryButtonText, setPrimaryButtonText] = useState<string | undefined>(undefined)
 	const [secondaryButtonText, setSecondaryButtonText] = useState<string | undefined>(undefined)
 	const [didClickCancel, setDidClickCancel] = useState(false)
+	const [showCreateWorkspaceInput, setShowCreateWorkspaceInput] = useState(false)
 	const virtuosoRef = useRef<VirtuosoHandle>(null)
 	const [expandedRows, setExpandedRows] = useState<Record<number, boolean>>({})
 	const prevExpandedRowsRef = useRef<Record<number, boolean>>()
@@ -156,6 +158,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 	const [wasStreaming, setWasStreaming] = useState<boolean>(false)
 	// showCheckpointWarning state removed - checkpoints hidden from chat interface
 	const [isCondensing, setIsCondensing] = useState<boolean>(false)
+	const [isDiffBarVisible, setIsDiffBarVisible] = useState<boolean>(false)
 	const everVisibleMessagesTsRef = useRef<LRUCache<number, boolean>>(
 		new LRUCache({
 			max: 250,
@@ -708,6 +711,11 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 						}
 						setIsCondensing(false)
 					}
+					break
+				case "trackedChanges":
+					// Update diff bar visibility based on tracked changes
+					const hasChanges = !!(message.changes && message.changes.length > 0)
+					setIsDiffBarVisible(hasChanges && !isHidden && !!task)
 					break
 			}
 			// textAreaRef.current is not explicitly required here since React
@@ -1492,65 +1500,138 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 						<QaptHero />
 						{telemetrySetting === "unset" && <TelemetryBanner />}
 
+						{/* Big logo above welcome message */}
+						<div className="flex justify-start -mt-12 pl-4 mb-1">
+							<svg
+								xmlns="http://www.w3.org/2000/svg"
+								width="48"
+								height="48"
+								viewBox="0 0 810 809.999993"
+								className="text-vscode-foreground"
+								fill="currentColor">
+								<defs>
+									<clipPath id="cb1ddbaceb">
+										<path d="M 40.398438 199.457031 L 769.398438 199.457031 L 769.398438 610.457031 L 40.398438 610.457031 Z M 40.398438 199.457031 " />
+									</clipPath>
+								</defs>
+								<g>
+									<g clipRule="nonzero" clipPath="url(#cb1ddbaceb)">
+										<path d="M 253.71875 218.84375 C 253.71875 228.46875 263.339844 238.234375 273.109375 238.234375 L 404.898438 238.234375 C 408.835938 240.128906 410.730469 244.066406 410.730469 249.898438 C 410.730469 255.730469 406.792969 261.5625 399.066406 261.5625 L 387.40625 261.5625 C 377.78125 261.5625 369.910156 269.289062 369.910156 280.949219 C 369.910156 290.570312 377.636719 300.339844 387.40625 300.339844 L 540.625 300.339844 C 550.246094 300.339844 560.015625 290.71875 560.015625 280.949219 C 560.015625 269.289062 550.394531 261.5625 540.625 261.5625 L 464.960938 261.5625 C 457.234375 261.5625 451.40625 255.730469 451.40625 249.898438 C 451.40625 244.066406 455.339844 240.277344 459.132812 238.234375 L 480.414062 238.234375 C 492.078125 238.234375 499.804688 228.613281 499.804688 218.84375 C 499.804688 207.183594 492.078125 199.457031 480.414062 199.457031 L 273.109375 199.457031 C 263.339844 199.457031 253.71875 207.183594 253.71875 218.84375 Z M 344.835938 280.949219 C 344.835938 269.289062 335.214844 261.5625 325.445312 261.5625 L 214.941406 261.5625 C 203.277344 261.5625 195.550781 269.289062 195.550781 280.949219 C 195.550781 290.570312 203.277344 300.339844 214.941406 300.339844 L 243.953125 300.339844 C 249.78125 302.234375 251.679688 306.171875 251.679688 312.003906 C 251.679688 317.835938 247.742188 323.664062 240.015625 323.664062 L 191.613281 323.664062 C 179.953125 323.664062 172.226562 331.390625 172.226562 343.054688 C 172.226562 352.675781 179.953125 362.445312 191.613281 362.445312 L 321.507812 362.445312 C 327.339844 364.339844 329.234375 368.277344 329.234375 374.105469 C 329.234375 379.9375 323.40625 385.769531 317.574219 385.769531 L 284.625 385.769531 C 275.003906 385.769531 265.234375 393.496094 265.234375 405.160156 C 265.234375 414.78125 274.859375 424.550781 284.625 424.550781 L 389.300781 424.550781 C 395.132812 426.445312 397.027344 430.378906 397.027344 436.210938 C 397.027344 442.042969 391.195312 447.875 385.363281 447.875 L 61.71875 447.875 C 52.097656 447.875 42.328125 455.601562 42.328125 467.265625 C 42.328125 476.886719 51.953125 486.652344 61.71875 486.652344 L 152.835938 486.652344 C 160.5625 486.652344 166.394531 492.484375 166.394531 498.316406 C 166.394531 502.253906 162.457031 507.9375 158.667969 509.980469 L 59.824219 509.980469 C 50.203125 509.980469 40.433594 517.707031 40.433594 529.367188 C 40.433594 538.992188 50.054688 548.757812 59.824219 548.757812 L 373.847656 548.757812 C 383.46875 548.757812 393.234375 539.136719 393.234375 529.367188 C 393.234375 517.707031 383.613281 509.980469 373.847656 509.980469 L 251.679688 509.980469 C 245.847656 508.085938 243.953125 502.253906 243.953125 498.316406 C 243.953125 492.484375 249.78125 486.652344 255.613281 486.652344 L 476.625 486.652344 C 488.289062 486.652344 496.015625 477.03125 496.015625 467.265625 C 496.015625 455.601562 488.289062 447.875 476.625 447.875 L 464.960938 447.875 C 457.234375 447.875 451.40625 442.042969 451.40625 436.210938 C 451.40625 430.378906 455.339844 426.589844 459.132812 424.550781 L 645.152344 424.550781 C 654.773438 424.550781 664.542969 414.925781 664.542969 405.160156 C 664.542969 393.496094 654.921875 385.769531 645.152344 385.769531 L 403.003906 385.769531 C 395.277344 385.769531 391.339844 379.9375 391.339844 374.105469 C 391.339844 368.277344 393.234375 364.484375 399.066406 362.445312 L 449.507812 362.445312 C 461.171875 362.445312 468.898438 352.824219 468.898438 343.054688 C 468.898438 331.390625 461.171875 323.664062 449.507812 323.664062 L 292.496094 323.664062 C 286.667969 323.664062 280.835938 317.835938 280.835938 312.003906 C 280.835938 306.171875 282.730469 302.378906 288.5625 300.339844 L 325.445312 300.339844 C 335.066406 300.195312 344.835938 290.570312 344.835938 280.949219 Z M 273.109375 591.035156 C 273.109375 600.65625 280.835938 610.425781 290.601562 610.425781 L 726.792969 610.425781 C 738.457031 610.425781 746.183594 600.804688 746.183594 591.035156 C 746.183594 579.375 738.457031 571.648438 726.792969 571.648438 L 560.015625 571.648438 C 554.183594 571.648438 548.351562 565.816406 548.351562 559.984375 C 548.351562 554.152344 552.289062 550.363281 556.078125 548.320312 L 751.867188 548.320312 C 761.492188 548.320312 769.363281 538.699219 769.363281 528.929688 C 769.363281 517.269531 761.636719 509.542969 751.867188 509.542969 L 660.753906 509.542969 C 656.816406 507.648438 653.027344 501.816406 653.027344 497.878906 C 653.027344 492.046875 658.855469 486.214844 664.6875 486.214844 L 726.792969 486.214844 C 738.457031 486.214844 746.183594 476.59375 746.183594 466.828125 C 746.183594 455.164062 738.457031 447.4375 726.792969 447.4375 L 540.625 447.4375 C 531.003906 447.4375 521.234375 455.164062 521.234375 466.828125 C 521.234375 476.449219 530.859375 486.214844 540.625 486.214844 L 583.339844 486.214844 C 591.066406 486.214844 596.898438 492.046875 596.898438 497.878906 C 596.898438 501.816406 592.960938 507.5 589.171875 509.542969 L 437.847656 509.542969 C 426.183594 509.542969 418.457031 517.269531 418.457031 528.929688 C 418.457031 538.554688 426.183594 548.320312 437.847656 548.320312 L 478.519531 548.320312 C 484.351562 550.214844 486.246094 554.152344 486.246094 559.984375 C 486.246094 565.816406 480.414062 571.648438 474.585938 571.648438 L 290.457031 571.648438 C 280.835938 571.648438 273.109375 579.375 273.109375 591.035156 Z M 77.320312 591.035156 C 77.320312 600.65625 86.941406 610.425781 96.707031 610.425781 L 228.5 610.425781 C 238.121094 610.425781 247.886719 600.804688 247.886719 591.035156 C 247.886719 579.375 238.265625 571.648438 228.5 571.648438 L 96.707031 571.648438 C 86.941406 571.648438 77.320312 579.375 77.320312 591.035156 Z M 85.046875 405.015625 C 85.046875 414.636719 94.667969 424.402344 104.433594 424.402344 L 220.773438 424.402344 C 232.433594 424.402344 240.160156 414.78125 240.160156 405.015625 C 240.160156 393.351562 232.433594 385.625 220.773438 385.625 L 104.433594 385.625 C 94.667969 385.625 85.046875 393.351562 85.046875 405.015625 Z M 494.121094 342.910156 C 494.121094 352.53125 503.742188 362.296875 513.507812 362.296875 L 563.804688 362.296875 C 573.425781 362.296875 583.195312 352.675781 583.195312 342.910156 C 583.195312 331.246094 573.574219 323.519531 563.804688 323.519531 L 513.363281 323.519531 C 503.742188 323.519531 494.121094 331.246094 494.121094 342.910156 Z M 494.121094 342.910156 " />
+									</g>
+								</g>
+							</svg>
+						</div>
+
 						{/* Welcome message above chat input */}
-						<div className="text-center space-y-3 max-w-[500px] mx-auto -mt-8">
-							<h2 className="text-xl font-medium text-vscode-foreground">
+						<div className="space-y-3 max-w-[500px] mx-auto pl-4">
+							<h2 className="text-xl font-medium text-vscode-foreground text-left">
 								Welcome back{currentUser?.name ? ` ${currentUser.name.split(" ")[0]}` : ""}
 							</h2>
-							<p className="text-vscode-descriptionForeground text-sm leading-relaxed">
+							<p className="text-vscode-descriptionForeground text-sm leading-relaxed text-left">
 								Ready to pick up where you left off or launch something new with your AI coding
 								assistant?
 							</p>
-							<p className="text-vscode-descriptionForeground text-xs opacity-75">
-								Just exploring?{" "}
-								<span className="text-orange-500 cursor-pointer hover:text-orange-400 transition-colors">
-									Start in a temporary chat
-								</span>
-							</p>
 						</div>
 
-						{/* Chat input centered with welcome content when no active task - px-2 for closer to borders */}
-						<div className="max-w-4xl w-full mx-auto">
-							<ChatTextArea
-								ref={textAreaRef}
-								inputValue={inputValue}
-								setInputValue={setInputValue}
-								sendingDisabled={sendingDisabled || isProfileDisabled}
-								selectApiConfigDisabled={sendingDisabled && clineAsk !== "api_req_failed"}
-								placeholderText={placeholderText}
-								selectedImages={selectedImages}
-								setSelectedImages={setSelectedImages}
-								onSend={(text) => handleSendMessage(text || inputValue, selectedImages)}
-								onSelectImages={selectImages}
-								shouldDisableImages={shouldDisableImages}
-								onHeightChange={() => {
-									if (isAtBottom) {
-										scrollToBottomAuto()
-									}
-								}}
-								mode={mode}
-								setMode={setMode}
-								modeShortcutText={modeShortcutText}
-								isStreaming={isStreaming}
-								onCancel={() => {
-									vscode.postMessage({ type: "cancelTask" })
-									setDidClickCancel(true)
-								}}
-								showResumeTask={clineAsk === "resume_task"}
-								onResumeTask={() => handlePrimaryButtonClick(inputValue, selectedImages)}
-								onTerminateTask={() => {
-									vscode.postMessage({ type: "terminateTask" })
-									setSendingDisabled(true)
-									setClineAsk(undefined)
-									setEnableButtons(false)
-								}}
-								showRetry={clineAsk === "api_req_failed"}
-								onRetry={() => handlePrimaryButtonClick(inputValue, selectedImages)}
-								selectedModel={selectedModel}
-								onModelChange={handleModelChange}
-								onModelSettingsClick={handleModelSettingsClick}
-							/>
-						</div>
+						{/* Action buttons when no workspace is open */}
+						{(!cwd || cwd.trim() === "") && (
+							<div className="space-y-2 pl-4">
+								<button
+									onClick={() => vscode.postMessage({ type: "openFolder" })}
+									className="flex items-center gap-2 px-3 py-2 border border-vscode-panel-border hover:border-vscode-focusBorder text-vscode-foreground rounded transition-colors text-left">
+									<span className="codicon codicon-folder-opened"></span>
+									<span>Open workspace</span>
+								</button>
+								<button
+									onClick={() => vscode.postMessage({ type: "cloneRepository" })}
+									className="flex items-center gap-2 px-3 py-2 border border-vscode-panel-border hover:border-vscode-focusBorder text-vscode-foreground rounded transition-colors text-left">
+									<span className="codicon codicon-repo-clone"></span>
+									<span>Clone a repository</span>
+								</button>
+								<div className="space-y-2">
+									<button
+										onClick={() => setShowCreateWorkspaceInput(!showCreateWorkspaceInput)}
+										className="flex items-center gap-2 px-3 py-2 border border-vscode-panel-border hover:border-vscode-focusBorder text-vscode-foreground rounded transition-colors text-left">
+										<span className="codicon codicon-add"></span>
+										<span>Create a new workspace</span>
+									</button>
+									{showCreateWorkspaceInput && (
+										<div className="ml-6 space-y-2">
+											<input
+												type="text"
+												placeholder="Enter folder name..."
+												className="px-3 py-1 text-sm bg-vscode-input-background border border-vscode-input-border text-vscode-input-foreground placeholder-vscode-input-placeholderForeground rounded focus:outline-none focus:border-vscode-focusBorder"
+												autoFocus
+												onKeyDown={(e) => {
+													if (e.key === "Enter") {
+														const folderName = (e.target as HTMLInputElement).value.trim()
+														if (folderName) {
+															vscode.postMessage({
+																type: "createWorkspaceFolder",
+																text: folderName,
+															})
+															;(e.target as HTMLInputElement).value = ""
+															setShowCreateWorkspaceInput(false)
+														}
+													}
+													if (e.key === "Escape") {
+														setShowCreateWorkspaceInput(false)
+													}
+												}}
+											/>
+											<div className="text-xs text-vscode-descriptionForeground">
+												Press Enter to create folder, Escape to cancel
+											</div>
+										</div>
+									)}
+								</div>
+							</div>
+						)}
+
+						{/* Chat input centered with welcome content when no active task - only show if workspace is open */}
+						{cwd && cwd.trim() !== "" && (
+							<div className="max-w-4xl w-full mx-auto">
+								<ChatTextArea
+									ref={textAreaRef}
+									inputValue={inputValue}
+									setInputValue={setInputValue}
+									sendingDisabled={sendingDisabled || isProfileDisabled}
+									selectApiConfigDisabled={sendingDisabled && clineAsk !== "api_req_failed"}
+									placeholderText={placeholderText}
+									selectedImages={selectedImages}
+									setSelectedImages={setSelectedImages}
+									onSend={(text) => handleSendMessage(text || inputValue, selectedImages)}
+									onSelectImages={selectImages}
+									shouldDisableImages={shouldDisableImages}
+									onHeightChange={() => {
+										if (isAtBottom) {
+											scrollToBottomAuto()
+										}
+									}}
+									mode={mode}
+									setMode={setMode}
+									modeShortcutText={modeShortcutText}
+									isStreaming={isStreaming}
+									onCancel={() => {
+										vscode.postMessage({ type: "cancelTask" })
+										setDidClickCancel(true)
+									}}
+									showResumeTask={clineAsk === "resume_task"}
+									onResumeTask={() => handlePrimaryButtonClick(inputValue, selectedImages)}
+									onTerminateTask={() => {
+										vscode.postMessage({ type: "terminateTask" })
+										setSendingDisabled(true)
+										setClineAsk(undefined)
+										setEnableButtons(false)
+									}}
+									showRetry={clineAsk === "api_req_failed"}
+									onRetry={() => handlePrimaryButtonClick(inputValue, selectedImages)}
+									selectedModel={selectedModel}
+									onModelChange={handleModelChange}
+									onModelSettingsClick={handleModelSettingsClick}
+								/>
+							</div>
+						)}
 
 						{/* Show the task history preview if chats exist - moved below chat input */}
 						{chats.length > 0 && <HistoryPreview />}
@@ -1659,6 +1740,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 					selectedModel={selectedModel}
 					onModelChange={handleModelChange}
 					onModelSettingsClick={handleModelSettingsClick}
+					diffBarVisible={isDiffBarVisible}
 				/>
 			)}
 

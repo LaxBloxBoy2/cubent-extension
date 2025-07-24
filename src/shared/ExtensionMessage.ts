@@ -87,6 +87,7 @@ export interface ExtensionMessage {
 		| "configuration"
 		| "autocompleteConnectionResult"
 		| "secretValue"
+		| "trackedChanges"
 	text?: string
 	action?:
 		| "chatButtonClicked"
@@ -142,6 +143,7 @@ export interface ExtensionMessage {
 	modelId?: string
 	key?: string
 	secretValue?: string
+	changes?: any[]
 }
 
 export type ExtensionState = Pick<

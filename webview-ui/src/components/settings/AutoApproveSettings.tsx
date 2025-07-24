@@ -5,6 +5,7 @@ import { useAppTranslation } from "@/i18n/TranslationContext"
 import { VSCodeCheckbox } from "@vscode/webview-ui-toolkit/react"
 import { vscode } from "@/utils/vscode"
 import { Button, Input, Slider } from "@/components/ui"
+import { Switch } from "@/components/ui/switch"
 
 import { SetCachedStateField } from "./types"
 import { SectionHeader } from "./SectionHeader"
@@ -62,6 +63,9 @@ export const AutoApproveSettings = ({
 	const { t } = useAppTranslation()
 	const [commandInput, setCommandInput] = useState("")
 
+	// Check if "Allow All" is currently enabled
+	const isAllowAllEnabled = allowedCommands?.includes("*") ?? false
+
 	const handleAddCommand = () => {
 		const currentCommands = allowedCommands ?? []
 
@@ -73,10 +77,19 @@ export const AutoApproveSettings = ({
 		}
 	}
 
-	const handleAllowAllCommands = () => {
-		const newCommands = ["*"]
-		setCachedStateField("allowedCommands", newCommands)
-		vscode.postMessage({ type: "allowedCommands", commands: newCommands })
+	const handleAllowAllToggle = (enabled: boolean) => {
+		if (enabled) {
+			// Enable "Allow All" - set commands to ["*"]
+			const newCommands = ["*"]
+			setCachedStateField("allowedCommands", newCommands)
+			vscode.postMessage({ type: "allowedCommands", commands: newCommands })
+		} else {
+			// Disable "Allow All" - remove "*" and keep other commands
+			const currentCommands = allowedCommands ?? []
+			const newCommands = currentCommands.filter((cmd) => cmd !== "*")
+			setCachedStateField("allowedCommands", newCommands)
+			vscode.postMessage({ type: "allowedCommands", commands: newCommands })
+		}
 	}
 
 	return (
@@ -201,11 +214,27 @@ export const AutoApproveSettings = ({
 
 						<div>
 							<label className="block font-medium mb-1" data-testid="allowed-commands-heading">
-								{t("settings:autoApprove.execute.allowedCommands")}
+								Allowed Auto-Execute Commands
 							</label>
-							<div className="text-vscode-descriptionForeground text-sm mt-1">
-								{t("settings:autoApprove.execute.allowedCommandsDescription")}
+							<div className="text-vscode-descriptionForeground text-sm mt-1 mb-3">
+								Command prefixes that can be auto-executed when "Always approve execute operations" is
+								enabled. This setting overrides the auto-approve execute operations setting.
 							</div>
+						</div>
+
+						{/* Allow All toggle */}
+						<div className="flex items-center justify-between gap-3 mb-3">
+							<div className="flex flex-col">
+								<span className="text-sm font-medium">Allow All</span>
+								<span className="text-xs text-vscode-descriptionForeground">
+									Allow all commands (use with caution)
+								</span>
+							</div>
+							<Switch
+								checked={isAllowAllEnabled}
+								onCheckedChange={handleAllowAllToggle}
+								data-testid="allow-all-commands-toggle"
+							/>
 						</div>
 
 						<div className="flex gap-2">
@@ -218,20 +247,15 @@ export const AutoApproveSettings = ({
 										handleAddCommand()
 									}
 								}}
-								placeholder={t("settings:autoApprove.execute.commandPlaceholder")}
-								className="grow"
+								placeholder="Enter command prefix (e.g., 'git ')"
+								className="grow rounded-lg"
 								data-testid="command-input"
 							/>
-							<Button className="h-8" onClick={handleAddCommand} data-testid="add-command-button">
-								{t("settings:autoApprove.execute.addButton")}
-							</Button>
 							<Button
-								className="h-8"
-								variant="outline"
-								onClick={handleAllowAllCommands}
-								data-testid="allow-all-commands-button"
-								title="Allow all commands (use with caution)">
-								Allow All (*)
+								className="h-8 rounded-lg"
+								onClick={handleAddCommand}
+								data-testid="add-command-button">
+								Add
 							</Button>
 						</div>
 
@@ -240,6 +264,7 @@ export const AutoApproveSettings = ({
 								<Button
 									key={index}
 									variant="secondary"
+									className="rounded-lg"
 									data-testid={`remove-command-${index}`}
 									onClick={() => {
 										const newCommands = (allowedCommands ?? []).filter((_, i) => i !== index)
@@ -247,7 +272,7 @@ export const AutoApproveSettings = ({
 										vscode.postMessage({ type: "allowedCommands", commands: newCommands })
 									}}>
 									<div className="flex flex-row items-center gap-1">
-										<div>{cmd}</div>
+										<div>{cmd === "*" ? "Allowed All" : cmd}</div>
 										<X className="text-foreground scale-75" />
 									</div>
 								</Button>

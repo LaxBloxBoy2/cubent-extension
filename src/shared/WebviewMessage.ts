@@ -188,6 +188,10 @@ export interface WebviewMessage {
 		| "updateOpenRouterModel"
 		| "storeSecret"
 		| "getSecret"
+		| "openFolder"
+		| "cloneRepository"
+		| "newProject"
+		| "createWorkspaceFolder"
 	text?: string
 	disabled?: boolean
 	askResponse?: ClineAskResponse
