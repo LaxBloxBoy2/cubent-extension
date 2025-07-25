@@ -10,7 +10,6 @@ import { BrowserAction, BrowserActionResult, ClineSayBrowserAction } from "@shar
 
 import { vscode } from "@src/utils/vscode"
 import { useExtensionState } from "@src/context/ExtensionStateContext"
-import { formatDate } from "@src/utils/format"
 
 import CodeBlock, { CODE_BLOCK_BG_COLOR } from "../common/CodeBlock"
 import { ChatRowContent } from "./ChatRow"
@@ -32,7 +31,6 @@ const BrowserSessionRow = memo((props: BrowserSessionRowProps) => {
 	const prevHeightRef = useRef(0)
 	const [maxActionHeight, setMaxActionHeight] = useState(0)
 	const [consoleLogsExpanded, setConsoleLogsExpanded] = useState(false)
-	const [hasValidHeight, setHasValidHeight] = useState(false)
 
 	const { browserViewportSize = "900x600" } = useExtensionState()
 	const [viewportWidth, viewportHeight] = browserViewportSize.split("x").map(Number)
@@ -403,54 +401,13 @@ const BrowserSessionRow = memo((props: BrowserSessionRowProps) => {
 	// Height change effect
 	useEffect(() => {
 		const isInitialRender = prevHeightRef.current === 0
-		const isValidHeight = rowHeight > 0 && rowHeight !== Infinity && isFinite(rowHeight)
-
-		if (isValidHeight && !hasValidHeight) {
-			setHasValidHeight(true)
-		}
-
-		if (isLast && isValidHeight && rowHeight !== prevHeightRef.current) {
+		if (isLast && rowHeight !== 0 && rowHeight !== Infinity && rowHeight !== prevHeightRef.current) {
 			if (!isInitialRender) {
 				onHeightChange(rowHeight > prevHeightRef.current)
 			}
 			prevHeightRef.current = rowHeight
 		}
-	}, [rowHeight, isLast, onHeightChange, hasValidHeight])
-
-	// Always render the fallback until we have a valid height measurement
-	if (!hasValidHeight || rowHeight === 0 || rowHeight === Infinity || !isFinite(rowHeight)) {
-		// Simplified fallback render - just show basic content without complex layout
-		return (
-			<div style={{ padding: "10px 6px 10px 15px", marginBottom: -10 }}>
-				<div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "10px" }}>
-					{isBrowsing ? (
-						<ProgressIndicator />
-					) : (
-						<span
-							className={`codicon codicon-inspect`}
-							style={{ color: "var(--vscode-foreground)", marginBottom: "-1.5px" }}></span>
-					)}
-					<span style={{ fontWeight: "500", fontSize: "12px", color: "var(--vscode-foreground)" }}>
-						{t("browserSession.title")}
-					</span>
-					{!isBrowsing && (
-						<span style={{ fontSize: "11px", color: "var(--vscode-descriptionForeground)" }}>
-							{formatDate(messages[0]?.ts)}
-						</span>
-					)}
-				</div>
-				{/* Render basic content without complex height calculations */}
-				{messages.map((message) => (
-					<BrowserSessionRowContent
-						key={message.ts}
-						{...props}
-						message={message}
-						setMaxActionHeight={setMaxActionHeight}
-					/>
-				))}
-			</div>
-		)
-	}
+	}, [rowHeight, isLast, onHeightChange])
 
 	return browserSessionRow
 }, deepEqual)

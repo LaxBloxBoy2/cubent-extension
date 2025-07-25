@@ -1181,14 +1181,21 @@ export class ClineProvider
 			throw error
 		}
 
+		// Always use "OpenRouter (BYOK)" profile name to avoid overriding other profiles
+		const openRouterProfileName = "OpenRouter (BYOK)"
+
+		// Get the existing OpenRouter profile configuration if it exists
+		const profiles = await this.providerSettingsManager.load()
+		const existingOpenRouterConfig = profiles.apiConfigs[openRouterProfileName] || {}
+
 		const newConfiguration: ProviderSettings = {
-			...apiConfiguration,
+			...existingOpenRouterConfig, // Preserve existing OpenRouter settings
 			apiProvider: "openrouter",
 			openRouterApiKey: apiKey,
-			openRouterModelId: apiConfiguration?.openRouterModelId || openRouterDefaultModelId,
+			openRouterModelId: existingOpenRouterConfig.openRouterModelId || apiConfiguration?.openRouterModelId || openRouterDefaultModelId,
 		}
 
-		await this.upsertProviderProfile(currentApiConfigName, newConfiguration)
+		await this.upsertProviderProfile(openRouterProfileName, newConfiguration)
 	}
 
 	// Glama
