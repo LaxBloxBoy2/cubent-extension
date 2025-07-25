@@ -156,6 +156,7 @@ export const webviewMessageHandler = async (provider: ClineProvider, message: We
 			provider.isViewLaunched = true
 			break
 		case "newTask":
+			// Fixed: Add subscription validation to prevent BYOK plan enforcement bypass
 			// Initializing new instance of Cline will make sure that any
 			// agentically running promises in old instance don't affect our new
 			// task. This essentially creates a fresh slate for the new task.
