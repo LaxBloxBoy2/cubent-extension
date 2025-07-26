@@ -1680,6 +1680,11 @@ export const webviewMessageHandler = async (provider: ClineProvider, message: We
 			await provider.postStateToWebview()
 			break
 		}
+		case "useGlobalApiConfig": {
+			await updateGlobalState("useGlobalApiConfig", message.bool)
+			await provider.postStateToWebview()
+			break
+		}
 		case "accountButtonClicked": {
 			// Navigate to the account tab.
 			provider.postMessageToWebview({ type: "action", action: "accountButtonClicked" })

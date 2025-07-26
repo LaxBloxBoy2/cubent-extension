@@ -29,6 +29,7 @@ export interface ExtensionStateContextType extends ExtensionState {
 	showContextButton?: boolean // Add the new state property
 	showEnhancePromptButton?: boolean // Add the new state property
 	showAddImagesButton?: boolean // Add the new state property
+	useGlobalApiConfig?: boolean // Add the new state property
 	didHydrateState: boolean
 	showWelcome: boolean
 	theme: any
@@ -221,6 +222,7 @@ export const ExtensionStateContextProvider: React.FC<{ children: React.ReactNode
 		showContextButton: true, // Default to show context button
 		showEnhancePromptButton: true, // Default to show enhance prompt button
 		showAddImagesButton: true, // Default to show add images button
+		useGlobalApiConfig: true, // Default to use global API config for all modes
 		hiddenProfiles: [], // Default to no hidden profiles
 		cloudUserInfo: null,
 		organizationAllowList: ORGANIZATION_ALLOW_ALL,

@@ -11,6 +11,8 @@
 	"command.history.title": "History",
 	"command.openInEditor.title": "Open in Editor",
 	"command.settings.title": "Settings",
+	"command.autocomplete.title": "Autocomplete",
+	"command.apiKey.title": "API Keys & Models",
 	"command.documentation.title": "Documentation",
 	"command.openInNewTab.title": "Open In New Tab",
 	"command.explainCode.title": "Clarify This Code",

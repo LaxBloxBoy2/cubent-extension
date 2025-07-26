@@ -106,6 +106,7 @@ export const globalSettingsSchema = z.object({
 	showEnhancePromptButton: z.boolean().optional(),
 	showAddImagesButton: z.boolean().optional(),
 	hiddenProfiles: z.array(z.string()).optional(),
+	useGlobalApiConfig: z.boolean().optional(),
 
 	// History Management Settings
 	maxChatHistoryLimit: z.number().optional(),
@@ -200,6 +201,7 @@ export const GLOBAL_SETTINGS_KEYS = keysOf<GlobalSettings>()([
 	"showEnhancePromptButton",
 	"showAddImagesButton",
 	"hiddenProfiles",
+	"useGlobalApiConfig",
 
 	"maxChatHistoryLimit",
 	"autoDeleteOldChats",

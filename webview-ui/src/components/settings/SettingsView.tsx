@@ -201,6 +201,7 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 		showContextButton,
 		showEnhancePromptButton,
 		showAddImagesButton,
+		useGlobalApiConfig,
 		customInstructions,
 	} = cachedState
 
@@ -372,6 +373,7 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 			vscode.postMessage({ type: "showContextButton", bool: showContextButton })
 			vscode.postMessage({ type: "showEnhancePromptButton", bool: showEnhancePromptButton })
 			vscode.postMessage({ type: "showAddImagesButton", bool: showAddImagesButton })
+			vscode.postMessage({ type: "useGlobalApiConfig", bool: useGlobalApiConfig })
 			vscode.postMessage({ type: "customInstructions", text: customInstructions })
 
 			vscode.postMessage({ type: "setHiddenProfiles", profiles: hiddenProfiles })
@@ -779,6 +781,7 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 							showContextButton={showContextButton}
 							showEnhancePromptButton={showEnhancePromptButton}
 							showAddImagesButton={showAddImagesButton}
+							useGlobalApiConfig={useGlobalApiConfig}
 							ttsEnabled={ttsEnabled}
 							ttsSpeed={ttsSpeed}
 							soundEnabled={soundEnabled}

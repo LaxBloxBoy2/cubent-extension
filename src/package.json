@@ -116,6 +116,16 @@
 				"icon": "$(settings-gear)"
 			},
 			{
+				"command": "cubent.autocompleteButtonClicked",
+				"title": "%command.autocomplete.title%",
+				"icon": "$(code)"
+			},
+			{
+				"command": "cubent.apiKeyButtonClicked",
+				"title": "%command.apiKey.title%",
+				"icon": "$(key)"
+			},
+			{
 				"command": "cubent.toggleAutoApprove",
 				"title": "OFF",
 				"icon": "$(circle-slash)"
@@ -239,8 +249,13 @@
 			],
 			"view/title": [
 				{
-					"command": "cubent.promptsButtonClicked",
-					"group": "navigation@1",
+					"command": "cubent.autocompleteButtonClicked",
+					"group": "navigation@5",
+					"when": "view == cubent.SidebarProvider"
+				},
+				{
+					"command": "cubent.apiKeyButtonClicked",
+					"group": "navigation@6",
 					"when": "view == cubent.SidebarProvider"
 				},
 				{
@@ -251,8 +266,13 @@
 			],
 			"editor/title": [
 				{
-					"command": "cubent.promptsButtonClicked",
-					"group": "navigation@1",
+					"command": "cubent.autocompleteButtonClicked",
+					"group": "navigation@5",
+					"when": "activeWebviewPanelId == cubent.TabPanelProvider"
+				},
+				{
+					"command": "cubent.apiKeyButtonClicked",
+					"group": "navigation@6",
 					"when": "activeWebviewPanelId == cubent.TabPanelProvider"
 				},
 				{

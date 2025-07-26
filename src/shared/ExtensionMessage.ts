@@ -216,6 +216,7 @@ export type ExtensionState = Pick<
 	| "showContextButton"
 	| "showEnhancePromptButton"
 	| "showAddImagesButton"
+	| "useGlobalApiConfig"
 	| "hiddenProfiles"
 > & {
 	version: string

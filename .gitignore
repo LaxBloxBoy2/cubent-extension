@@ -43,5 +43,3 @@ logs
 .idea/
 .qodo/
 
-# API Keys - keep built-in keys local only
-src/core/config/ProviderSettingsManager.ts

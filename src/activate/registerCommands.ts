@@ -136,6 +136,40 @@ const getCommandsMap = ({ context, outputChannel, provider }: RegisterCommandOpt
 		// Show settings in the same tab instead of opening a new tab
 		await visibleProvider.postMessageToWebview({ type: "action", action: "settingsButtonClicked" })
 	},
+	autocompleteButtonClicked: async () => {
+		TelemetryService.instance.captureTitleButtonClicked("autocomplete")
+
+		// Get the current visible provider to ensure we have the latest state
+		const visibleProvider = getVisibleProviderOrLog(outputChannel)
+
+		if (!visibleProvider) {
+			return
+		}
+
+		// Navigate directly to autocomplete settings section
+		await visibleProvider.postMessageToWebview({
+			type: "action",
+			action: "settingsButtonClicked",
+			values: { section: "autocomplete" },
+		})
+	},
+	apiKeyButtonClicked: async () => {
+		TelemetryService.instance.captureTitleButtonClicked("apiKey")
+
+		// Get the current visible provider to ensure we have the latest state
+		const visibleProvider = getVisibleProviderOrLog(outputChannel)
+
+		if (!visibleProvider) {
+			return
+		}
+
+		// Navigate directly to API Key & Models Management settings section
+		await visibleProvider.postMessageToWebview({
+			type: "action",
+			action: "settingsButtonClicked",
+			values: { section: "apiKeyManagement" },
+		})
+	},
 	toggleAutoApprove: async () => {
 		const visibleProvider = getVisibleProviderOrLog(outputChannel)
 

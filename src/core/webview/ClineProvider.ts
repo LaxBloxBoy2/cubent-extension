@@ -922,32 +922,38 @@ export class ClineProvider
 			await this.updateGlobalState("alwaysApproveResubmit", false)
 		}
 
-		// Load the saved API config for the new mode if it exists
-		const savedConfigId = await this.providerSettingsManager.getModeConfigId(newMode)
+		// Check if global API config is enabled
+		const useGlobalApiConfig = this.getGlobalState("useGlobalApiConfig") ?? true // Default to true for new users
 		const listApiConfig = await this.providerSettingsManager.listConfig()
 
 		// Update listApiConfigMeta first to ensure UI has latest data
 		await this.updateGlobalState("listApiConfigMeta", listApiConfig)
 
-		// If this mode has a saved config, use it.
-		if (savedConfigId) {
-			const profile = listApiConfig.find(({ id }) => id === savedConfigId)
+		if (!useGlobalApiConfig) {
+			// Per-mode configuration: Load the saved API config for this mode
+			const savedConfigId = await this.providerSettingsManager.getModeConfigId(newMode)
 
-			if (profile?.name) {
-				await this.activateProviderProfile({ name: profile.name })
-			}
-		} else {
-			// If no saved config for this mode, save current config as default.
-			const currentApiConfigName = this.getGlobalState("currentApiConfigName")
+			// If this mode has a saved config, use it.
+			if (savedConfigId) {
+				const profile = listApiConfig.find(({ id }) => id === savedConfigId)
 
-			if (currentApiConfigName) {
-				const config = listApiConfig.find((c) => c.name === currentApiConfigName)
+				if (profile?.name) {
+					await this.activateProviderProfile({ name: profile.name })
+				}
+			} else {
+				// If no saved config for this mode, save current config as default.
+				const currentApiConfigName = this.getGlobalState("currentApiConfigName")
 
-				if (config?.id) {
-					await this.providerSettingsManager.setModeConfig(newMode, config.id)
+				if (currentApiConfigName) {
+					const config = listApiConfig.find((c) => c.name === currentApiConfigName)
+
+					if (config?.id) {
+						await this.providerSettingsManager.setModeConfig(newMode, config.id)
+					}
 				}
 			}
 		}
+		// If useGlobalApiConfig is true, we don't change the configuration - it stays global
 
 		await this.postStateToWebview()
 	}
@@ -992,12 +998,20 @@ export class ClineProvider
 				// this.contextProxy.setValues({ ...providerSettings, listApiConfigMeta: ..., currentApiConfigName: ... })
 				// We should probably switch to that and verify that it works.
 				// I left the original implementation in just to be safe.
-				await Promise.all([
+				const useGlobalApiConfig = this.getGlobalState("useGlobalApiConfig") ?? true
+
+				const promises = [
 					this.updateGlobalState("listApiConfigMeta", await this.providerSettingsManager.listConfig()),
 					this.updateGlobalState("currentApiConfigName", name),
-					this.providerSettingsManager.setModeConfig(mode, id),
 					this.contextProxy.setProviderSettings(providerSettings),
-				])
+				]
+
+				// Only set mode-specific config if global API config is disabled
+				if (!useGlobalApiConfig) {
+					promises.push(this.providerSettingsManager.setModeConfig(mode, id))
+				}
+
+				await Promise.all(promises)
 
 				// Notify CodeIndexManager about the settings change
 				if (this.codeIndexManager) {
@@ -1061,8 +1075,10 @@ export class ClineProvider
 		])
 
 		const { mode } = await this.getState()
+		const useGlobalApiConfig = this.getGlobalState("useGlobalApiConfig") ?? true
 
-		if (id) {
+		// Only set mode-specific config if global API config is disabled
+		if (id && !useGlobalApiConfig) {
 			await this.providerSettingsManager.setModeConfig(mode, id)
 		}
 
@@ -1192,7 +1208,10 @@ export class ClineProvider
 			...existingOpenRouterConfig, // Preserve existing OpenRouter settings
 			apiProvider: "openrouter",
 			openRouterApiKey: apiKey,
-			openRouterModelId: existingOpenRouterConfig.openRouterModelId || apiConfiguration?.openRouterModelId || openRouterDefaultModelId,
+			openRouterModelId:
+				existingOpenRouterConfig.openRouterModelId ||
+				apiConfiguration?.openRouterModelId ||
+				openRouterDefaultModelId,
 		}
 
 		await this.upsertProviderProfile(openRouterProfileName, newConfiguration)

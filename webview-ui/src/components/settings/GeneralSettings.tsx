@@ -9,6 +9,7 @@ interface GeneralSettingsProps extends HTMLAttributes<HTMLDivElement> {
 	showContextButton?: boolean
 	showEnhancePromptButton?: boolean
 	showAddImagesButton?: boolean
+	useGlobalApiConfig?: boolean
 	ttsEnabled?: boolean
 	ttsSpeed?: number
 	soundEnabled?: boolean
@@ -17,6 +18,7 @@ interface GeneralSettingsProps extends HTMLAttributes<HTMLDivElement> {
 		| "showContextButton"
 		| "showEnhancePromptButton"
 		| "showAddImagesButton"
+		| "useGlobalApiConfig"
 		| "ttsEnabled"
 		| "ttsSpeed"
 		| "soundEnabled"
@@ -82,6 +84,7 @@ export default function GeneralSettings({
 	showContextButton = true,
 	showEnhancePromptButton = true,
 	showAddImagesButton = true,
+	useGlobalApiConfig = true,
 	ttsEnabled,
 	ttsSpeed,
 	soundEnabled,
@@ -127,6 +130,19 @@ export default function GeneralSettings({
 					/>
 				</div>
 
+				{/* API Configuration Section */}
+				<div className="mt-8">
+					<h2 className="text-base font-semibold text-vscode-foreground">API Configuration</h2>
+					<div className="divide-y divide-vscode-input-border">
+						<SettingRow
+							title="Use same API settings for all modes"
+							description="When enabled, all modes (Chat, Agent, Plan) will use the same API configuration. When disabled, each mode can have its own configuration."
+							checked={useGlobalApiConfig}
+							onChange={(checked) => setCachedStateField("useGlobalApiConfig", checked)}
+						/>
+					</div>
+				</div>
+
 				{/* Notifications Section - Sound Effects */}
 				<div className="mt-8">
 					<h2 className="text-base font-semibold text-vscode-foreground">
@@ -169,9 +185,7 @@ export default function GeneralSettings({
 
 				{/* TTS Section - Separate from Notifications */}
 				<div className="mt-8">
-					<h2 className="text-base font-semibold text-vscode-foreground">
-						TTS
-					</h2>
+					<h2 className="text-base font-semibold text-vscode-foreground">TTS</h2>
 					<div className="divide-y divide-vscode-input-border">
 						{/* Text-to-Speech Settings */}
 						<SettingRow

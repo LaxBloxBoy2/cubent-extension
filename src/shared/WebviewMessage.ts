@@ -180,6 +180,7 @@ export interface WebviewMessage {
 		| "showContextButton"
 		| "showEnhancePromptButton"
 		| "showAddImagesButton"
+		| "useGlobalApiConfig"
 		| "setProfileVisibility"
 		| "setHiddenProfiles"
 		| "getConfiguration"
