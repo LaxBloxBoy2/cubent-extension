@@ -286,8 +286,8 @@ importers:
         specifier: ^6.11.1
         version: 6.11.1(prisma@6.11.1(typescript@5.8.3))(typescript@5.8.3)
       '@qdrant/js-client-rest':
-        specifier: ^1.14.0
-        version: 1.14.0(typescript@5.8.3)
+        specifier: ^1.15.0
+        version: 1.15.0(typescript@5.8.3)
       '@supabase/supabase-js':
         specifier: ^2.38.0
         version: 2.50.3
@@ -371,7 +371,7 @@ importers:
         version: 12.0.0
       openai:
         specifier: ^4.78.1
-        version: 4.103.0(ws@8.18.3)(zod@3.24.4)
+        version: 4.103.0(ws@8.18.2)(zod@3.24.4)
       os-name:
         specifier: ^6.0.0
         version: 6.1.0
@@ -1221,6 +1221,10 @@ packages:
     resolution: {integrity: sha512-t3yaEOuGu9NlIZ+hIeGbBjFtZT7j2cb2tg0fuaJKeGotchRjjLfrBA9Kwf8quhpP1EUuxModQg04q/mBwyg8uA==}
     engines: {node: '>=6.9.0'}
 
+  '@babel/runtime@7.27.6':
+    resolution: {integrity: sha512-vbavdySgbTTrmFE+EsiqUTzlOr5bzlnJtUv9PynGCAKvfQqjIXbvFdumPM/GxMDfyuGMJaJAU6TO4zc1Jf1i8Q==}
+    engines: {node: '>=6.9.0'}
+
   '@babel/template@7.27.2':
     resolution: {integrity: sha512-LPDZ85aEJyYSd18/DkjNh4/y1ntkE5KwUHWTiqgRxruuZL2F1yuHligVHLvcHY2vMHXttKFpJn6LwfI7cw7ODw==}
     engines: {node: '>=6.9.0'}
@@ -1666,10 +1670,6 @@ packages:
     resolution: {integrity: sha512-0J+zgWxHN+xXONWIyPWKFMgVuJoZuGiIFu8yxk7RJjxkzpGmyja5wRFqZIVtjDVOQpV+Rw0iOAjYPE2eQyjr0w==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
 
-  '@fastify/busboy@2.1.1':
-    resolution: {integrity: sha512-vBZP4NlzfOlerQTnba4aqZoMhE/a9HY7HRqoOPaETQcSQuWEIyZMHGfVu6w9wGtGK5fED5qRs2DteVCjOH60sA==}
-    engines: {node: '>=14'}
-
   '@floating-ui/core@1.7.0':
     resolution: {integrity: sha512-FRdBLykrPPA6P76GGGqlex/e7fbe0F1ykgxHYNXQsH/iTEtjMj/f9bpY5oQqbjt5VgZvgz/uKXbGuROijh3VLA==}
 
@@ -1968,9 +1968,9 @@ packages:
     engines: {node: '>=18'}
     hasBin: true
 
-  '@qdrant/js-client-rest@1.14.0':
-    resolution: {integrity: sha512-2sM2g17FSkN2sNCSeAfqxHRr+SPEVnUQLXBjVv/whm4YQ4JjZ53Jiy1iShk95G+xBf3hKBhJdj8itRnor03IYw==}
-    engines: {node: '>=18.0.0', pnpm: '>=8'}
+  '@qdrant/js-client-rest@1.15.0':
+    resolution: {integrity: sha512-4aaEmjRbvrk//Ser+//M4NLCBBD2dwlIGWo7PPwdoWmQYlQYDc3Ey8KTiH9ZDsyufYhHX40P2jX4zHuqtdZwJw==}
+    engines: {node: '>=18.17.0', pnpm: '>=8'}
     peerDependencies:
       typescript: '>=4.7'
 
@@ -8484,10 +8484,6 @@ packages:
   undici-types@6.21.0:
     resolution: {integrity: sha512-iwDZqg0QAGrg9Rav5H4n0M64c3mkR59cJ6wQp+7C4nI0gsmExaedaYLNO44eT4AtBBwjbTiGPMlt2Md0T9H9JQ==}
 
-  undici@5.28.5:
-    resolution: {integrity: sha512-zICwjrDrcrUE0pyyJc1I2QzBkLM8FINsgOrt6WjA+BgajVq9Nxu2PbFFXUrAggLfDXlZGZBVZYw7WNV5KiBiBA==}
-    engines: {node: '>=14.0'}
-
   undici@6.21.3:
     resolution: {integrity: sha512-gBLkYIlEnSp8pFbT64yFgGE6UIB9tAkhukC23PmMDCe5Nd+cRqKxSjw5y54MK2AZMgZfJWMaNE4nYUHgi1XEOw==}
     engines: {node: '>=18.17'}
@@ -9852,6 +9848,8 @@ snapshots:
 
   '@babel/runtime@7.27.4': {}
 
+  '@babel/runtime@7.27.6': {}
+
   '@babel/template@7.27.2':
     dependencies:
       '@babel/code-frame': 7.27.1
@@ -10255,8 +10253,6 @@ snapshots:
     dependencies:
       '@eslint/core': 0.14.0
       levn: 0.4.1
-
-  '@fastify/busboy@2.1.1': {}
 
   '@floating-ui/core@1.7.0':
     dependencies:
@@ -10722,12 +10718,12 @@ snapshots:
       - bare-buffer
       - supports-color
 
-  '@qdrant/js-client-rest@1.14.0(typescript@5.8.3)':
+  '@qdrant/js-client-rest@1.15.0(typescript@5.8.3)':
     dependencies:
       '@qdrant/openapi-typescript-fetch': 1.2.6
       '@sevinf/maybe': 0.5.0
       typescript: 5.8.3
-      undici: 5.28.5
+      undici: 6.21.3
 
   '@qdrant/openapi-typescript-fetch@1.2.6': {}
 
@@ -12080,7 +12076,7 @@ snapshots:
   '@testing-library/dom@10.4.0':
     dependencies:
       '@babel/code-frame': 7.27.1
-      '@babel/runtime': 7.27.4
+      '@babel/runtime': 7.27.6
       '@types/aria-query': 5.0.4
       aria-query: 5.3.0
       chalk: 4.1.2
@@ -12916,7 +12912,7 @@ snapshots:
 
   babel-plugin-macros@3.1.0:
     dependencies:
-      '@babel/runtime': 7.27.4
+      '@babel/runtime': 7.27.6
       cosmiconfig: 7.1.0
       resolve: 1.22.10
     optional: true
@@ -16854,7 +16850,7 @@ snapshots:
       is-docker: 2.2.1
       is-wsl: 2.2.0
 
-  openai@4.103.0(ws@8.18.3)(zod@3.24.4):
+  openai@4.103.0(ws@8.18.2)(zod@3.24.4):
     dependencies:
       '@types/node': 18.19.100
       '@types/node-fetch': 2.6.12
@@ -16864,7 +16860,7 @@ snapshots:
       formdata-node: 4.4.1
       node-fetch: 2.7.0
     optionalDependencies:
-      ws: 8.18.3
+      ws: 8.18.2
       zod: 3.24.4
     transitivePeerDependencies:
       - encoding
@@ -18647,10 +18643,6 @@ snapshots:
   undici-types@6.19.8: {}
 
   undici-types@6.21.0: {}
-
-  undici@5.28.5:
-    dependencies:
-      '@fastify/busboy': 2.1.1
 
   undici@6.21.3: {}
 
